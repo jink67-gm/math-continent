@@ -1,0 +1,974 @@
+{
+ "00": {
+  "name": "grass_blueflowers",
+  "real": "꽃(파란) 잔디",
+  "gutter": {
+   "top": 0,
+   "bottom": 6,
+   "left": 1,
+   "right": 3
+  },
+  "seam_raw": [
+   4.75,
+   1.94
+  ],
+  "seam_cropped": [
+   0.95,
+   1.66
+  ],
+  "use": "꽃 장식",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    0,
+    61,
+    62
+   ]
+  }
+ },
+ "01": {
+  "name": "grass_dirt_patch",
+  "real": "잔디+흙 웅덩이",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 5
+  },
+  "seam_raw": [
+   2.16,
+   1.91
+  ],
+  "seam_cropped": [
+   2.14,
+   3.81
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    59,
+    60
+   ]
+  }
+ },
+ "02": {
+  "name": "grass_dirt_wide",
+  "real": "흙(넓은)+잔디 테두리",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   3.28,
+   3.41
+  ],
+  "seam_cropped": [
+   3.66,
+   4.53
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    58,
+    59
+   ],
+   "cols": [
+    0,
+    58,
+    59
+   ]
+  }
+ },
+ "03": {
+  "name": "dirt_main",
+  "real": "흙 바닥",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   4.87,
+   3.9
+  ],
+  "seam_cropped": [
+   8.25,
+   3.34
+  ],
+  "use": "흙길(가운데만)",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    58
+   ]
+  }
+ },
+ "04": {
+  "name": "grass_wildflowers",
+  "real": "들꽃 잔디(어두움)",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   1.09,
+   1.49
+  ],
+  "seam_cropped": [
+   0.98,
+   1.16
+  ],
+  "use": "잔디 변화",
+  "lines": {
+   "rows": [
+    51,
+    59
+   ],
+   "cols": [
+    57
+   ]
+  }
+ },
+ "05": {
+  "name": "grass_buttercups",
+  "real": "노란꽃 잔디",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 4
+  },
+  "seam_raw": [
+   3.25,
+   2.99
+  ],
+  "seam_cropped": [
+   2.44,
+   1.72
+  ],
+  "use": "꽃 장식",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    56,
+    57
+   ]
+  }
+ },
+ "06": {
+  "name": "cliff_forest_top",
+  "real": "숲 절벽+물 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   1.78,
+   1.72
+  ],
+  "seam_cropped": [
+   1.62,
+   4.32
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    8,
+    43,
+    57
+   ]
+  }
+ },
+ "07": {
+  "name": "forest_dense",
+  "real": "숲(나무 덮개)+물 가장자리",
+  "gutter": {
+   "top": 0,
+   "bottom": 5,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   2.68,
+   3.07
+  ],
+  "seam_cropped": [
+   3.0,
+   1.61
+  ],
+  "use": "숲 덮개(왼쪽만)",
+  "lines": {
+   "rows": [
+    59
+   ],
+   "cols": [
+    25,
+    57
+   ]
+  }
+ },
+ "08": {
+  "name": "cliff_green",
+  "real": "풀 덮인 절벽",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 1,
+   "right": 3
+  },
+  "seam_raw": [
+   7.0,
+   1.92
+  ],
+  "seam_cropped": [
+   3.77,
+   2.25
+  ],
+  "use": "절벽 윗단",
+  "lines": {
+   "rows": [
+    55,
+    56
+   ],
+   "cols": [
+    0,
+    46,
+    61
+   ]
+  }
+ },
+ "09": {
+  "name": "dirt_grass_transition",
+  "real": "흙→잔디 전환",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 5
+  },
+  "seam_raw": [
+   2.47,
+   3.18
+  ],
+  "seam_cropped": [
+   1.43,
+   3.89
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    56
+   ],
+   "cols": [
+    59,
+    60
+   ]
+  }
+ },
+ "10": {
+  "name": "dirt_grass_transition_2",
+  "real": "흙→잔디 전환2",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   2.85,
+   4.64
+  ],
+  "seam_cropped": [
+   3.11,
+   6.02
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    56
+   ],
+   "cols": [
+    58,
+    59
+   ]
+  }
+ },
+ "11": {
+  "name": "path_grass_transition",
+  "real": "길→잔디 전환",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   4.31,
+   3.22
+  ],
+  "seam_cropped": [
+   5.66,
+   3.61
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    56
+   ],
+   "cols": [
+    57,
+    58
+   ]
+  }
+ },
+ "12": {
+  "name": "grass_daisies",
+  "real": "데이지 잔디",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   3.5,
+   1.9
+  ],
+  "seam_cropped": [
+   3.5,
+   1.9
+  ],
+  "use": "잔디 변화",
+  "lines": {
+   "rows": [
+    55,
+    56
+   ],
+   "cols": [
+    56,
+    57
+   ]
+  }
+ },
+ "13": {
+  "name": "riverbank_dirt",
+  "real": "흙+강가 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   6.1,
+   4.88
+  ],
+  "seam_cropped": [
+   6.1,
+   4.88
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    56
+   ],
+   "cols": [
+    56,
+    57
+   ]
+  }
+ },
+ "14": {
+  "name": "cliff_wet",
+  "real": "절벽+물 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   3.47,
+   3.21
+  ],
+  "seam_cropped": [
+   3.47,
+   3.21
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    55,
+    56
+   ],
+   "cols": [
+    8,
+    57
+   ]
+  }
+ },
+ "15": {
+  "name": "cliff_trees",
+  "real": "절벽+나무+물 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   2.04,
+   1.41
+  ],
+  "seam_cropped": [
+   2.04,
+   1.41
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    55,
+    56
+   ],
+   "cols": [
+    25,
+    32,
+    57
+   ]
+  }
+ },
+ "16": {
+  "name": "grass_roseflowers",
+  "real": "장미꽃 잔디",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 1,
+   "right": 3
+  },
+  "seam_raw": [
+   3.59,
+   1.66
+  ],
+  "seam_cropped": [
+   1.1,
+   1.82
+  ],
+  "use": "꽃 장식",
+  "lines": {
+   "rows": [
+    0,
+    45,
+    46,
+    52
+   ],
+   "cols": [
+    0,
+    61,
+    62
+   ]
+  }
+ },
+ "17": {
+  "name": "grass_flowerbed",
+  "real": "꽃밭",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 5
+  },
+  "seam_raw": [
+   1.69,
+   2.32
+  ],
+  "seam_cropped": [
+   1.24,
+   2.48
+  ],
+  "use": "꽃밭 장식",
+  "lines": {
+   "rows": [
+    17,
+    46,
+    52
+   ],
+   "cols": [
+    59,
+    60
+   ]
+  }
+ },
+ "18": {
+  "name": "cliff_wall_1",
+  "real": "절벽 벽1(물 가장자리 섞임)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   2.08,
+   2.73
+  ],
+  "seam_cropped": [
+   3.0,
+   3.02
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    52,
+    53
+   ],
+   "cols": [
+    58,
+    59
+   ]
+  }
+ },
+ "19": {
+  "name": "cliff_wall_2",
+  "real": "절벽 벽2(물 가장자리 섞임)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   2.45,
+   6.15
+  ],
+  "seam_cropped": [
+   2.02,
+   6.81
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    52
+   ],
+   "cols": [
+    26,
+    57,
+    58
+   ]
+  }
+ },
+ "20": {
+  "name": "cliff_top_edge",
+  "real": "둥근 절벽+물 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   5.22,
+   4.03
+  ],
+  "seam_cropped": [
+   5.22,
+   4.03
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    52
+   ],
+   "cols": [
+    25,
+    57
+   ]
+  }
+ },
+ "21": {
+  "name": "water_rockedge",
+  "real": "물+풀섬 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   2.7,
+   4.56
+  ],
+  "seam_cropped": [
+   2.7,
+   4.56
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    52,
+    53
+   ],
+   "cols": [
+    56,
+    57
+   ]
+  }
+ },
+ "22": {
+  "name": "river_bend",
+  "real": "물(위)+잔디(아래) 강둑",
+  "gutter": {
+   "top": 1,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   3.06,
+   3.29
+  ],
+  "seam_cropped": [
+   3.06,
+   3.38
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    0,
+    1,
+    52
+   ],
+   "cols": [
+    57
+   ]
+  }
+ },
+ "23": {
+  "name": "river_ripple",
+  "real": "잔디+물 웅덩이 혼합",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   2.98,
+   3.07
+  ],
+  "seam_cropped": [
+   2.98,
+   3.07
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    52
+   ],
+   "cols": [
+    24,
+    25,
+    57,
+    58
+   ]
+  }
+ },
+ "24": {
+  "name": "cliff_wall_wide",
+  "real": "절벽 벽(넓음)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 1,
+   "right": 6
+  },
+  "seam_raw": [
+   3.62,
+   5.5
+  ],
+  "seam_cropped": [
+   3.07,
+   6.26
+  ],
+  "use": "절벽 벽",
+  "lines": {
+   "rows": [],
+   "cols": [
+    0,
+    29,
+    44,
+    61
+   ]
+  }
+ },
+ "25": {
+  "name": "forest_underbrush",
+  "real": "절벽 벽(manifest엔 forest_underbrush)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 5
+  },
+  "seam_raw": [
+   4.43,
+   5.01
+  ],
+  "seam_cropped": [
+   4.69,
+   5.69
+  ],
+  "use": "절벽 벽",
+  "lines": {
+   "rows": [],
+   "cols": [
+    27
+   ]
+  }
+ },
+ "26": {
+  "name": "water_surface",
+  "real": "덤불 잔디(manifest엔 water_surface)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   3.75,
+   2.47
+  ],
+  "seam_cropped": [
+   2.41,
+   2.86
+  ],
+  "use": "덤불 장식",
+  "lines": {
+   "rows": [
+    40
+   ],
+   "cols": [
+    58,
+    59
+   ]
+  }
+ },
+ "27": {
+  "name": "waterfall",
+  "real": "물(manifest엔 waterfall)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 6
+  },
+  "seam_raw": [
+   6.71,
+   6.43
+  ],
+  "seam_cropped": [
+   12.21,
+   8.25
+  ],
+  "use": "물",
+  "lines": {
+   "rows": [],
+   "cols": [
+    57,
+    58
+   ]
+  }
+ },
+ "28": {
+  "name": "bridge_water",
+  "real": "폭포(manifest엔 bridge_water)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 3,
+   "right": 0
+  },
+  "seam_raw": [
+   2.05,
+   1.83
+  ],
+  "seam_cropped": [
+   2.51,
+   1.91
+  ],
+  "use": "제외",
+  "lines": {
+   "rows": [
+    17,
+    61
+   ],
+   "cols": [
+    1,
+    2,
+    48,
+    49,
+    57
+   ]
+  }
+ },
+ "29": {
+  "name": "cliff_grassy",
+  "real": "나무다리(manifest엔 cliff_grassy)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 4,
+   "right": 0
+  },
+  "seam_raw": [
+   2.79,
+   2.62
+  ],
+  "seam_cropped": [
+   3.17,
+   2.66
+  ],
+  "use": "다리",
+  "lines": {
+   "rows": [
+    12,
+    17,
+    18,
+    44,
+    45,
+    54
+   ],
+   "cols": [
+    2,
+    3,
+    15,
+    24,
+    25,
+    35,
+    36,
+    47,
+    48,
+    56,
+    57
+   ]
+  }
+ },
+ "30": {
+  "name": "grass_plain",
+  "real": "풀 덮인 절벽(manifest엔 grass_plain)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   3.66,
+   3.69
+  ],
+  "seam_cropped": [
+   3.66,
+   3.69
+  ],
+  "use": "절벽 윗단",
+  "lines": {
+   "rows": [
+    3,
+    16
+   ],
+   "cols": [
+    57
+   ]
+  }
+ },
+ "31": {
+  "name": "grass_path_edge",
+  "real": "민 잔디(manifest엔 grass_path_edge)",
+  "gutter": {
+   "top": 0,
+   "bottom": 0,
+   "left": 0,
+   "right": 0
+  },
+  "seam_raw": [
+   6.07,
+   3.49
+  ],
+  "seam_cropped": [
+   6.07,
+   3.49
+  ],
+  "use": "기본 잔디",
+  "lines": {
+   "rows": [
+    17,
+    18
+   ],
+   "cols": [
+    57
+   ]
+  }
+ },
+ "_textures": {
+  "grass": [
+   0.73,
+   1.12
+  ],
+  "grass_b": [
+   0.63,
+   1.19
+  ],
+  "grass_c": [
+   1.28,
+   0.25
+  ],
+  "dirt": [
+   0.72,
+   0.96
+  ],
+  "water": [
+   0.98,
+   2.65
+  ],
+  "canopy": [
+   0.76,
+   1.21
+  ],
+  "cliff_top": [
+   1.03,
+   2.39
+  ],
+  "cliff_top2": [
+   1.31,
+   3.61
+  ],
+  "cliff_wall": [
+   1.32,
+   0.7
+  ],
+  "cliff_wall2": [
+   1.56,
+   0.83
+  ]
+ }
+}

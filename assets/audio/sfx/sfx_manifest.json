@@ -1,0 +1,431 @@
+{
+  "title": "Math Continent 6th Grade Fantasy RPG — Original SFX Pack",
+  "format": "MP3 44.1 kHz stereo, OGG alternatives",
+  "totalSounds": 47,
+  "authorship": "Original procedurally synthesized sound effects; no copyrighted game audio sampled.",
+  "sounds": [
+    {
+      "name": "attack_combo_1",
+      "group": "combat",
+      "description": "1타: 가벼운 검 베기",
+      "mp3": "assets/audio/sfx/attack_combo_1.mp3",
+      "ogg": "ogg_alternatives/attack_combo_1.ogg",
+      "durationSec": 0.48,
+      "suggestedGain": 1
+    },
+    {
+      "name": "attack_combo_2",
+      "group": "combat",
+      "description": "2타: 빠른 역방향 베기",
+      "mp3": "assets/audio/sfx/attack_combo_2.mp3",
+      "ogg": "ogg_alternatives/attack_combo_2.ogg",
+      "durationSec": 0.52,
+      "suggestedGain": 1
+    },
+    {
+      "name": "attack_combo_3",
+      "group": "combat",
+      "description": "3타: 묵직한 마무리 참격",
+      "mp3": "assets/audio/sfx/attack_combo_3.mp3",
+      "ogg": "ogg_alternatives/attack_combo_3.ogg",
+      "durationSec": 0.83,
+      "suggestedGain": 1
+    },
+    {
+      "name": "attack_miss",
+      "group": "combat",
+      "description": "허공에 검을 휘두르는 소리",
+      "mp3": "assets/audio/sfx/attack_miss.mp3",
+      "ogg": "ogg_alternatives/attack_miss.ogg",
+      "durationSec": 0.4,
+      "suggestedGain": 1
+    },
+    {
+      "name": "hit_light",
+      "group": "combat",
+      "description": "일반 타격 적중",
+      "mp3": "assets/audio/sfx/hit_light.mp3",
+      "ogg": "ogg_alternatives/hit_light.ogg",
+      "durationSec": 0.34,
+      "suggestedGain": 1
+    },
+    {
+      "name": "hit_heavy",
+      "group": "combat",
+      "description": "강한 공격 적중",
+      "mp3": "assets/audio/sfx/hit_heavy.mp3",
+      "ogg": "ogg_alternatives/hit_heavy.ogg",
+      "durationSec": 0.65,
+      "suggestedGain": 1
+    },
+    {
+      "name": "critical_hit",
+      "group": "combat",
+      "description": "치명타: 금속성 강력한 타격",
+      "mp3": "assets/audio/sfx/critical_hit.mp3",
+      "ogg": "ogg_alternatives/critical_hit.ogg",
+      "durationSec": 0.9,
+      "suggestedGain": 1
+    },
+    {
+      "name": "player_hit",
+      "group": "combat",
+      "description": "플레이어 피격",
+      "mp3": "assets/audio/sfx/player_hit.mp3",
+      "ogg": "ogg_alternatives/player_hit.ogg",
+      "durationSec": 0.53,
+      "suggestedGain": 1
+    },
+    {
+      "name": "dodge",
+      "group": "combat",
+      "description": "회피 구르기/빠른 이동",
+      "mp3": "assets/audio/sfx/dodge.mp3",
+      "ogg": "ogg_alternatives/dodge.ogg",
+      "durationSec": 0.45,
+      "suggestedGain": 1
+    },
+    {
+      "name": "skill_cast",
+      "group": "combat",
+      "description": "스킬 시전 마력 충전",
+      "mp3": "assets/audio/sfx/skill_cast.mp3",
+      "ogg": "ogg_alternatives/skill_cast.ogg",
+      "durationSec": 0.9,
+      "suggestedGain": 1
+    },
+    {
+      "name": "sword_clash",
+      "group": "combat",
+      "description": "검과 방패 충돌",
+      "mp3": "assets/audio/sfx/sword_clash.mp3",
+      "ogg": "ogg_alternatives/sword_clash.ogg",
+      "durationSec": 0.63,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_death",
+      "group": "combat",
+      "description": "몬스터 처치 소멸",
+      "mp3": "assets/audio/sfx/monster_death.mp3",
+      "ogg": "ogg_alternatives/monster_death.ogg",
+      "durationSec": 0.86,
+      "suggestedGain": 1
+    },
+    {
+      "name": "heal",
+      "group": "combat",
+      "description": "회복 마법",
+      "mp3": "assets/audio/sfx/heal.mp3",
+      "ogg": "ogg_alternatives/heal.ogg",
+      "durationSec": 0.99,
+      "suggestedGain": 1
+    },
+    {
+      "name": "shield_on",
+      "group": "combat",
+      "description": "보호막 발동",
+      "mp3": "assets/audio/sfx/shield_on.mp3",
+      "ogg": "ogg_alternatives/shield_on.ogg",
+      "durationSec": 0.82,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_windup",
+      "group": "monsters",
+      "description": "몬스터 공격 준비 경고",
+      "mp3": "assets/audio/sfx/monster_windup.mp3",
+      "ogg": "ogg_alternatives/monster_windup.ogg",
+      "durationSec": 0.76,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_lunge",
+      "group": "monsters",
+      "description": "근접 돌진/몸통박치기",
+      "mp3": "assets/audio/sfx/monster_lunge.mp3",
+      "ogg": "ogg_alternatives/monster_lunge.ogg",
+      "durationSec": 0.58,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_charge",
+      "group": "monsters",
+      "description": "무거운 돌진 준비·발동",
+      "mp3": "assets/audio/sfx/monster_charge.mp3",
+      "ogg": "ogg_alternatives/monster_charge.ogg",
+      "durationSec": 0.92,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_projectile",
+      "group": "monsters",
+      "description": "원거리 마법탄 발사",
+      "mp3": "assets/audio/sfx/monster_projectile.mp3",
+      "ogg": "ogg_alternatives/monster_projectile.ogg",
+      "durationSec": 0.57,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_aoe_warning",
+      "group": "monsters",
+      "description": "범위 공격 바닥 경고",
+      "mp3": "assets/audio/sfx/monster_aoe_warning.mp3",
+      "ogg": "ogg_alternatives/monster_aoe_warning.ogg",
+      "durationSec": 0.9,
+      "suggestedGain": 1
+    },
+    {
+      "name": "monster_aoe_impact",
+      "group": "monsters",
+      "description": "광역 바닥 폭발",
+      "mp3": "assets/audio/sfx/monster_aoe_impact.mp3",
+      "ogg": "ogg_alternatives/monster_aoe_impact.ogg",
+      "durationSec": 1.04,
+      "suggestedGain": 1
+    },
+    {
+      "name": "elite_spawn",
+      "group": "monsters",
+      "description": "엘리트 몬스터 등장",
+      "mp3": "assets/audio/sfx/elite_spawn.mp3",
+      "ogg": "ogg_alternatives/elite_spawn.ogg",
+      "durationSec": 1.36,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_appear",
+      "group": "monsters",
+      "description": "보스 등장: 저음 금속·경고",
+      "mp3": "assets/audio/sfx/boss_appear.mp3",
+      "ogg": "ogg_alternatives/boss_appear.ogg",
+      "durationSec": 2.04,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_slash",
+      "group": "boss",
+      "description": "천칭 기사왕 검 참격",
+      "mp3": "assets/audio/sfx/boss_slash.mp3",
+      "ogg": "ogg_alternatives/boss_slash.ogg",
+      "durationSec": 0.95,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_dash",
+      "group": "boss",
+      "description": "천칭 기사왕 돌진 공격",
+      "mp3": "assets/audio/sfx/boss_dash.mp3",
+      "ogg": "ogg_alternatives/boss_dash.ogg",
+      "durationSec": 1.14,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_judgement_charge",
+      "group": "boss",
+      "description": "천칭 기사왕 심판 마법 충전",
+      "mp3": "assets/audio/sfx/boss_judgement_charge.mp3",
+      "ogg": "ogg_alternatives/boss_judgement_charge.ogg",
+      "durationSec": 1.6,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_judgement_blast",
+      "group": "boss",
+      "description": "천칭 기사왕 심판 광역 발동",
+      "mp3": "assets/audio/sfx/boss_judgement_blast.mp3",
+      "ogg": "ogg_alternatives/boss_judgement_blast.ogg",
+      "durationSec": 1.36,
+      "suggestedGain": 1
+    },
+    {
+      "name": "boss_shield_break",
+      "group": "boss",
+      "description": "보스 수학 보호막 파괴",
+      "mp3": "assets/audio/sfx/boss_shield_break.mp3",
+      "ogg": "ogg_alternatives/boss_shield_break.ogg",
+      "durationSec": 1.4,
+      "suggestedGain": 1
+    },
+    {
+      "name": "gold_pickup",
+      "group": "items",
+      "description": "골드 획득",
+      "mp3": "assets/audio/sfx/gold_pickup.mp3",
+      "ogg": "ogg_alternatives/gold_pickup.ogg",
+      "durationSec": 0.48,
+      "suggestedGain": 0.86
+    },
+    {
+      "name": "item_common",
+      "group": "items",
+      "description": "일반 아이템 획득",
+      "mp3": "assets/audio/sfx/item_common.mp3",
+      "ogg": "ogg_alternatives/item_common.ogg",
+      "durationSec": 0.52,
+      "suggestedGain": 0.88
+    },
+    {
+      "name": "item_rare",
+      "group": "items",
+      "description": "희귀 아이템 획득",
+      "mp3": "assets/audio/sfx/item_rare.mp3",
+      "ogg": "ogg_alternatives/item_rare.ogg",
+      "durationSec": 0.9,
+      "suggestedGain": 1
+    },
+    {
+      "name": "item_epic",
+      "group": "items",
+      "description": "영웅/전설 아이템 획득",
+      "mp3": "assets/audio/sfx/item_epic.mp3",
+      "ogg": "ogg_alternatives/item_epic.ogg",
+      "durationSec": 1.42,
+      "suggestedGain": 1
+    },
+    {
+      "name": "equip",
+      "group": "items",
+      "description": "장비 착용: 버클·금속 결합",
+      "mp3": "assets/audio/sfx/equip.mp3",
+      "ogg": "ogg_alternatives/equip.ogg",
+      "durationSec": 0.56,
+      "suggestedGain": 1
+    },
+    {
+      "name": "upgrade_success",
+      "group": "items",
+      "description": "장비 강화 성공",
+      "mp3": "assets/audio/sfx/upgrade_success.mp3",
+      "ogg": "ogg_alternatives/upgrade_success.ogg",
+      "durationSec": 1.39,
+      "suggestedGain": 1
+    },
+    {
+      "name": "level_up",
+      "group": "items",
+      "description": "레벨업: 상승 팡파르",
+      "mp3": "assets/audio/sfx/level_up.mp3",
+      "ogg": "ogg_alternatives/level_up.ogg",
+      "durationSec": 1.83,
+      "suggestedGain": 1
+    },
+    {
+      "name": "skill_unlock",
+      "group": "items",
+      "description": "새로운 스킬 습득",
+      "mp3": "assets/audio/sfx/skill_unlock.mp3",
+      "ogg": "ogg_alternatives/skill_unlock.ogg",
+      "durationSec": 1.64,
+      "suggestedGain": 1
+    },
+    {
+      "name": "quest_complete",
+      "group": "items",
+      "description": "퀘스트 완료",
+      "mp3": "assets/audio/sfx/quest_complete.mp3",
+      "ogg": "ogg_alternatives/quest_complete.ogg",
+      "durationSec": 1.28,
+      "suggestedGain": 1
+    },
+    {
+      "name": "math_open",
+      "group": "math",
+      "description": "수학 문제 등장: 신비로운 룬",
+      "mp3": "assets/audio/sfx/math_open.mp3",
+      "ogg": "ogg_alternatives/math_open.ogg",
+      "durationSec": 0.73,
+      "suggestedGain": 0.85
+    },
+    {
+      "name": "math_correct",
+      "group": "math",
+      "description": "수학 정답: 짧은 밝은 보상음",
+      "mp3": "assets/audio/sfx/math_correct.mp3",
+      "ogg": "ogg_alternatives/math_correct.ogg",
+      "durationSec": 0.78,
+      "suggestedGain": 0.86
+    },
+    {
+      "name": "math_wrong",
+      "group": "math",
+      "description": "수학 오답: 부드러운 오류음",
+      "mp3": "assets/audio/sfx/math_wrong.mp3",
+      "ogg": "ogg_alternatives/math_wrong.ogg",
+      "durationSec": 0.62,
+      "suggestedGain": 0.77
+    },
+    {
+      "name": "math_retry_ready",
+      "group": "math",
+      "description": "오답 5초 대기 후 재시도 알림",
+      "mp3": "assets/audio/sfx/math_retry_ready.mp3",
+      "ogg": "ogg_alternatives/math_retry_ready.ogg",
+      "durationSec": 0.47,
+      "suggestedGain": 0.79
+    },
+    {
+      "name": "seal_unlock",
+      "group": "math",
+      "description": "수학 봉인 해제",
+      "mp3": "assets/audio/sfx/seal_unlock.mp3",
+      "ogg": "ogg_alternatives/seal_unlock.ogg",
+      "durationSec": 1.5,
+      "suggestedGain": 1
+    },
+    {
+      "name": "ui_click",
+      "group": "ui",
+      "description": "일반 버튼 클릭",
+      "mp3": "assets/audio/sfx/ui_click.mp3",
+      "ogg": "ogg_alternatives/ui_click.ogg",
+      "durationSec": 0.19,
+      "suggestedGain": 0.68
+    },
+    {
+      "name": "ui_open",
+      "group": "ui",
+      "description": "창 열기",
+      "mp3": "assets/audio/sfx/ui_open.mp3",
+      "ogg": "ogg_alternatives/ui_open.ogg",
+      "durationSec": 0.43,
+      "suggestedGain": 0.75
+    },
+    {
+      "name": "ui_close",
+      "group": "ui",
+      "description": "창 닫기",
+      "mp3": "assets/audio/sfx/ui_close.mp3",
+      "ogg": "ogg_alternatives/ui_close.ogg",
+      "durationSec": 0.39,
+      "suggestedGain": 0.75
+    },
+    {
+      "name": "ui_confirm",
+      "group": "ui",
+      "description": "확인/수락 버튼",
+      "mp3": "assets/audio/sfx/ui_confirm.mp3",
+      "ogg": "ogg_alternatives/ui_confirm.ogg",
+      "durationSec": 0.44,
+      "suggestedGain": 0.76
+    },
+    {
+      "name": "chest_open",
+      "group": "items",
+      "description": "보물상자 열기",
+      "mp3": "assets/audio/sfx/chest_open.mp3",
+      "ogg": "ogg_alternatives/chest_open.ogg",
+      "durationSec": 0.98,
+      "suggestedGain": 1
+    },
+    {
+      "name": "potion_drink",
+      "group": "items",
+      "description": "체력 물약 사용",
+      "mp3": "assets/audio/sfx/potion_drink.mp3",
+      "ogg": "ogg_alternatives/potion_drink.ogg",
+      "durationSec": 0.84,
+      "suggestedGain": 0.88
+    }
+  ]
+}

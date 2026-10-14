@@ -1,0 +1,72 @@
+/* ===== 화면 정리 (UI 과다 노출 줄이기) =====
+   - 레벨업·보스 등장 같은 알림: 화면 전체를 덮던 큰 리본 → 화면 위쪽의 작은 알림 띠 (짧게 보였다 사라짐)
+   - 플레이 화면 가운데를 가리지 않아요 */
+.big-banner {
+  inset: auto;
+  top: calc(var(--safe-t) + 100px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 0;
+  min-height: 0;
+  max-width: min(440px, 86vw);
+  padding: 2px 22px 4px;
+  border: 12px solid transparent;
+  border-image: url(../assets/ui2/notification.webp) 18 fill / 12px stretch;
+  background: none;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  animation: banner-small 1.5s ease-out forwards;
+  white-space: nowrap;
+}
+.big-banner .banner-title {
+  font-size: clamp(22px, 4.2vw, 28px);
+  line-height: 1.15;
+  color: #ffe58a;
+  text-shadow: 0 2px 0 #5a2a10, 0 0 6px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.03em;
+}
+.big-banner .banner-sub {
+  margin-top: 2px;
+  padding: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #f6e7c4;
+  background: none;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+  white-space: normal;
+  text-align: center;
+}
+@keyframes banner-small {
+  0% { transform: translate(-50%, -14px); opacity: 0; }
+  12% { transform: translate(-50%, 0); opacity: 1; }
+  82% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, -10px); opacity: 0; }
+}
+@media (max-height: 480px) {
+  .big-banner { top: calc(var(--safe-t) + 86px); }
+  .big-banner .banner-title { font-size: 21px; }
+}
+
+/* ===== 스킬 칸 3개 =====
+   PC: 아래 스킬 바에 1·2·3 / 모바일: 공격 버튼을 감싸는 부채꼴로 스킬 3개, 회피·물약은 그 왼쪽
+   재사용 대기 중에는 어둡게 + 아래서부터 차오르는 그늘(--cd) */
+.act-skill3 { background-image: url(../assets/ui2/action_skill.webp); }
+.act-skill1 { width: 54px; height: 54px; right: 98px; bottom: 2px; }
+.act-skill2 { width: 54px; height: 54px; right: 84px; bottom: 74px; }
+.act-skill3 { width: 54px; height: 54px; right: 14px; bottom: 98px; }
+.act-dodge  { width: 58px; height: 58px; right: 162px; bottom: 0; }
+.act-potion { width: 46px; height: 46px; right: 158px; bottom: 72px; }
+.action-pad { width: 236px; }
+.act-btn.empty { opacity: 0.55; }
+.act-btn.cooling .act-icon, .sb-slot.cooling .sb-icon { filter: grayscale(0.6) brightness(0.75); }
+@media (max-height: 420px) {
+  .act-attack { width: 76px; height: 76px; }
+  .act-skill1 { width: 48px; height: 48px; right: 86px; bottom: 0; }
+  .act-skill2 { width: 48px; height: 48px; right: 74px; bottom: 64px; }
+  .act-skill3 { width: 48px; height: 48px; right: 12px; bottom: 86px; }
+  .act-dodge  { width: 52px; height: 52px; right: 144px; bottom: 0; }
+  .act-potion { width: 42px; height: 42px; right: 140px; bottom: 62px; }
+}
+
+/* 스킬 창 위쪽 칸: 이모지 대신 스킬 그림 */
+.slot-sk-img { width: 22px; height: 22px; object-fit: contain; vertical-align: -6px; margin-right: 2px; }

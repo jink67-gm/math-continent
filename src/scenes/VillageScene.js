@@ -75,9 +75,10 @@ export class VillageScene extends Phaser.Scene {
     this.bgm = this.sound.add(MAP.VILLAGE.bgm, { loop: true, volume: 0.4 });
     this.bgm.play();
 
-    // 자동 저장: 30초마다 + 창을 닫거나 다른 앱으로 넘어갈 때
+    // 자동 저장: 3분마다 + 창을 닫거나 다른 앱으로 넘어갈 때
+    // (30초 → 3분: Firestore 하루 무료 쓰기 한도를 아끼려고. 이 기기에는 저장할 때마다 바로 남아요)
     this.lastTick = this.time.now;
-    this.time.addEvent({ delay: 30000, loop: true, callback: () => this.saveGame() });
+    this.time.addEvent({ delay: 180000, loop: true, callback: () => this.saveGame() });
     const saveNow = () => this.saveGame({ now: true });
     this.game.events.on('save:now', saveNow);
 

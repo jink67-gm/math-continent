@@ -8,7 +8,7 @@
 
 ## 저장 (Firebase)
 - 기존 게임과 같은 Firebase 프로젝트(`math-continent`)·같은 보안 규칙을 써요. 설정값은 `src/save/firebase-config.js`.
-- 익명 로그인(기기 = 학생) → 이 기기에 바로 저장 → 2.5초 뒤 Firestore `users/{uid}`에 저장. 30초마다, 창을 닫을 때도 저장해요.
+- 익명 로그인(기기 = 학생) → 이 기기에 바로 저장 → 2.5초 뒤 Firestore `users/{uid}`에 저장. 3분마다, 창을 닫을 때도 저장해요.
 - 인터넷이 끊기면 이 기기에 저장해 두고, 연결되면 다시 보내요.
 - 문서 요약 칸: `nickname`, `level`, `currentVillage`, `playTime`, `schemaVersion`(새 게임은 3).
   기존 게임 기록(schemaVersion 2)은 이어서 쓰지 않고, 새로 시작하면 그 위에 새 기록이 저장돼요.

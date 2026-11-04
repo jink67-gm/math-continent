@@ -62,6 +62,7 @@ export class VillageScene extends WorldScene {
 
   spawnPoint(entry) {
     if (entry === 'north') return { x: MAP.VILLAGE.spawn.x, y: 3 * T };
+    if (entry === 'east') return { x: MAP.WIDTH - 2.5 * T, y: (MAP.ROAD + 1) * T };
     if (entry === 'south') return { x: MAP.VILLAGE.spawn.x, y: MAP.HEIGHT - 3 * T };
     return MAP.VILLAGE.spawn;
   }

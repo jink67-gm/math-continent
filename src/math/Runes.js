@@ -99,7 +99,8 @@ export class Runes {
     if (this.open) return { correct: false, busy: true };
     const context = opts.context || 'quest';
     const info = { ...CONTEXTS[context], ...opts };
-    const unit = opts.unit || 'fractionDivision';
+    // 혼돈의 첨탑: 여섯 단원 중에서 골고루
+    const unit = opts.unit === 'mixed' ? pick(Object.keys(UNITS)) : opts.unit || 'fractionDivision';
     const q = this.pickQuestion(unit, opts.difficulty || this.difficultyFor(context));
     if (!q) return { correct: true, skipped: true }; // 문제가 없으면 막지 않아요
     this.open = true;

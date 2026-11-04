@@ -9,20 +9,23 @@
 
 import { textStyle, crisp } from '../ui/style.js';
 
-const DEF = { name: '뒤집기 트롤 인버트롤', hp: 900, atk: 15, def: 3, exp: 220, gold: [70, 90] };
+export const TROLL = { id: 'troll', name: '뒤집기 트롤 인버트롤', hp: 900, atk: 15, def: 3, exp: 220, gold: [70, 90], art: { type: 'troll' },
+  line: '누가 내 잠을 깨웠지? 다 뒤집어 주마!' };
 const STATES = ['sleep', 'intro', 'chase', 'warn', 'swipe', 'slam', 'charge', 'rest', 'stun', 'gone'];
 const WARN = ['', 'swipe', 'slam', 'charge'];
 
 export class Boss {
-  constructor(scene, combat, x, y) {
+  // cfg: 보스 설정 (이름·세기·그림). 그림 종류: troll(인버트롤) · mon(몬스터 그림을 크게) · spirit(거대 정령)
+  constructor(scene, combat, x, y, cfg = TROLL) {
     this.scene = scene;
     this.combat = combat;
-    this.kind = 'troll';
-    this.id = 'troll';
-    this.def = DEF;
-    this.radius = 14;
+    this.kind = cfg.id;
+    this.id = cfg.id;
+    this.def = cfg;
+    this.art = cfg.art || { type: 'troll' };
+    this.radius = this.art.type === 'troll' ? 14 : 16;
     this.home = { x, y };
-    this.maxHp = Math.round(DEF.hp * combat.diff.monHp * combat.partyHp);
+    this.maxHp = Math.round(cfg.hp * combat.diff.monHp * combat.partyHp);
     this.hp = this.maxHp;
     this.state = 'sleep';
     this.sealsLeft = [0.66, 0.33];
@@ -31,13 +34,38 @@ export class Boss {
     this.slowUntil = 0;
 
     this.shadow = scene.add.ellipse(x, y, 40, 12, 0x000000, 0.35);
-    this.sprite = scene.add.sprite(x, y, 'boss/troll_idle', 0).setOrigin(0.5, 0.92).play('troll_idle');
+    if (this.art.type === 'mon') {
+      this.sprite = scene.add.sprite(x, y, `mon/${this.art.sheet}`, 0).setOrigin(0.5, 1).setScale(this.art.scale || 3.4);
+    } else if (this.art.type === 'spirit') {
+      this.sprite = scene.add.sprite(x, y, 'boss/spirit_idle', 0).setOrigin(0.5, 0.95).setScale(1.3).setTint(this.art.tint || 0xd0b8ff);
+    } else {
+      this.sprite = scene.add.sprite(x, y, 'boss/troll_idle', 0).setOrigin(0.5, 0.92);
+    }
+    this.baseScale = this.sprite.scaleX;
+    this.dir = 'down';
+    this.anim('idle');
     this.feet = scene.add.zone(x, y, 28, 12);
     scene.physics.add.existing(this.feet);
     this.feet.body.setCollideWorldBounds(true);
     scene.physics.add.collider(this.feet, scene.solids);
     this.warnG = scene.add.graphics();
     this.shield = null;
+  }
+
+  // 그림 종류에 맞춰 움직임을 틀어요
+  anim(kind) {
+    const s = this.sprite;
+    if (this.art.type === 'troll') { s.play(`troll_${kind}`, true); return; }
+    if (this.art.type === 'spirit') { s.play('spirit_idle', true); s.anims.timeScale = kind === 'charge' ? 2 : 1; return; }
+    s.play(`mon_${this.art.sheet}_${this.dir}`, true);
+    s.anims.timeScale = kind === 'charge' ? 2.5 : kind === 'attack' ? 2 : 1;
+  }
+
+  face(dx, dy) {
+    if (this.art.type === 'mon') {
+      const d = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+      if (d !== this.dir) { this.dir = d; this.anim('idle'); }
+    } else this.sprite.setFlipX(dx < 0);
   }
 
   get x() { return this.feet.x; }
@@ -124,7 +152,7 @@ export class Boss {
     const s = this.scene;
     s.cameras.main.shake(400, 0.01);
     this.sprite.setTintFill(0xffffff);
-    s.tweens.add({ targets: this.sprite, scaleX: 1.6, scaleY: 0.1, alpha: 0, duration: 900, ease: 'Quad.in' });
+    s.tweens.add({ targets: this.sprite, scaleX: this.baseScale * 1.6, scaleY: this.baseScale * 0.1, alpha: 0, duration: 900, ease: 'Quad.in' });
     this.shadow.setVisible(false);
     for (let i = 0; i < 5; i++) {
       s.time.delayedCall(i * 150, () => s.fx('fx_smoke', 'na/smoke', this.x + (Math.random() - 0.5) * 40, this.y - 10 - Math.random() * 30, { scale: 1.3, depth: this.y + 20 }));
@@ -151,19 +179,19 @@ export class Boss {
           this.state = 'intro';
           this.until = time + 1600;
           this.scene.onBossWake?.(this);
-          this.sprite.play('troll_charge');
-          this.say('누가 내 잠을 깨웠지? 다 뒤집어 주마!');
+          this.anim('charge');
+          this.say(this.def.line || '');
         }
         break;
       case 'intro':
-        if (time > this.until) { this.state = 'chase'; this.sprite.play('troll_idle'); this.nextAttack = time + 800; }
+        if (time > this.until) { this.state = 'chase'; this.anim('idle'); this.nextAttack = time + 800; }
         break;
       case 'chase': {
         const sp = 24 * slowMul;
         const dx = target.x - this.x;
         const dy = target.y - this.y;
         this.feet.body.setVelocity(d > 30 ? (dx / d) * sp : 0, d > 30 ? (dy / d) * sp : 0);
-        this.sprite.setFlipX(dx < 0);
+        this.face(dx, dy);
         if (time > this.nextAttack) this.pickAttack(target, d);
         break;
       }
@@ -212,8 +240,8 @@ export class Boss {
     if (type === 'swipe') this.target = { x: this.x + this.dirV.x * 22, y: this.y + this.dirV.y * 18 };
     if (type === 'slam') this.target = { x: target.x, y: target.y };
     if (type === 'charge') this.target = { x: this.x + this.dirV.x * 130, y: this.y + this.dirV.y * 130 };
-    this.sprite.play(type === 'slam' ? 'troll_charge' : 'troll_idle', true);
-    this.sprite.setFlipX(dx < 0);
+    this.anim(type === 'slam' ? 'charge' : 'idle');
+    this.face(dx, dy);
     this.scene.sound.play(type === 'charge' ? 'sfx_boss_charge' : 'sfx_windup', { volume: 0.35 });
   }
 
@@ -238,17 +266,17 @@ export class Boss {
       red(0.45).fillEllipse(x, y, r * 2 * p, r * 1.3 * p);
       g.lineStyle(1, 0xff6b5e, 0.9).strokeEllipse(x, y, r * 2, r * 1.3);
     }
-    this.sprite.setScale(1 + 0.06 * p, 1 - 0.06 * p);
+    this.sprite.setScale(this.baseScale * (1 + 0.06 * p), this.baseScale * (1 - 0.06 * p));
   }
 
   release() {
     this.warnG.clear();
-    this.sprite.setScale(1);
+    this.sprite.setScale(this.baseScale);
     const s = this.scene;
     if (this.attack === 'swipe') {
       this.state = 'swipe';
       this.until = s.time.now + 350;
-      this.sprite.play('troll_attack', true);
+      this.anim('attack');
       s.sound.play('sfx_boss_slash', { volume: 0.45 });
       s.fx('fx_slash', 'na/slash', this.target.x, this.target.y - 8, { scale: 1.8, depth: this.y + 30, angle: Math.atan2(this.dirV.y, this.dirV.x) * 57.3 });
       this.hitArea(this.target.x, this.target.y, 26, 1.1);
@@ -256,7 +284,7 @@ export class Boss {
       this.state = 'slam';
       this.until = s.time.now + 750;
       this.feet.body.enable = false;
-      this.sprite.play('troll_jump', true);
+      this.anim('jump');
       s.tweens.add({ targets: this.feet, x: this.target.x, y: this.target.y, duration: 450, ease: 'Sine.inOut' });
       s.tweens.add({ targets: this, lift: 34, duration: 225, yoyo: true, ease: 'Quad.out' });
       s.time.delayedCall(460, () => {
@@ -267,13 +295,13 @@ export class Boss {
         s.fx('fx_ring', 'na/ring', this.x, this.y, { scale: 3.6, depth: this.y - 3, add: true }).setTint(0xffb36b);
         s.fx('fx_smoke', 'na/smoke', this.x, this.y - 4, { scale: 1.4, depth: this.y + 5 });
         this.hitArea(this.x, this.y, 38, 1.3);
-        this.sprite.play('troll_idle', true);
+        this.anim('idle');
       });
     } else {
       this.state = 'charge';
       this.until = s.time.now + 520;
       this.charged = new Set();
-      this.sprite.play('troll_charge', true);
+      this.anim('charge');
       s.sound.play('sfx_boss_dash', { volume: 0.45 });
       this.feet.body.setVelocity(this.dirV.x * 250, this.dirV.y * 250);
     }
@@ -281,7 +309,7 @@ export class Boss {
 
   endAttack(restMs) {
     this.feet.body.setVelocity(0, 0);
-    this.sprite.play('troll_idle', true);
+    this.anim('idle');
     this.state = 'rest';
     this.until = this.scene.time.now + restMs;
     this.nextAttack = this.until + (this.sealed ? 1500 : 700) + Math.random() * 600;
@@ -328,10 +356,10 @@ export class Boss {
     if (st === 'gone' && this.alive) { this.purify(); return; }
     if (this.state === 'sleep' && st !== 'sleep') this.scene.onBossWake?.(this);
     if (st !== this.state) {
-      if (st === 'swipe') this.sprite.play('troll_attack', true);
-      else if (st === 'slam') this.sprite.play('troll_jump', true);
-      else if (st === 'charge' || st === 'intro') this.sprite.play('troll_charge', true);
-      else this.sprite.play('troll_idle', true);
+      if (st === 'swipe') this.anim('attack');
+      else if (st === 'slam') this.anim('jump');
+      else if (st === 'charge' || st === 'intro') this.anim('charge');
+      else this.anim('idle');
     }
     this.state = st;
     if (st === 'warn') {

@@ -27,7 +27,7 @@ export function levelStats(lv) {
     maxSp: 40 + n * 5,
     atk: 12 + n * 3,
     def: 2 + n,
-    next: Math.round(25 * 1.32 ** n),
+    next: Math.round(25 * 1.22 ** n), // 6개 마을을 돌며 레벨 26~30에 닿도록
   };
 }
 

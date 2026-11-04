@@ -6,7 +6,10 @@ import { firebaseConfig } from '../save/firebase-config.js';
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const USE_EMULATOR = new URLSearchParams(location.search).has('emu');
 
-const VILLAGES = { fractionValley: '나눔의 계곡 프락시아' };
+const VILLAGES = {
+  fractionValley: '나눔의 계곡 프락시아', cubeCity: '쌓기나무 성채 큐베른', decimalHarbor: '소수점 항구 데시마르',
+  ratioKingdom: '천칭 왕국 프로포르', circleForest: '원환의 숲 키르쿠스', solidPeaks: '회전체 산맥 볼테라',
+};
 const DIFFS = { easy: '쉬움', normal: '보통', hard: '어려움' };
 
 const $ = (id) => document.getElementById(id);

@@ -28,9 +28,11 @@ export const BOSS_SHEETS = {
   'boss/troll_attack': ['na/boss/troll/attack.png', 60],
   'boss/troll_jump': ['na/boss/troll/jump.png', 60],
   'boss/troll_charge': ['na/boss/troll/charge.png', 60],
+  'boss/spirit_idle': ['na/boss/spirit/idle.png', 50],
+  'boss/spirit_hit': ['na/boss/spirit/hit.png', 50],
 };
 
-export const MONSTER_SHEETS = ['Slime', 'Mushroom', 'Butterfly', 'Spirit', 'Flam'];
+export { MONSTER_KEYS as MONSTER_SHEETS } from './monsters.js';
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)
 export const IMAGES = {
@@ -118,6 +120,14 @@ export const OBJECTS = {
   ore_a: ['na/nature', 4, 15, 1, 1],
   ore_b: ['na/nature', 5, 15, 1, 1],
   stump: ['na/nature', 0, 8, 2, 2],
+  tree_snowpine: ['na/nature', 8, 0, 2, 2],
+  tree_whitepine: ['na/nature', 10, 0, 2, 2],
+  tree_white: ['na/nature', 12, 0, 2, 2],
+  tree_blossom: ['na/nature', 14, 0, 2, 2],
+  trio_green: ['na/nature', 4, 2, 3, 3],
+  trio_white: ['na/nature', 8, 2, 3, 3],
+  trio_pink: ['na/nature', 12, 2, 3, 3],
+  pines_snow: ['na/nature', 4, 5, 3, 3],
   notice: ['na/element', 6, 3, 1, 2],
 };
 

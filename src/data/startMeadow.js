@@ -17,6 +17,7 @@ const MID = 22; // 마을 남쪽 길과 같은 칸
 export const FIELD = {
   id: 'startMeadow',
   village: 'fractionValley',
+  townName: '나눔의 계곡 프락시아',
   name: '출발의 초원',
   subtitle: '첫 사냥터',
   bgm: 'bgm_field',

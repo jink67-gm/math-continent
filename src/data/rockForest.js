@@ -15,6 +15,7 @@ const MID = 22;
 export const FOREST = {
   id: 'rockForest',
   village: 'fractionValley',
+  townName: '나눔의 계곡 프락시아',
   name: '계곡 바위 숲',
   subtitle: '동굴로 가는 길',
   bgm: 'bgm_field',

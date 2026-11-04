@@ -1,3 +1,5 @@
+import { EXTRA_MONSTERS } from './regions.js';
+
 // 필드 몬스터 (Ninja Adventure, CC0) — 아이들이 보기에 무섭지 않은 것만 골랐어요.
 // 쓰러뜨리면 죽는 게 아니라 연기와 함께 「정화」되어 사라져요.
 // move: 'hop' 통통 튀며 다가옴 · 'walk' 걸어옴 · 'flutter' 팔랑팔랑 · 'float' 둥둥 떠서 멀리서 구슬을 던짐
@@ -11,4 +13,8 @@ export const MONSTERS = {
   Flam: { name: '심술 불꽃', hp: 58, atk: 13, def: 2, speed: 34, sight: 90, reach: 22, lunge: 36, exp: 14, gold: [4, 8], move: 'walk' },
 };
 
-export const MONSTER_KEYS = Object.keys(MONSTERS);
+Object.assign(MONSTERS, EXTRA_MONSTERS);
+// 보스로만 쓰는 그림
+const BOSS_ONLY = ['Octopus2', 'Dragon'];
+
+export const MONSTER_KEYS = [...Object.keys(MONSTERS), ...BOSS_ONLY];

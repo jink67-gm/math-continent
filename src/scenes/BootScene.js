@@ -82,6 +82,8 @@ export class BootScene extends Phaser.Scene {
     a('troll_attack', 'boss/troll_attack', 12, 0);
     a('troll_jump', 'boss/troll_jump', 10, 0);
     a('troll_charge', 'boss/troll_charge', 8);
+    a('spirit_idle', 'boss/spirit_idle', 7);
+    a('spirit_hit', 'boss/spirit_hit', 10, 0);
   }
 
   makeFxAnims() {

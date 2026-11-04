@@ -13,6 +13,7 @@ const C = (n) => n * T;
 export const CAVE = {
   id: 'invertCave',
   village: 'fractionValley',
+  townName: '나눔의 계곡 프락시아',
   name: '뒤집힌 동굴',
   subtitle: '인버트롤의 굴',
   bgm: 'bgm_dungeon',

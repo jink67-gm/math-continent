@@ -18,8 +18,8 @@ export class Monster {
     this.kind = kind;
     const b = MONSTERS[kind];
     this.def = power === 1 ? b : {
-      ...b, hp: Math.round(b.hp * power), atk: Math.round(b.atk * (1 + (power - 1) * 0.7)), def: b.def + 1,
-      exp: Math.round(b.exp * power * 1.1), gold: b.gold.map((g) => Math.round(g * power)),
+      ...b, hp: Math.round(b.hp * power ** 1.3), atk: Math.round(b.atk * (1 + (power - 1) * 0.7)), def: Math.round(b.def + (power - 1) * 3),
+      exp: Math.round(b.exp * power ** 1.5), gold: b.gold.map((g) => Math.round(g * power)),
     };
     this.home = { x, y };
     this.dir = 'down';

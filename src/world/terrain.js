@@ -8,7 +8,7 @@ export const T = 16;
 
 const FLOOR_COLS = 352 / T; // TilesetFloor.png 가로 칸 수
 // 같은 배치가 시트 안에 여러 벌 있어요 (칸 단위 옮김)
-const THEMES = { meadow: [0, 0], forest: [11, 0], cave: [11, 7] };
+const THEMES = { meadow: [0, 0], forest: [11, 0], cave: [11, 7], sand: [0, -7], pink: [11, -7], snow: [0, 7] };
 const WATER_COLS = 448 / T; // TilesetWater.png 가로 칸 수
 
 // 이웃 비트: 1 왼위 2 위 4 오위 8 왼 16 오 32 왼아래 64 아래 128 오아래
@@ -110,7 +110,7 @@ export class TerrainGrid {
     const [ox, oy] = THEMES[theme] || [0, 0];
     const rt = scene.add.renderTexture(0, 0, this.cols * T, this.rows * T).setOrigin(0, 0);
     // 다른 묶음에는 (2, 11) 자리가 비어 있어서 빼요
-    const grassAll = theme === 'meadow' ? GRASS_TILES : GRASS_TILES.filter(([x, y]) => !(x === 2 && y === 11));
+    const grassAll = theme === 'meadow' ? GRASS_TILES : GRASS_TILES.filter(([x, y]) => !(y === 11 && (x === 2 || x === 3)));
     const grassOnly = grassAll.filter(([x, y]) => y === 12); // 무늬 없는 풀 위주
     rt.beginDraw();
     for (let y = 0; y < this.rows; y++) {

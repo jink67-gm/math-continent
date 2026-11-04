@@ -16,7 +16,11 @@ export class WorldScene extends Phaser.Scene {
   // info: { id, name, subtitle, bgm, mapV }
   init(data) {
     this.entry = data?.entry || null;
+    if (data?.region) this.region = data.region;
   }
+
+  // 퀘스트 화살표·장소 이름 (2~6번 마을의 첨탑만 따로 구분해요)
+  get placeKey() { return this.region === 'chaosSpire' ? `${this.scene.key}:chaosSpire` : this.scene.key; }
 
   preload() {
     const key = this.info.bgm;
@@ -25,6 +29,10 @@ export class WorldScene extends Phaser.Scene {
 
   create() {
     const stats = normalizeStats(this.registry.get('player'));
+    // 같은 장면을 다시 열 때 이전 값이 남지 않게
+    this.leaving = false;
+    this.worldPaused = false;
+    this.boss = null;
     this.solids = this.physics.add.staticGroup();
     this.npcs = [];
     this.spots = [];
@@ -63,7 +71,7 @@ export class WorldScene extends Phaser.Scene {
     this.hud = this.scene.get('Hud');
     this.quests = this.game.quests;
     this.quests.scene = this;
-    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key));
+    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key, this.region));
 
     this.sound.stopAll();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
@@ -322,14 +330,14 @@ export class WorldScene extends Phaser.Scene {
     this.exitCooldown = this.time.now + 2500;
     if (!e.scene) { this.hud?.toast(`「${e.to}」은(는) 다음 단계에서 열려요`); return; }
     if (e.requires && !this.quests.passed(e.requires) && !this.game.classCfg?.unlockAll) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
-    this.goTo(e.scene, e.entry);
+    this.goTo(e.scene, e.entry, e.region);
   }
 
-  goTo(sceneKey, entry) {
+  goTo(sceneKey, entry, region) {
     this.leaving = true;
     this.saveGame();
     this.cameras.main.fadeOut(350, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(sceneKey, { entry }));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(sceneKey, { entry, region }));
   }
 
   // 쓰러지면 잃는 것 없이 마을 입구에서 다시 시작해요
@@ -343,8 +351,8 @@ export class WorldScene extends Phaser.Scene {
       if (this.player.state !== 'down') return;
       stats.hp = stats.maxHp;
       stats.sp = stats.maxSp;
-      const [key, entry] = this.respawnAt?.() || ['Village', 'south'];
-      this.goTo(key, entry);
+      const [key, entry, region] = this.respawnAt?.() || ['Village', 'south'];
+      this.goTo(key, entry, region);
     });
   }
 
@@ -448,6 +456,7 @@ export class WorldScene extends Phaser.Scene {
     if (!this.player) return;
     stats.village = this.info.village || this.info.id; // 필드는 가까운 마을 이름으로 저장 (보안 규칙과 맞추려고)
     stats.area = this.info.id;
+    stats.region = this.region || null;
     stats.scene = this.scene.key;
     stats.mapV = this.info.mapV;
     stats.pos = { x: Math.round(this.player.x), y: Math.round(this.player.y) };

@@ -2,7 +2,7 @@
 // 저장 모양: stats.quest = { main: 단계 번호, runes: {룬id: true}, side: { hunt: { n, state } } }
 // 화면 쪽(장면·HUD)은 이 파일에 "무슨 일이 있었는지"만 알려 주면 돼요.
 
-import { MAIN, SIDE } from '../data/quests.js';
+import { MAIN, SIDE, regionQuests } from '../data/quests.js';
 import { skillsFor } from '../data/skills.js';
 
 export class QuestLog {
@@ -12,24 +12,32 @@ export class QuestLog {
 
   get stats() { return this.game.registry.get('player'); }
 
-  get q() {
+  // 지금 있는 곳이 어느 마을 이야기인지 (첨탑은 6번 마을 이야기에 붙어 있어요)
+  get vid() { return this.scene?.info?.village || this.scene?.info?.id || 'fractionValley'; }
+  list(vid = this.vid) { return vid === 'fractionValley' ? MAIN : regionQuests(vid); }
+
+  // 마을마다 진행 상태 (1번 마을은 예전 자리 stats.quest를 그대로 써요)
+  state(vid = this.vid) {
     const s = this.stats;
     s.quest ??= {};
     s.quest.main ??= 0;
     s.quest.runes ??= {};
     s.quest.side ??= { hunt: { n: 0, state: 'active' } };
-    return s.quest;
+    if (vid === 'fractionValley') return s.quest;
+    s.vq ??= {};
+    s.vq[vid] ??= { main: 0, runes: {} };
+    return s.vq[vid];
   }
 
-  get step() { return MAIN[this.q.main] || null; }
-  get villageCleared() { return this.q.main >= MAIN.length; }
+  get q() { return this.state(); }
+  get step() { return this.list()[this.q.main] || null; }
+  get villageCleared() { return this.q.main >= this.list().length; }
   runeLit(id) { return !!this.q.runes[id]; }
-  flag(name) { return !!this.q[name]; }
 
   // 단계가 이미 지나갔는지 (예: 다리는 'bridge' 단계 뒤로는 계속 이어져 있어요)
-  passed(stepId) {
-    const i = MAIN.findIndex((m) => m.id === stepId);
-    return i >= 0 && this.q.main > i;
+  passed(stepId, vid = this.vid) {
+    const i = this.list(vid).findIndex((m) => m.id === stepId);
+    return i >= 0 && this.state(vid).main > i;
   }
 
   fill(lines) {
@@ -44,9 +52,9 @@ export class QuestLog {
     if (st?.type === 'talk' && st.target === npcId) {
       return { lines: this.fill(st.lines), after: () => this.advance() };
     }
-    const h = this.q.side.hunt;
+    const h = this.state('fractionValley').side.hunt;
     const side = SIDE.hunt;
-    if (side.giver.includes(npcId)) {
+    if (this.vid === 'fractionValley' && side.giver.includes(npcId)) {
       if (h.state === 'ready') {
         return { lines: side.ready, after: () => { h.state = 'done'; this.reward(side.reward, side.title); } };
       }
@@ -88,9 +96,9 @@ export class QuestLog {
     else this.scene?.hud?.toast('룬 하나가 깨어났어요! 남은 룬을 찾아요');
   }
 
-  onEnter(sceneKey) {
+  onEnter(sceneKey, region) {
     const st = this.step;
-    if (st?.type === 'enter' && st.target === sceneKey) this.advance();
+    if (st?.type === 'enter' && (st.target === sceneKey || st.target === `${sceneKey}:${region}`)) this.advance();
   }
 
   onBoss(id) {
@@ -99,7 +107,7 @@ export class QuestLog {
   }
 
   onPurify(sceneKey) {
-    const h = this.q.side.hunt;
+    const h = this.state('fractionValley').side.hunt;
     if (h.state !== 'active' || sceneKey !== 'Field') return;
     h.n = Math.min(SIDE.hunt.need, h.n + 1);
     if (h.n >= SIDE.hunt.need) {
@@ -140,17 +148,18 @@ export class QuestLog {
       if (st.type === 'rune' && st.target.length > 1) t += ` (${st.target.filter((r) => this.runeLit(r)).length}/${st.target.length})`;
       lines.push(t, `   ${st.desc}`);
     } else {
-      lines.push('★ 나눔의 계곡을 구했어요!');
+      lines.push(`★ ${this.scene?.info?.townName || '이 마을'}을(를) 구했어요! 다음 마을로 가요`);
     }
-    const h = this.q.side.hunt;
+    const h = this.state('fractionValley').side.hunt;
+    if (this.vid !== 'fractionValley') return lines.join('\n');
     if (h.state === 'active') lines.push(`· ${SIDE.hunt.title} ${h.n}/${SIDE.hunt.need}`);
     if (h.state === 'ready') lines.push(`· ${SIDE.hunt.title} 완료 — 피피에게 알리기`);
     return lines.join('\n');
   }
 
   // 이 장면에서 화살표가 가리킬 곳 (픽셀)
-  goal(sceneKey) {
-    const g = this.step?.goals?.[sceneKey];
+  goal(placeKey) {
+    const g = this.step?.goals?.[placeKey];
     return g ? { x: g[0] * 16, y: g[1] * 16 } : null;
   }
 }

@@ -235,7 +235,7 @@ export class HudScene extends Phaser.Scene {
     const q = this.game.quests;
     this.questText.setText(q.tracker());
     const g = this.arrow.clear();
-    const goal = q.goal(this.worldKey);
+    const goal = q.goal(this.world.placeKey);
     const p = this.world.player;
     if (!goal || this.dialogOpen) return;
     const dx = goal.x - p.x;

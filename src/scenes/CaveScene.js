@@ -2,14 +2,24 @@
 
 import { T, seeded } from '../world/terrain.js';
 import { ASSET_ROOT, BGM } from '../data/assets.js';
-import { Boss } from '../world/Boss.js';
+import { Boss, TROLL } from '../world/Boss.js';
 import * as MAP from '../data/cave.js';
 import { WorldScene } from './WorldScene.js';
 
 export class CaveScene extends WorldScene {
-  constructor() { super('Cave'); }
+  constructor(key = 'Cave') { super(key); }
 
   get info() { return MAP.CAVE; }
+
+  // 지도 설정 한 벌 (DungeonScene은 이걸 바꿔서 다른 던전을 만들어요)
+  mapData() {
+    return {
+      COLS: MAP.COLS, ROWS: MAP.ROWS, WIDTH: MAP.WIDTH, HEIGHT: MAP.HEIGHT, WALLS: MAP.WALLS, DOOR: MAP.DOOR, BOSS: MAP.BOSS,
+      BOSS_ROOM_Y: MAP.BOSS_ROOM_Y, SPOTS: MAP.SPOTS, EXITS: MAP.EXITS, SPAWNS: MAP.SPAWNS, CHESTS: MAP.CHESTS, SPAWN_SOUTH: MAP.SPAWN_SOUTH,
+      grid: MAP.buildTerrain(), deco: (g) => MAP.scatterDeco(g), power: MAP.CAVE.power, tint: 0xb8aec8,
+      bossCfg: TROLL, sealStep: 'seal', bossStep: 'troll', respawn: ['Cave', 'south'],
+    };
+  }
 
   preload() {
     super.preload();
@@ -18,31 +28,32 @@ export class CaveScene extends WorldScene {
 
   buildWorld() {
     const q = this.game.quests;
-    this.mapW = MAP.WIDTH;
-    this.mapH = MAP.HEIGHT;
-    this.bossRoomY = MAP.BOSS_ROOM_Y;
-    this.grid = MAP.buildTerrain();
-    this.grid.bake(this, seeded(17), { theme: 'cave' }).setDepth(-1000).setTint(0xb8aec8);
+    const M = (this.M = this.mapData());
+    this.mapW = this.M.WIDTH;
+    this.mapH = this.M.HEIGHT;
+    this.bossRoomY = this.M.BOSS_ROOM_Y;
+    this.grid = M.grid;
+    this.grid.bake(this, seeded(17), { theme: 'cave' }).setDepth(-1000).setTint(M.tint);
     for (const r of this.grid.solidRects()) this.addSolid(r.x, r.y, r.w, r.h);
 
     this.placeBorder();
-    for (const w of MAP.WALLS) this.placeWall(w);
-    this.placeDoor(q.passed('seal'));
+    for (const w of this.M.WALLS) this.placeWall(w);
+    this.placeDoor(q.passed(M.sealStep));
     this.pillars = {};
-    for (const s of MAP.SPOTS.filter((p) => p.kind === 'rune')) this.placePillar(s, q.runeLit(s.id) || q.passed('seal'));
-    for (const d of MAP.scatterDeco(this.grid)) {
+    for (const s of this.M.SPOTS.filter((p) => p.kind === 'rune')) this.placePillar(s, q.runeLit(s.id) || q.passed(M.sealStep));
+    for (const d of M.deco(this.grid)) {
       const img = this.placeObject(d);
       if (d.glow) this.glow(d.x, d.y - 8, img.tintTopLeft);
     }
 
-    this.spots = MAP.SPOTS.filter((s) => s.id !== 'door' || !q.passed('seal'));
-    this.exits = MAP.EXITS;
-    this.placeChests(MAP.CHESTS);
-    for (const s of MAP.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y, MAP.CAVE.power);
+    this.spots = this.M.SPOTS.filter((s) => s.id !== 'door' || !q.passed(M.sealStep));
+    this.exits = this.M.EXITS;
+    this.placeChests(this.M.CHESTS);
+    for (const s of this.M.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y, M.power);
 
     // 보스 (정화했으면 그 자리에 분수의 결정 받침대만 남아요)
-    if (!q.passed('troll')) {
-      this.boss = new Boss(this, this.combat, MAP.BOSS.x, MAP.BOSS.y);
+    if (!q.passed(M.bossStep)) {
+      this.boss = new Boss(this, this.combat, M.BOSS.x, M.BOSS.y, M.bossCfg);
       this.combat.monsters.push(this.boss);
     } else {
       this.placeAltar();
@@ -51,24 +62,24 @@ export class CaveScene extends WorldScene {
     this.dark = this.add.graphics().setDepth(90000);
   }
 
-  spawnPoint() { return MAP.SPAWN_SOUTH; }
-  respawnAt() { return ['Cave', 'south']; }
+  spawnPoint() { return this.M.SPAWN_SOUTH; }
+  respawnAt() { return this.M.respawn; }
 
   // 가장자리 바위
   placeBorder() {
     const rnd = seeded(31);
     const k = ['rock_grey', 'rock_brown', 'rock_grey_tall', 'rock_brown_tall'];
-    for (let x = 0.5; x < MAP.COLS; x += 1.6) {
+    for (let x = 0.5; x < this.M.COLS; x += 1.6) {
       this.add.image(x * T, 1.6 * T, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(T);
-      if (Math.abs(x - 20) > 3) this.add.image(x * T, MAP.HEIGHT + 4, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(MAP.HEIGHT);
+      if (Math.abs(x - 20) > 3) this.add.image(x * T, this.M.HEIGHT + 4, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(this.M.HEIGHT);
     }
-    for (let y = 2.5; y < MAP.ROWS; y += 1.6) {
+    for (let y = 2.5; y < this.M.ROWS; y += 1.6) {
       this.add.image(0.6 * T, y * T, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(y * T);
-      this.add.image(MAP.WIDTH - 0.6 * T, y * T, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(y * T);
+      this.add.image(this.M.WIDTH - 0.6 * T, y * T, 'na/nature', k[Math.floor(rnd() * 4)]).setOrigin(0.5, 1).setDepth(y * T);
     }
-    this.addSolid(0, 0, MAP.WIDTH, 1.4 * T);
-    this.addSolid(0, 0, 1.1 * T, MAP.HEIGHT);
-    this.addSolid(MAP.WIDTH - 1.1 * T, 0, 1.1 * T, MAP.HEIGHT);
+    this.addSolid(0, 0, this.M.WIDTH, 1.4 * T);
+    this.addSolid(0, 0, 1.1 * T, this.M.HEIGHT);
+    this.addSolid(this.M.WIDTH - 1.1 * T, 0, 1.1 * T, this.M.HEIGHT);
   }
 
   // 바위벽 한 줄: 그림은 바위 무더기, 충돌은 긴 상자 하나
@@ -82,7 +93,7 @@ export class CaveScene extends WorldScene {
   }
 
   placeDoor(open) {
-    const d = MAP.DOOR;
+    const d = this.M.DOOR;
     if (open) return;
     this.door = this.add.container(d.x, d.y).setDepth(d.y);
     const rock = this.add.image(0, 0, 'na/nature', 'rock_grey_stack').setOrigin(0.5, 1).setScale(1.7, 1.1);
@@ -100,7 +111,7 @@ export class CaveScene extends WorldScene {
     this.cameras.main.shake(500, 0.006);
     this.sound.play('sfx_seal', { volume: 0.6 });
     this.tweens.add({ targets: this.door, y: this.door.y - 18, alpha: 0, duration: 1200, onComplete: () => this.door.destroy() });
-    this.fx('fx_smoke', 'na/smoke', MAP.DOOR.x, MAP.DOOR.y - 10, { scale: 1.6, depth: MAP.DOOR.y + 5 });
+    this.fx('fx_smoke', 'na/smoke', this.M.DOOR.x, this.M.DOOR.y - 10, { scale: 1.6, depth: this.M.DOOR.y + 5 });
     this.spots = this.spots.filter((s) => s.id !== 'door');
   }
 
@@ -124,7 +135,7 @@ export class CaveScene extends WorldScene {
   }
 
   placeAltar() {
-    const { x, y } = MAP.BOSS;
+    const { x, y } = this.M.BOSS;
     this.add.image(x, y, 'na/nature', 'rock_grey').setOrigin(0.5, 1).setDepth(y);
     this.glow(x, y - 22, 0xffe066);
   }
@@ -138,7 +149,7 @@ export class CaveScene extends WorldScene {
   }
 
   onQuestAdvance(step) {
-    if (step.id === 'seal') this.time.delayedCall(600, () => this.openDoor());
+    if (step.id === this.M.sealStep) this.time.delayedCall(600, () => this.openDoor());
   }
 
   onBossWake(boss) {
@@ -147,7 +158,7 @@ export class CaveScene extends WorldScene {
     this.bgm.play();
     this.sound.play('sfx_boss', { volume: 0.55 });
     this.cameras.main.shake(500, 0.006);
-    this.hud?.showBanner(boss.def.name, '나누는 수를 뒤집어라! 빨간 경고를 보면 구르기!');
+    this.hud?.showBanner(boss.def.name, `${boss.def.line || ''} — 빨간 경고를 보면 구르기!`);
   }
 
   // 봉인이 걸리면 방 아래쪽에 봉인 룬이 나타나요
@@ -155,7 +166,7 @@ export class CaveScene extends WorldScene {
     this.spots = this.spots.filter((s) => s.kind !== 'bossSeal');
     this.sealMark?.destroy();
     if (!on) return;
-    const s = { id: 'bossSeal', kind: 'bossSeal', name: '수학의 봉인', x: MAP.BOSS.x, y: MAP.BOSS_ROOM_Y - 6, r: 30, label: '봉인 풀기' };
+    const s = { id: 'bossSeal', kind: 'bossSeal', name: '수학의 봉인', x: this.M.BOSS.x, y: this.M.BOSS_ROOM_Y - 6, r: 30, label: '봉인 풀기' };
     this.spots.push(s);
     const g = this.add.graphics().setDepth(-400);
     g.lineStyle(2, 0xc8a0ff, 1).strokeCircle(s.x, s.y - 4, 14).strokeCircle(s.x, s.y - 4, 9);
@@ -176,7 +187,7 @@ export class CaveScene extends WorldScene {
     this.bgm?.stop();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
     this.bgm.play();
-    this.time.delayedCall(1200, () => this.game.quests.onBoss('troll'));
+    this.time.delayedCall(1200, () => this.game.quests.onBoss(this.M.bossCfg.id));
   }
 
   update(time, delta) {

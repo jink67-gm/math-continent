@@ -11,12 +11,13 @@ export const HEIGHT = ROWS * T;
 
 const C = (n) => n * T;
 const MID = 22;   // 세로 큰길 왼쪽 칸 (22~23 두 칸)
-const ROAD = 17;  // 가로 큰길 윗줄 (17~18 두 칸)
+export const ROAD = 17;  // 가로 큰길 윗줄 (17~18 두 칸)
 const SPRING = { x: 27, y: 21.5 }; // 치유의 샘 가운데 (칸 경계 기준)
 
 export const VILLAGE = {
   id: 'fractionValley',
   name: '나눔의 계곡 프락시아',
+  townName: '나눔의 계곡 프락시아',
   unit: 'fractionDivision',
   subtitle: '분수의 나눗셈',
   bgm: 'bgm_town',
@@ -34,7 +35,7 @@ export function buildTerrain() {
   // 큰길
   g.rect(MID, 0, MID + 1, ROWS - 1, 'd');
   g.rect(MID, 5, MID + 1, 7, 'w');            // 다리 밑은 물
-  g.rect(4, ROAD, 41, ROAD + 1, 'd');
+  g.rect(4, ROAD, COLS - 1, ROAD + 1, 'd'); // 동쪽 끝은 다음 마을로 가는 길
   // 광장
   g.circle(MID + 1, ROAD + 2.5, 4.6, 'd');
   // 치유의 샘
@@ -106,7 +107,7 @@ export function scatterNature(grid) {
   // 서쪽·동쪽 숲
   for (let y = 9.5; y < ROWS - 1; y += 1.4 + rnd() * 0.6) {
     tree(C(0.7 + rnd() * 0.6), C(y), rnd() < 0.5);
-    tree(C(COLS - 0.7 - rnd() * 0.6), C(y), rnd() < 0.5);
+    if (Math.abs(y - (ROAD + 1)) > 2) tree(C(COLS - 0.7 - rnd() * 0.6), C(y), rnd() < 0.5);
   }
   // 덤불·꽃·풀 흩뿌리기 (길·물·건물은 피해서)
   const near = (cx, cy) => {
@@ -213,5 +214,6 @@ export const SPOTS = [
 
 export const EXITS = [
   { id: 'south', x: C(MID - 1), y: HEIGHT - 6, w: C(4), h: 6, to: '출발의 초원', scene: 'Field', entry: 'north' },
+  { id: 'east', x: WIDTH - 16, y: C(ROAD - 1), w: 16, h: C(4), to: '쌓기나무 성채 큐베른', scene: 'Town', region: 'cubeCity', entry: 'west', requires: 'report', lockedMsg: '이 마을의 결정을 먼저 되찾아요' },
   { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '계곡 바위 숲', scene: 'RockForest', entry: 'south', requires: 'bridge', lockedMsg: '다리가 부서져서 건널 수 없어요' },
 ];

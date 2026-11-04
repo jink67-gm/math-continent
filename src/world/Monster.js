@@ -6,6 +6,9 @@ import { textStyle, crisp } from '../ui/style.js';
 
 const LEASH = 190;      // 집에서 이만큼 멀어지면 돌아가요
 const RESPAWN_MS = 16000;
+// 협동할 때 주고받는 상태 번호
+export const STATES = ['appear', 'idle', 'chase', 'warn', 'lunge', 'rest', 'stun', 'home', 'gone'];
+const DIRS = ['down', 'up', 'left', 'right'];
 
 export class Monster {
   constructor(scene, combat, kind, x, y) {
@@ -41,8 +44,9 @@ export class Monster {
     this.nextAttack = 0;
     this.slowUntil = 0;
     this.wanderAt = 0;
+    this.respawnTimer?.remove();
     this.feet.setPosition(this.home.x, this.home.y);
-    this.feet.body.enable = true;
+    this.feet.body.enable = !this.remote;
     this.feet.body.setVelocity(0, 0);
     this.sprite.setVisible(true).setAlpha(0).setScale(0.4).clearTint().setAngle(0);
     this.shadow.setVisible(true);
@@ -77,10 +81,11 @@ export class Monster {
   // ── 맞았을 때 ───────────────────────────────
   hit(dmg, fromX, fromY, knock = 1) {
     if (!this.hittable) return false;
-    this.hp -= dmg;
     this.hpShownUntil = this.scene.time.now + 3000;
     this.sprite.setTintFill(0xffffff);
     this.scene.time.delayedCall(60, () => this.alive && this.sprite.clearTint());
+    if (this.remote) return true; // 친구 기기: HP는 방장이 깎아요
+    this.hp -= dmg;
     if (this.hp <= 0) { this.purify(); return true; }
     // 뒤로 밀리고 잠깐 멈춤 (공격 준비도 끊겨요)
     const dx = this.x - fromX;
@@ -101,6 +106,12 @@ export class Monster {
 
   // 쓰러지면 죽는 게 아니라 정화돼요: 하얗게 빛나며 작아지고, 연기와 반짝이
   purify() {
+    this.purifyFx();
+    this.combat.onPurified(this);
+    this.respawnTimer = this.scene.time.delayedCall(RESPAWN_MS, () => this.spawn());
+  }
+
+  purifyFx() {
     this.state = 'gone';
     this.warnG.clear();
     this.hpBar.setVisible(false);
@@ -119,14 +130,19 @@ export class Monster {
     }
     const t = crisp(s.add.text(x, y - 18, '정화!', textStyle(12, '#bff7ff')).setOrigin(0.5).setScale(1 / 3).setDepth(100001));
     s.tweens.add({ targets: t, y: t.y - 10, alpha: 0, delay: 300, duration: 600, onComplete: () => t.destroy() });
-    this.combat.onPurified(this);
-    s.time.delayedCall(RESPAWN_MS, () => this.spawn());
   }
 
   // ── 매 장면 ─────────────────────────────────
-  update(time, player) {
+  // targets: 주인공들 (협동이면 두 명) — 가장 가까운 쪽을 노려요
+  update(time, targets) {
+    if (this.remote) { this.updateRemote(time); return; }
     if (this.state === 'gone') return;
     const d = this.def;
+    let player = targets[0];
+    for (const t of targets) {
+      if (t.state === 'down') continue;
+      if (player.state === 'down' || Math.hypot(t.x - this.x, t.y - this.y) < Math.hypot(player.x - this.x, player.y - this.y)) player = t;
+    }
     const pd = Math.hypot(player.x - this.x, player.y - this.y);
     const homeD = Math.hypot(this.home.x - this.x, this.home.y - this.y);
     const playerOk = player.state !== 'down';
@@ -171,12 +187,13 @@ export class Monster {
       case 'warn': {
         this.feet.body.setVelocity(0, 0);
         const p = 1 - (this.until - time) / this.warnMs;
-        this.drawWarn(Math.min(1, p));
+        this.warnP = Math.min(1, p);
+        this.drawWarn(this.warnP);
         if (time > this.until) this.release(player);
         break;
       }
       case 'lunge':
-        if (!this.lungeHit && this.combat.touchPlayer(this, 11)) this.lungeHit = true;
+        this.combat.lungeHits(this, 11);
         if (time > this.until) { this.feet.body.setVelocity(0, 0); this.state = 'rest'; this.until = time + 650; }
         break;
       case 'rest':
@@ -190,6 +207,7 @@ export class Monster {
   // 공격 준비: 빨간 원으로 어디를 공격할지 미리 보여 줘요 (구르기로 피할 수 있게)
   startWarn(player) {
     this.state = 'warn';
+    this.warnP = 0;
     this.warnMs = this.combat.diff.warnMs;
     this.until = this.scene.time.now + this.warnMs;
     this.faceTo(player.x, player.y);
@@ -232,9 +250,55 @@ export class Monster {
     const sp = (this.def.lunge / ms) * 1000;
     this.feet.body.setVelocity(this.lungeDir.x * sp, this.lungeDir.y * sp);
     this.state = 'lunge';
-    this.lungeHit = false;
+    this.lungeHit = new Set();
     this.until = this.scene.time.now + ms;
     this.scene.sound.play('sfx_lunge', { volume: 0.25 });
+  }
+
+  // ── 협동: 방장 기기와 주고받기 ─────────────────
+  snapshot() {
+    const r = (v) => Math.round(v * 10) / 10;
+    const warn = this.state === 'warn';
+    return [r(this.x), r(this.y), this.hp, this.maxHp, STATES.indexOf(this.state), DIRS.indexOf(this.dir),
+      warn ? r(this.target.x) : 0, warn ? r(this.target.y) : 0, warn ? Math.round((this.warnP || 0) * 100) : 0];
+  }
+
+  // 친구 기기에서는 몬스터를 직접 움직이지 않고 방장이 보낸 모습을 따라가요
+  setRemote(on) {
+    this.remote = on;
+    this.net = null;
+    if (this.state !== 'gone') this.feet.body.enable = !on;
+    this.feet.body.setVelocity(0, 0);
+    if (on) { this.respawnTimer?.remove(); this.warnG.clear(); this.sprite.setScale(1); }
+    else if (this.state === 'gone') this.respawnTimer = this.scene.time.delayedCall(RESPAWN_MS / 2, () => this.spawn());
+    else if (!['idle', 'chase', 'home'].includes(this.state)) this.state = 'idle';
+  }
+
+  applySnapshot(a) {
+    if (!a) return;
+    const first = !this.net;
+    this.net = a;
+    const st = STATES[a[4]] || 'idle';
+    this.hp = a[2];
+    this.maxHp = a[3];
+    this.dir = DIRS[a[5]] || 'down';
+    if (st === 'gone' && this.state !== 'gone') {
+      this.purifyFx();
+      if (!first) this.combat.onPurified(this); // 함께 있을 때 정화한 것만 보상
+    }
+    else if (st !== 'gone' && this.state === 'gone') { this.spawn(); this.feet.setPosition(a[0], a[1]); }
+    this.state = st;
+    if (st === 'warn') this.target = { x: a[6], y: a[7] };
+  }
+
+  updateRemote(time) {
+    if (this.state === 'gone' || !this.net) return;
+    const [nx, ny] = this.net;
+    const far = Math.hypot(nx - this.x, ny - this.y) > 60;
+    this.feet.setPosition(far ? nx : this.x + (nx - this.x) * 0.35, far ? ny : this.y + (ny - this.y) * 0.35);
+    if (this.state === 'warn') this.drawWarn(this.net[8] / 100);
+    else { this.warnG.clear(); this.sprite.setScale(1); }
+    this.sync(time);
   }
 
   sync(time) {

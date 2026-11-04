@@ -29,7 +29,44 @@ export class Combat {
     this.queued = false;
     this.cd = [0, 0, 0, 0];
     this.spAt = 0;
-    this.partyHp = 1; // 2인 협동이면 1.5 (다음 단계)
+    this.coop = false;  // 친구와 같은 장면에 있으면 true
+    this.remote = null; // 친구 모습 (RemotePlayer)
+  }
+
+  get party() { return this.scene.game.party; }
+  get isGuest() { return this.coop && !this.party.isHost; }
+
+  // ── 2인 협동 보정: 혼자일 때보다 느리게 크지 않게 ──
+  // 몬스터 HP 1.5배, 경험치 각자 80%, 골드 각자 60%, 아이템은 각자 따로
+  get partyHp() { return this.coop ? 1.5 : 1; }
+  partyExp() { return this.coop ? 0.8 : 1; }
+  partyGold() { return this.coop ? 0.6 : 1; }
+
+  setCoop(on) {
+    if (on === this.coop) return;
+    const ratio = on ? 1.5 : 1 / 1.5;
+    this.coop = on;
+    const guest = on && !this.party.isHost;
+    for (const m of this.monsters) {
+      m.setRemote(guest);
+      if (!guest && m.alive) { m.maxHp = Math.round(m.maxHp * ratio); m.hp = Math.max(1, Math.round(m.hp * ratio)); }
+    }
+  }
+
+  // 친구 기기에서 온 일 처리
+  handleEvents(events) {
+    for (const e of events) {
+      if (e.t === 'hit' && !this.isGuest) {
+        const m = this.monsters[e.i];
+        if (!m?.hittable) continue;
+        m.hit(e.dmg, e.fx, e.fy, e.knock);
+        if (e.slow && m.alive) m.slow(e.slow);
+      } else if (e.t === 'dmg') {
+        this.damagePlayer(e.atk, e.fx, e.fy);
+      } else if (e.t === 'orb' && this.isGuest) {
+        this.addOrb(e.x, e.y, e.vx, e.vy, 0, true);
+      }
+    }
   }
 
   get stats() { return this.scene.registry.get('player'); }
@@ -94,17 +131,19 @@ export class Combat {
     for (const m of this.monsters) {
       if (!m.hittable) continue;
       if (Math.hypot(m.x - x, (m.y - y) * 1.2) > r + 5) continue;
-      this.damageMonster(m, mult, knock, from, { sound: sound && n === 0 });
-      if (slowMs && m.alive) m.slow(slowMs);
+      this.damageMonster(m, mult, knock, from, { sound: sound && n === 0, slowMs });
       n++;
     }
     return n;
   }
 
-  damageMonster(m, mult, knock, from = this.player, { sound = true } = {}) {
+  damageMonster(m, mult, knock, from = this.player, { sound = true, slowMs = 0 } = {}) {
     const atk = levelStats(this.stats.lv).atk;
     const { dmg, crit } = rollDamage(atk, mult, m.def.def);
     m.hit(dmg, from.x, from.y, knock);
+    if (slowMs && m.alive) m.slow(slowMs);
+    // 친구 기기에서 때리면 방장에게 알려서 HP를 깎아요
+    if (m.remote) this.party.send({ t: 'hit', i: this.monsters.indexOf(m), dmg, knock, fx: from.x, fy: from.y, slow: slowMs || 0 });
     this.popNumber(m.x, m.y - 16, dmg, crit ? '#ffd23f' : '#ffffff', crit ? 16 : 13);
     if (sound) this.scene.sound.play(crit ? 'sfx_crit' : knock > 1.2 ? 'sfx_hit_heavy' : 'sfx_hit', { volume: 0.4 });
   }
@@ -293,10 +332,23 @@ export class Combat {
   }
 
   // ── 몬스터의 공격 ───────────────────────────
-  touchPlayer(m, r) {
-    const p = this.player;
-    if (Math.hypot(p.x - m.x, p.y - m.y) > r) return false;
-    return this.damagePlayer(m.def.atk, m.x, m.y);
+  targets() {
+    return this.coop && this.remote ? [this.player, this.remote] : [this.player];
+  }
+
+  // 덮치기에 닿은 주인공을 한 번씩 때려요 (친구는 친구 기기에 알려요)
+  lungeHits(m, r) {
+    for (const t of this.targets()) {
+      if (m.lungeHit.has(t) || Math.hypot(t.x - m.x, t.y - m.y) > r) continue;
+      m.lungeHit.add(t);
+      this.hitTarget(t, m.def.atk, m.x, m.y);
+    }
+  }
+
+  hitTarget(t, atk, fx, fy) {
+    if (t === this.player) return this.damagePlayer(atk, fx, fy);
+    this.party.send({ t: 'dmg', atk, fx, fy });
+    return true;
   }
 
   damagePlayer(atk, fromX, fromY) {
@@ -323,8 +375,16 @@ export class Combat {
     const dx = target.x - m.x;
     const dy = target.y - m.y;
     const len = Math.hypot(dx, dy) || 1;
-    const s = this.scene.add.sprite(m.x, m.y - 8, 'na/sparkc', 1).setBlendMode('ADD').setScale(0.55).setTint(0xb48cff);
-    this.orbs.push({ s, vx: (dx / len) * 75, vy: (dy / len) * 75, life: 2200, atk: m.def.atk, src: m });
+    const vx = (dx / len) * 75;
+    const vy = (dy / len) * 75;
+    this.addOrb(m.x, m.y - 8, vx, vy, m.def.atk, false);
+    if (this.coop) this.party.send({ t: 'orb', x: m.x, y: m.y - 8, vx, vy });
+  }
+
+  // look: 친구 기기에서 보여 주기만 하는 구슬 (맞았는지는 방장이 정해요)
+  addOrb(x, y, vx, vy, atk, look) {
+    const s = this.scene.add.sprite(x, y, 'na/sparkc', 1).setBlendMode('ADD').setScale(0.55).setTint(0xb48cff);
+    this.orbs.push({ s, vx, vy, life: 2200, atk, look, hit: new Set() });
     this.scene.sound.play('sfx_orb', { volume: 0.25 });
   }
 
@@ -347,8 +407,6 @@ export class Combat {
     return Date.now() < until ? 2 : 1;
   }
 
-  partyExp() { return 1; }  // 2인 협동이면 0.8 (다음 단계)
-  partyGold() { return 1; } // 2인 협동이면 0.6 (다음 단계)
 
   dropCoins(x, y, total) {
     const n = Math.min(5, Math.max(1, Math.ceil(total / 3)));
@@ -430,7 +488,8 @@ export class Combat {
     // SP는 천천히 차요
     if (time > this.spAt) { this.spAt = time + SP_REGEN_MS; if (s.sp < s.maxSp) s.sp++; }
 
-    for (const m of this.monsters) m.update(time, p);
+    const targets = this.targets();
+    for (const m of this.monsters) m.update(time, targets);
 
     // 주인공의 불꽃 화살
     this.bolts = this.bolts.filter((b) => {
@@ -454,7 +513,13 @@ export class Combat {
       o.s.y += o.vy * dt;
       o.life -= delta;
       o.s.setDepth(o.s.y + 10).setAngle(time / 4);
-      if (Math.hypot(p.x - o.s.x, p.y - 6 - o.s.y) < 8 && this.damagePlayer(o.atk, o.s.x, o.s.y)) { o.life = 0; }
+      if (!o.look) {
+        for (const t of targets) {
+          if (o.hit.has(t) || Math.hypot(t.x - o.s.x, t.y - 6 - o.s.y) >= 8) continue;
+          o.hit.add(t);
+          if (this.hitTarget(t, o.atk, o.s.x, o.s.y)) o.life = 0;
+        }
+      }
       if (o.life <= 0) {
         this.scene.fx('fx_smoke', 'na/smoke', o.s.x, o.s.y, { scale: 0.35, depth: o.s.y });
         o.s.destroy();

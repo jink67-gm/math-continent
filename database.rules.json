@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "auth != null && $room.matches(/^[0-9]{4}$/)",
+        "meta": {
+          ".write": "auth != null && $room.matches(/^[0-9]{4}$/) && (!data.exists() || data.child('host').val() === auth.uid)",
+          ".validate": "!newData.exists() || newData.child('host').val() === auth.uid"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($room).child('meta/host').val() === auth.uid)",
+            ".validate": "!newData.exists() || (newData.hasChildren(['name', 'gender', 'lv']) && newData.child('name').isString() && newData.child('name').val().length <= 10)"
+          }
+        },
+        "state": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "mon": {
+          ".write": "auth != null && root.child('rooms').child($room).child('meta/host').val() === auth.uid"
+        },
+        "ev": {
+          "$to": {
+            ".write": "auth != null && auth.uid === $to",
+            "$id": {
+              ".write": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+            }
+          }
+        },
+        ".write": "auth != null && !newData.exists() && data.child('meta/host').val() === auth.uid"
+      }
+    }
+  }
+}

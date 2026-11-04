@@ -51,6 +51,10 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
     this.makeSaveIndicator();
     this.makeMenuButton();
+    this.partyText = crisp(this.add.text(16, 112, '', textStyle(12, '#9be8ff')));
+    const pmsg = (m) => this.toast(m);
+    this.game.events.on('party:msg', pmsg);
+    this.events.once('shutdown', () => this.game.events.off('party:msg', pmsg));
     this.boostText = crisp(this.add.text(W - 18, 200, '', textStyle(13, '#ffe066')).setOrigin(1, 0.5));
     this.tweens.add({ targets: this.boostText, alpha: 0.55, duration: 600, yoyo: true, repeat: -1 });
     this.hurtFlash = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a1a, 0).setDepth(60);
@@ -96,20 +100,88 @@ export class HudScene extends Phaser.Scene {
       items.push(g, t, z);
     };
     const soundLabel = () => (this.game.sound.mute ? '소리 켜기' : '소리 끄기');
-    btn(W / 2 - 90, by + 214, 160, soundLabel(), (paint) => {
+    btn(W / 2 - 140, by + 214, 128, soundLabel(), (paint) => {
       this.game.sound.mute = !this.game.sound.mute;
       try { localStorage.setItem('mathContinent.mute', this.game.sound.mute ? '1' : '0'); } catch { /* 저장 못 해도 괜찮아요 */ }
       paint(soundLabel());
     });
-    btn(W / 2 + 90, by + 214, 160, '닫기', () => this.closeMenu());
+    btn(W / 2, by + 214, 128, '친구와 함께', () => { this.closeMenu(true); this.openParty(); });
+    btn(W / 2 + 140, by + 214, 128, '닫기', () => this.closeMenu());
     this.world.sound.play('sfx_open', { volume: 0.35 });
   }
 
-  closeMenu() {
+  closeMenu(keepOpen = false) {
     this.menuItems?.forEach((o) => o.destroy());
     this.menuItems = null;
+    if (keepOpen) return;
     this.choiceOpen = false;
     this.time.delayedCall(120, () => { this.dialogOpen = false; });
+  }
+
+  // ── 친구와 함께하기 (2인 협동) ──────────────────
+  openParty(msg = '') {
+    const party = this.game.party;
+    const me = this.stats;
+    this.dialogOpen = true;
+    this.choiceOpen = true;
+    this.menuItems?.forEach((o) => o.destroy());
+    const items = [];
+    this.menuItems = items;
+    const bw = 500;
+    const bh = 300;
+    const bx = (W - bw) / 2;
+    const by = (H - bh) / 2 - 10;
+    const text = (x, y, t, size, color, extra) => {
+      const o = crisp(this.add.text(x, y, t, textStyle(size, color, extra)).setOrigin(0.5).setDepth(47));
+      items.push(o);
+      return o;
+    };
+    items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
+    text(W / 2, by + 28, '친구와 함께하기 (2명)', 18, '#ffe9a8');
+    const btn = (x, y, w, label, fn) => {
+      const g = this.add.graphics().setDepth(47);
+      g.fillStyle(0x3a2c1c, 1).fillRoundedRect(x - w / 2, y - 19, w, 38, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(x - w / 2, y - 19, w, 38, 8);
+      const t = crisp(this.add.text(x, y, label, textStyle(15, '#ffffff')).setOrigin(0.5).setDepth(48));
+      const z = this.add.zone(x, y, w, 38).setInteractive({ useHandCursor: true }).setDepth(49);
+      z.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.sound.play('sfx_click', { volume: 0.4 }); fn(); });
+      items.push(g, t, z);
+    };
+    const status = text(W / 2, by + 228, msg, 12, '#ffb36b');
+    const busy = async (job) => {
+      status.setColor('#cfe3c8').setText('연결하는 중...');
+      const res = await job();
+      if (!this.sys.isActive()) return;
+      if (res?.error) status.setColor('#ffb36b').setText(res.error);
+      else this.openParty();
+    };
+    const meInfo = { name: me.name, gender: me.gender, lv: me.lv };
+    if (!party.active) {
+      text(W / 2, by + 66, '함께하면 몬스터가 1.5배 단단해지지만, 둘이 같이 잡아서\n혼자일 때보다 느리게 크지 않아요. 아이템은 각자 따로 나와요.', 12, '#e6f0dd', { align: 'center', lineSpacing: 4 });
+      btn(W / 2 - 120, by + 128, 190, '방 만들기', () => busy(() => party.create(meInfo)));
+      text(W / 2 - 120, by + 172, '방 번호가 생기면\n친구에게 알려 주세요', 11, '#cfe3c8', { align: 'center' });
+      const input = this.add.dom(W / 2 + 120, by + 128).createElement('input');
+      input.node.className = 'name-input';
+      input.node.style.width = '170px';
+      input.node.placeholder = '친구의 방 번호';
+      input.node.inputMode = 'numeric';
+      input.node.maxLength = 4;
+      items.push(input);
+      const join = () => busy(() => party.join(input.node.value.trim(), meInfo));
+      input.node.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') join(); });
+      btn(W / 2 + 120, by + 180, 190, '친구 방에 들어가기', join);
+    } else {
+      text(W / 2, by + 66, '방 번호', 12, '#cfe3c8');
+      text(W / 2, by + 96, party.room, 34, '#ffffff', { strokeThickness: 6 });
+      const peer = party.peer;
+      text(W / 2, by + 140, peer ? `${me.name}  +  ${peer.name} (Lv${peer.lv})` : '친구를 기다리는 중... 이 번호를 친구에게 알려 주세요', 14, peer ? '#9be8ff' : '#ffe9a8');
+      text(W / 2, by + 168, '같은 곳(마을·필드)에 있으면 서로 보이고 함께 싸울 수 있어요.', 11, '#e6f0dd');
+      btn(W / 2 - 90, by + 262, 160, '파티 나가기', () => busy(async () => { await party.leave(); }));
+    }
+    btn(W / 2 + (party.active ? 90 : 0), by + 262, 160, '닫기', () => this.closeMenu());
+    // 친구가 들어오거나 나가면 창을 새로 그려요
+    const refresh = () => { if (this.menuItems === items) this.openParty(); };
+    this.game.events.once('party:msg', refresh);
+    items.push({ destroy: () => this.game.events.off('party:msg', refresh) });
   }
 
   flashHurt() {
@@ -542,6 +614,11 @@ export class HudScene extends Phaser.Scene {
     this.drawSkills();
     this.drawMinimap(time);
     this.potText.setText(`${this.stats.potions ?? 0}`);
+    const party = this.game.party;
+    const peer = party.active && party.peer;
+    const together = peer && this.world.combat.coop;
+    this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
+      : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);
     const boost = this.world.combat.boost() > 1;
     this.boostText.setText(boost ? '★ 경험치 2배 시간!' : '');
   }

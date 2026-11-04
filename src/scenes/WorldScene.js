@@ -3,6 +3,7 @@
 
 import { Player } from '../world/Player.js';
 import { Combat } from '../combat/Combat.js';
+import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
 
@@ -252,6 +253,43 @@ export class WorldScene extends Phaser.Scene {
     this.saveGame({ now: true });
   }
 
+  // ── 2인 협동: 내 모습 보내기, 친구 모습·몬스터 받기 ──
+  syncParty(time) {
+    const party = this.game.party;
+    const c = this.combat;
+    if (!party?.active) {
+      c.setCoop(false);
+      this.removeRemote();
+      return;
+    }
+    const stats = this.registry.get('player');
+    const p = this.player;
+    const r = (v) => Math.round(v * 10) / 10;
+    party.sendState({ s: this.scene.key, x: r(p.x), y: r(p.y), d: p.dir, st: p.state, hp: stats.hp, mhp: stats.maxHp, lv: stats.lv });
+    const together = party.together(this.scene.key);
+    if (together && !c.remote) c.remote = new RemotePlayer(this, { ...party.peer, x: party.peerState.x, y: party.peerState.y });
+    if (!together) this.removeRemote();
+    c.setCoop(together);
+    if (together) {
+      c.remote.update(party.peerState);
+      if (party.isHost && time > (this.monSendAt || 0)) {
+        this.monSendAt = time + 100;
+        if (c.monsters.length) party.sendMon(this.scene.key, c.monsters.map((m) => m.snapshot()));
+      }
+      if (!party.isHost) {
+        const arr = party.mon[this.scene.key];
+        if (arr) c.monsters.forEach((m, i) => m.applySnapshot(arr[i]));
+      }
+    }
+    c.handleEvents(party.takeEvents());
+  }
+
+  removeRemote() {
+    if (!this.combat.remote) return;
+    this.combat.remote.destroy();
+    this.combat.remote = null;
+  }
+
   saveGame({ now = false } = {}) {
     const stats = this.registry.get('player');
     if (!this.player) return;
@@ -274,6 +312,7 @@ export class WorldScene extends Phaser.Scene {
       const [vx, vy] = this.moveInput();
       this.player.update(vx, vy, this.locked);
     }
+    this.syncParty(time);
     this.combat.update(time, delta);
     for (const n of this.npcs) n.update(time);
     this.hud?.setPrompt(this.locked ? null : this.nearest());

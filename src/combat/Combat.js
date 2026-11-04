@@ -63,6 +63,12 @@ export class Combat {
         if (e.slow && m.alive) m.slow(e.slow);
       } else if (e.t === 'dmg') {
         this.damagePlayer(e.atk, e.fx, e.fy);
+      } else if (e.t === 'revive') {
+        this.scene.revive?.();
+      } else if (e.t === 'rune') {
+        this.scene.onPeerRune?.(e.id);
+      } else if (e.t === 'say' && this.remote) {
+        this.scene.say?.(String(e.text).slice(0, 12), this.remote);
       } else if (e.t === 'unseal' && !this.isGuest) {
         this.scene.boss?.unseal();
       } else if (e.t === 'orb' && this.isGuest) {

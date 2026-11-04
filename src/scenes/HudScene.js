@@ -66,6 +66,23 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.testBtn, alpha: 0.7, duration: 700, yoyo: true, repeat: -1 });
     this.input.keyboard.on('keydown-T', () => this.world.growthTest());
     this.input.keyboard.on('keydown-B', () => !this.dialogOpen && this.world.openBag());
+    // 협동 인사말 (정해진 말만 보낼 수 있어요)
+    this.greet = this.add.container(16, 252).setVisible(false);
+    ['안녕!', '고마워!', '여기야!', '잘했어!'].forEach((txt, i) => {
+      const x = (i % 2) * 76;
+      const y = Math.floor(i / 2) * 30;
+      const g = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(x, y, 70, 26, 8).lineStyle(1, 0x9be8ff, 1).strokeRoundedRect(x, y, 70, 26, 8);
+      const t = crisp(this.add.text(x + 35, y + 13, txt, textStyle(11, '#9be8ff')).setOrigin(0.5));
+      const z = this.add.zone(x + 35, y + 13, 70, 26).setInteractive({ useHandCursor: true });
+      z.on('pointerdown', (p, lx, ly, ev) => {
+        ev?.stopPropagation();
+        if (this.greetAt > this.time.now) return;
+        this.greetAt = this.time.now + 1200;
+        this.game.party.send({ t: 'say', text: txt });
+        this.world.say(txt);
+      });
+      this.greet.add([g, t, z]);
+    });
     this.bossName = crisp(this.add.text(W / 2 + 10, 26, '', textStyle(13, '#ffe9a8')).setOrigin(0.5).setDepth(7));
     const pmsg = (m) => this.toast(m);
     this.game.events.on('party:msg', pmsg);
@@ -681,6 +698,7 @@ export class HudScene extends Phaser.Scene {
     if (tests) this.testText.setText(`⭐ 성장 시험 ${tests}${this.isTouch ? '' : ' (T)'}`);
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
       : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);
+    this.greet.setVisible(!!together);
     const boost = this.world.combat.boost() > 1;
     this.boostText.setText(boost ? '★ 경험치 2배 시간!' : '');
   }

@@ -124,7 +124,8 @@ export class Party {
     const now = Date.now();
     if (now - this.lastSend < SEND_MS) return;
     this.lastSend = now;
-    this.dbM.set(this.ref(`state/${this.uid}`), st).catch((e) => console.warn('[협동] 보내기 실패', e));
+    // 가만히 서 있어도 값이 바뀌어야 친구 쪽에 소식이 가요 (안 그러면 3초 뒤 「떠남」으로 보여요)
+    this.dbM.set(this.ref(`state/${this.uid}`), { ...st, t: now }).catch((e) => console.warn('[협동] 보내기 실패', e));
   }
 
   sendMon(sceneKey, arr) {

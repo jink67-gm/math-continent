@@ -8,6 +8,7 @@ import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
 import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
 import { openShop, openForge, openBag } from '../ui/Panels.js';
+import { textStyle, crisp } from '../ui/style.js';
 
 export const ZOOM = 3;
 
@@ -163,6 +164,9 @@ export class WorldScene extends Phaser.Scene {
       const d = Math.hypot(s.x - px, (s.y - py) * 1.3);
       if (d < s.r && d < bestD) { best = { type: 'spot', spot: s, x: s.x, y: s.y - 20 }; bestD = d; }
     }
+    // 협동: 쓰러진 친구 곁에 가면 일으킬 수 있어요
+    const r = this.combat.remote;
+    if (r && r.state === 'down' && Math.hypot(r.x - px, r.y - py) < 24) best = { type: 'revive', x: r.x, y: r.y - 22, spot: { label: '일으키기' } };
     return best;
   }
 
@@ -170,6 +174,13 @@ export class WorldScene extends Phaser.Scene {
     if (this.locked) return;
     const t = this.nearest();
     if (!t) return;
+    if (t.type === 'revive') {
+      this.game.party.send({ t: 'revive' });
+      this.fx('fx_sparkc', 'na/sparkc', t.x, t.y + 14, { scale: 1.3, depth: t.y + 40, add: true }).setTint(0x9dff9d);
+      this.sound.play('sfx_heal', { volume: 0.5 });
+      this.hud.toast('친구를 일으켰어요!');
+      return;
+    }
     if (t.type === 'npc') {
       const n = t.npc;
       n.face(this.player.x, this.player.y);
@@ -230,6 +241,7 @@ export class WorldScene extends Phaser.Scene {
     this.fx('fx_sparkc', 'na/sparkc', s.x, s.y - 10, { scale: 1.6, depth: s.y + 41, add: true });
     this.onRuneSolved?.(s.id);
     this.quests.onRune(s.id);
+    if (this.combat.coop) this.game.party.send({ t: 'rune', id: s.id }); // 친구 화면에서도 룬이 깨어나요
   }
 
   openBag() { if (!this.locked) openBag(this.game, this); }
@@ -309,7 +321,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.exitCooldown > this.time.now || this.leaving) return;
     this.exitCooldown = this.time.now + 2500;
     if (!e.scene) { this.hud?.toast(`「${e.to}」은(는) 다음 단계에서 열려요`); return; }
-    if (e.requires && !this.quests.passed(e.requires)) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
+    if (e.requires && !this.quests.passed(e.requires) && !this.game.classCfg?.unlockAll) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
     this.goTo(e.scene, e.entry);
   }
 
@@ -324,13 +336,46 @@ export class WorldScene extends Phaser.Scene {
   onPlayerDown() {
     const stats = this.registry.get('player');
     this.player.knockDown();
-    this.hud?.showBanner('쓰러졌어요…', '잃는 것은 없어요. 다시 힘을 내요!');
-    this.time.delayedCall(1800, () => {
+    // 협동 중이면 10초 동안 친구가 일으켜 줄 수 있어요
+    const wait = this.combat.coop ? 10000 : 1800;
+    this.hud?.showBanner('쓰러졌어요…', this.combat.coop ? '친구가 곁에 와서 일으켜 줄 수 있어요 (10초)' : '잃는 것은 없어요. 다시 힘을 내요!');
+    this.downTimer = this.time.delayedCall(wait, () => {
+      if (this.player.state !== 'down') return;
       stats.hp = stats.maxHp;
       stats.sp = stats.maxSp;
       const [key, entry] = this.respawnAt?.() || ['Village', 'south'];
       this.goTo(key, entry);
     });
+  }
+
+  // 친구가 일으켜 줬어요
+  revive() {
+    if (this.player.state !== 'down') return;
+    const stats = this.registry.get('player');
+    this.downTimer?.remove();
+    stats.hp = Math.round(stats.maxHp * 0.5);
+    this.player.state = 'move';
+    this.player.sprite.setAngle(0);
+    this.player.invUntil = this.time.now + 2000;
+    this.fx('fx_sparkc', 'na/sparkc', this.player.x, this.player.y - 8, { scale: 1.4, depth: this.player.y + 30, add: true }).setTint(0x9dff9d);
+    this.hud?.toast('친구가 일으켜 줬어요!');
+  }
+
+  // 친구가 룬을 깨웠어요 (협동 룬)
+  onPeerRune(id) {
+    if (!this.quests.canRune(id)) return;
+    const s = this.spots.find((p) => p.id === id);
+    if (s) this.fx('fx_ring', 'na/ring', s.x, s.y - 6, { scale: 2.5, depth: s.y + 40, add: true }).setTint(0xb8a0ff);
+    this.onRuneSolved?.(id);
+    this.quests.onRune(id);
+    this.hud?.toast('친구가 룬을 깨웠어요!');
+  }
+
+  // 인사말 말풍선
+  say(text, who = this.player) {
+    const t = crisp(this.add.text(who.x, who.y - 30, text, textStyle(13, '#1b1208', { backgroundColor: '#fff8e6', padding: { x: 6, y: 3 }, strokeThickness: 0 })))
+      .setOrigin(0.5).setScale(1 / 3).setDepth(100005);
+    this.tweens.add({ targets: t, y: t.y - 6, alpha: 0, delay: 1600, duration: 500, onComplete: () => t.destroy() });
   }
 
   async checkTeacher() {

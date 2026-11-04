@@ -32,6 +32,7 @@ async function init() {
   $('logout').onclick = () => authM.signOut(auth);
   $('refresh').onclick = loadStudents;
   $('send').onclick = sendGifts;
+  $('saveCfg').onclick = saveCfg;
   $('all').onchange = (e) => document.querySelectorAll('.pick').forEach((c) => { c.checked = e.target.checked; });
   $('toggleCodes').onclick = () => { showCodes = !showCodes; $('toggleCodes').textContent = showCodes ? '저장 코드 숨기기' : '저장 코드 보기'; render(); };
   document.querySelectorAll('[data-boost]').forEach((b) => { b.onclick = () => setBoost(Number(b.dataset.boost)); });
@@ -112,6 +113,10 @@ function render() {
     cell(tr, String(s.level || 1), 'num');
     cell(tr, VILLAGES[s.currentVillage] || s.currentVillage || '-');
     cell(tr, DIFFS[s.difficulty] || '보통');
+    const m = Object.values(s.save?.math || {});
+    const c = m.reduce((a, u) => a + (u.c || 0), 0);
+    const total = c + m.reduce((a, u) => a + (u.w || 0), 0);
+    cell(tr, total ? `${Math.round((c / total) * 100)}% (${c}/${total})` : '-', 'num');
     cell(tr, `${Math.round((s.playTime || 0) / 60)}분`, 'num');
     cell(tr, s.updatedAt?.toDate ? ago(s.updatedAt.toDate()) : '-');
     const code = cell(tr, '');
@@ -164,8 +169,21 @@ async function loadBoost() {
   const { fsM, db } = fb;
   try {
     const snap = await fsM.getDoc(fsM.doc(db, 'config', 'class'));
-    showBoost(snap.exists() ? snap.data().expBoostUntil || 0 : 0);
+    const d = snap.exists() ? snap.data() : {};
+    showBoost(d.expBoostUntil || 0);
+    $('pi').value = d.piValue === 3 ? '3' : '3.14';
+    $('unlockAll').checked = !!d.unlockAll;
   } catch { showBoost(0); }
+}
+
+async function saveCfg() {
+  const { fsM, db } = fb;
+  try {
+    await fsM.setDoc(fsM.doc(db, 'config', 'class'), {
+      piValue: $('pi').value === '3' ? 3 : 3.14, unlockAll: $('unlockAll').checked, updatedAt: fsM.serverTimestamp(),
+    }, { merge: true });
+    setStatus('cfgState', '저장했어요');
+  } catch (e) { setStatus('cfgState', `저장하지 못했어요 (${e.code || e.message})`, true); }
 }
 
 function showBoost(until) {

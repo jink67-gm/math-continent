@@ -27,6 +27,7 @@
     label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
     input[type=number], input[type=text] { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; width: 110px; background: #fff; }
     input[type=text] { width: 240px; }
+    select { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
     .table-wrap { overflow-x: auto; }
     table { border-collapse: collapse; width: 100%; font-size: 14px; }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -56,6 +57,19 @@
     </section>
 
     <div id="app" hidden style="display:grid;gap:16px">
+      <section>
+        <h2>학급 설정</h2>
+        <div class="row">
+          <label class="f">원주율
+            <select id="pi"><option value="3.14">3.14</option><option value="3">3</option></select></label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px;display:flex">
+            <input type="checkbox" id="unlockAll"> 모든 마을·길 열기 (진행과 상관없이 이동)</label>
+          <button id="saveCfg">저장</button>
+          <span id="cfgState" class="status"></span>
+        </div>
+        <p class="note">원주율은 원의 넓이·원기둥 문제에 쓰여요. 학생 화면에는 최대 90초 안에 반영돼요.</p>
+      </section>
+
       <section>
         <h2>학급 경험치 2배 시간</h2>
         <div class="row">
@@ -93,7 +107,7 @@
               <tr>
                 <th><input type="checkbox" id="all" aria-label="모두 선택"></th>
                 <th>별명</th><th class="num">레벨</th><th>있는 곳</th><th>난이도</th>
-                <th class="num">플레이 시간</th><th>마지막 저장</th><th>저장 코드</th>
+                <th class="num">룬 정답률</th><th class="num">플레이 시간</th><th>마지막 저장</th><th>저장 코드</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>

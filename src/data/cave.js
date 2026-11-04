@@ -47,11 +47,6 @@ export function buildTerrain() {
   }
   g.circle(20, 9.5, 7.5, 'd'); // 보스 방 바닥
   g.circle(20, 46, 3, 'd');
-  // 땅속 웅덩이
-  g.circle(6, 43, 2.6, 'w');
-  g.circle(34, 25, 2.4, 'w');
-  g.circle(4, 12, 2.2, 'w');
-  g.circle(36, 6, 2.2, 'w');
   return g;
 }
 

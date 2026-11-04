@@ -3,48 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#6ec8ff">
+  <meta name="theme-color" content="#14201a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>수학 대륙: 여섯 마을의 봉인</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
-  <!-- 글꼴: 게임 폴더 안 assets/fonts (나눔스퀘어라운드 · 주아) — 인터넷 글꼴 서버가 막혀도 같은 글씨 -->
-  <link rel="preload" href="assets/fonts/Jua-Regular.woff" as="font" type="font/woff" crossorigin>
-  <link rel="preload" href="assets/fonts/NanumSquareRoundR.woff" as="font" type="font/woff" crossorigin>
-  <link rel="preload" href="assets/fonts/NanumSquareRoundB.woff" as="font" type="font/woff" crossorigin>
-  <link rel="stylesheet" href="css/game.css">
-  <link rel="stylesheet" href="css/ui.css">
-  <link rel="stylesheet" href="css/rpg.css">
-  <link rel="stylesheet" href="css/fantasy.css">
-  <link rel="stylesheet" href="css/retro.css">
-  <link rel="stylesheet" href="css/fonts.css">
-  <link rel="stylesheet" href="css/polish.css">
+  <link rel="preload" href="fonts/Galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: 'Galmuri11'; src: url('fonts/Galmuri11.woff2') format('woff2'); font-display: block; }
+    @font-face { font-family: 'Galmuri11'; font-weight: bold; src: url('fonts/Galmuri11-Bold.woff2') format('woff2'); font-display: block; }
+    html, body { margin: 0; height: 100%; background: #0d1410; overflow: hidden; touch-action: none; }
+    #game { width: 100vw; height: 100vh; height: 100dvh; }
+    #game canvas { display: block; }
+    .name-input {
+      font-family: 'Galmuri11', sans-serif; font-size: 18px; width: 220px; padding: 8px 12px;
+      border: 3px solid #e8c36a; border-radius: 6px; background: #fff8e6; color: #3a2614; outline: none; text-align: center;
+    }
+    #file-warning { position: fixed; inset: 0; display: none; place-items: center; background: #0d1410; color: #fff;
+      font-family: sans-serif; text-align: center; padding: 24px; }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <canvas id="game-canvas" aria-label="게임 화면"></canvas>
-    <div id="screen-layer"></div>
-    <div id="hud" class="hidden"></div>
-    <div id="touch-controls" class="hidden"></div>
-    <div id="dev-panel" class="hidden"></div>
-    <div id="overlay-layer"></div>
-    <div id="toast-layer"></div>
-    <div id="save-indicator" class="save-indicator" aria-live="polite"></div>
-  </div>
-
-  <div id="file-warning" class="file-warning hidden">
-    <h2>이렇게 열면 게임이 실행되지 않아요</h2>
-    <p>파일을 더블클릭해서 열면 브라우저가 게임 파일을 막아요.<br>
-      아래 방법 중 하나로 열어 주세요.</p>
-    <ul>
-      <li>GitHub Pages 주소로 열기 (추천)</li>
-      <li>VS Code의 <b>Live Server</b>로 열기</li>
-    </ul>
+  <div id="game"></div>
+  <div id="file-warning">
+    <div>
+      <h2>이렇게 열면 게임이 실행되지 않아요</h2>
+      <p>파일을 더블클릭하지 말고 GitHub Pages 주소나 VS Code의 Live Server로 열어 주세요.</p>
+    </div>
   </div>
   <script>
-    if (location.protocol === 'file:') {
-      document.getElementById('file-warning').classList.remove('hidden');
-    }
+    if (location.protocol === 'file:') document.getElementById('file-warning').style.display = 'grid';
   </script>
-  <script type="module" src="js/main.js"></script>
+  <script src="lib/phaser.min.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

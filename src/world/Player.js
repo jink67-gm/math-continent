@@ -30,6 +30,11 @@ export class Player {
     this.play('idle_down');
   }
 
+  // 끼운 무기 그림으로 바꿔요
+  setWeapon(key) {
+    if (key && this.scene.textures.exists(key)) this.sword.setTexture(key);
+  }
+
   get x() { return this.feet.x; }
   get y() { return this.feet.y; }
   get canAct() { return this.state === 'move'; }

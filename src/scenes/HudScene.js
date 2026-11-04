@@ -65,6 +65,7 @@ export class HudScene extends Phaser.Scene {
     this.testBtn.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.growthTest(); });
     this.tweens.add({ targets: this.testBtn, alpha: 0.7, duration: 700, yoyo: true, repeat: -1 });
     this.input.keyboard.on('keydown-T', () => this.world.growthTest());
+    this.input.keyboard.on('keydown-B', () => !this.dialogOpen && this.world.openBag());
     this.bossName = crisp(this.add.text(W / 2 + 10, 26, '', textStyle(13, '#ffe9a8')).setOrigin(0.5).setDepth(7));
     const pmsg = (m) => this.toast(m);
     this.game.events.on('party:msg', pmsg);
@@ -91,8 +92,8 @@ export class HudScene extends Phaser.Scene {
     this.choiceOpen = true;
     const items = [];
     this.menuItems = items;
-    const bw = 440;
-    const bh = 280;
+    const bw = 460;
+    const bh = 320;
     const bx = (W - bw) / 2;
     const by = (H - bh) / 2 - 10;
     items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
@@ -114,13 +115,14 @@ export class HudScene extends Phaser.Scene {
       items.push(g, t, z);
     };
     const soundLabel = () => (this.game.sound.mute ? '소리 켜기' : '소리 끄기');
-    btn(W / 2 - 140, by + 214, 128, soundLabel(), (paint) => {
+    btn(W / 2 - 140, by + 214, 128, '가방 (B)', () => { this.closeMenu(); this.world.openBag(); });
+    btn(W / 2 + 140, by + 214, 128, soundLabel(), (paint) => {
       this.game.sound.mute = !this.game.sound.mute;
       try { localStorage.setItem('mathContinent.mute', this.game.sound.mute ? '1' : '0'); } catch { /* 저장 못 해도 괜찮아요 */ }
       paint(soundLabel());
     });
     btn(W / 2, by + 214, 128, '친구와 함께', () => { this.closeMenu(true); this.openParty(); });
-    btn(W / 2 + 140, by + 214, 128, '닫기', () => this.closeMenu());
+    btn(W / 2, by + 270, 128, '닫기', () => this.closeMenu());
     this.world.sound.play('sfx_open', { volume: 0.35 });
   }
 

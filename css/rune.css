@@ -98,3 +98,18 @@
   .rune-choices { grid-template-columns: 1fr; }
   .rune-question { font-size: 19px; }
 }
+
+/* 상점 · 가방 · 대장간 */
+.panel-card { width: min(600px, 100%); }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.panel-gold { color: #ffd866; font-size: 15px; }
+.panel-body { margin-top: 12px; display: grid; gap: 8px; }
+.panel-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: #2c2216; border-radius: 10px; }
+.panel-icon { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.panel-text { flex: 1; min-width: 0; }
+.panel-name { font-size: 15px; color: #fff3c4; }
+.panel-info { font-size: 12px; color: #cfe3c8; margin-top: 2px; }
+.panel-row .rune-btn { padding: 8px 12px; font-size: 13px; flex: none; }
+.panel-sub { font-size: 13px; color: #ffe9a8; margin-top: 6px; }
+.panel-stats { font-size: 13px; color: #e6f0dd; padding: 8px 10px; background: #1f2a20; border-radius: 8px; }
+.panel-note { font-size: 12px; color: #cfe3c8; margin: 4px 0 0; }

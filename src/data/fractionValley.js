@@ -150,11 +150,11 @@ export const NPCS = [
     ],
   },
   {
-    id: 'merchant', sprite: 'Villager4', name: '상인 루루', x: C(17.6), y: C(26.4),
+    id: 'merchant', sprite: 'Villager4', name: '상인 루루', x: C(17.6), y: C(26.4), role: 'shop',
     lines: [['어서 오세요! 좋은 물건 많아요~'], ['쓰지 않는 재료는 팔아서 골드로 바꿀 수 있어요!']],
   },
   {
-    id: 'smith', sprite: 'Shaman', name: '대장장이 쿵쿵', x: C(7.2), y: C(26.6),
+    id: 'smith', sprite: 'Shaman', name: '대장장이 쿵쿵', x: C(7.2), y: C(26.6), role: 'forge',
     lines: [['쾅! 쾅! 장비를 강화하려면 재료와 수학 실력이 필요하지!'], ['문제를 틀려도 재료는 사라지지 않으니 걱정 말게.']],
   },
   {

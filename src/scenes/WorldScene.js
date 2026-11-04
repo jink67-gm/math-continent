@@ -6,7 +6,8 @@ import { Combat } from '../combat/Combat.js';
 import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
-import { WEAPONS, ARMORS } from '../data/items.js';
+import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
+import { openShop, openForge, openBag } from '../ui/Panels.js';
 
 export const ZOOM = 3;
 
@@ -38,6 +39,7 @@ export class WorldScene extends Phaser.Scene {
     const at = saved || this.spawnPoint(this.entry);
     this.player = new Player(this, at.x, at.y, HEROES[stats.gender] || HEROES.male);
     this.physics.add.collider(this.player.feet, this.solids);
+    this.player.setWeapon(weaponOf(stats).hand);
     for (const n of this.npcs) {
       this.physics.add.collider(this.player.feet, n.feet);
       if (n.def.wander) this.physics.add.collider(n.feet, this.solids);
@@ -137,7 +139,7 @@ export class WorldScene extends Phaser.Scene {
     return Math.hypot(vx, vy) > 0.15 ? [vx, vy] : fallback;
   }
 
-  get locked() { return !!this.hud?.dialogOpen || this.player?.state === 'down' || !!this.game.runes?.open; }
+  get locked() { return !!this.hud?.dialogOpen || this.player?.state === 'down' || !!this.game.runes?.open || !!this.game.panelOpen; }
 
   fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false } = {}) {
     const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth);
@@ -175,7 +177,12 @@ export class WorldScene extends Phaser.Scene {
       const q = this.quests.talk(n.id);
       this.hud.openDialog({
         name: n.def.name, portrait: `face/${n.key}`, lines: q ? q.lines : n.nextLines(),
-        onClose: () => { n.setTalking(false); q?.after?.(); },
+        onClose: () => {
+          n.setTalking(false);
+          q?.after?.();
+          if (!q && n.def.role === 'shop') openShop(this.game, this);
+          if (!q && n.def.role === 'forge') openForge(this.game, this);
+        },
       });
       return;
     }
@@ -224,6 +231,8 @@ export class WorldScene extends Phaser.Scene {
     this.onRuneSolved?.(s.id);
     this.quests.onRune(s.id);
   }
+
+  openBag() { if (!this.locked) openBag(this.game, this); }
 
   // ── 성장 룬 ──────────────────────────────────
   async learnSkill(sk) {
@@ -403,7 +412,7 @@ export class WorldScene extends Phaser.Scene {
 
   update(time, delta) {
     // 룬 창이 열려 있는 동안은 세상이 멈춰요 (보스도 기다려 줘요)
-    const paused = !!this.game.runes?.open && !this.combat.coop;
+    const paused = (!!this.game.runes?.open || !!this.game.panelOpen) && !this.combat.coop;
     if (paused !== !!this.worldPaused) {
       this.worldPaused = paused;
       if (paused) { this.physics.world.pause(); this.tweens.pauseAll(); } else { this.physics.world.resume(); this.tweens.resumeAll(); }

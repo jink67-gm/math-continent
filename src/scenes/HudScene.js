@@ -669,7 +669,17 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.toastText, alpha: 0, y: 90, delay: 1600, duration: 500 });
   }
 
+  // 큰 알림: 여러 개가 한꺼번에 오면 차례로 보여 줘요
   showBanner(title, sub) {
+    (this.bannerQueue ||= []).push([title, sub]);
+    if (!this.bannerBusy) this.nextBanner();
+  }
+
+  nextBanner() {
+    const item = this.bannerQueue.shift();
+    if (!item) { this.bannerBusy = false; return; }
+    this.bannerBusy = true;
+    const [title, sub] = item;
     const c = this.add.container(W / 2, 150).setDepth(45).setAlpha(0);
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.45).fillRect(-260, -38, 520, 76);
@@ -679,7 +689,8 @@ export class HudScene extends Phaser.Scene {
     c.add([g, t1, t2]);
     this.tweens.chain({
       targets: c,
-      tweens: [{ alpha: 1, duration: 500, delay: 300 }, { alpha: 0, duration: 700, delay: 2200 }],
+      tweens: [{ alpha: 1, duration: 350, delay: 100 }, { alpha: 0, duration: 500, delay: 1900 }],
+      onComplete: () => { c.destroy(); this.nextBanner(); },
     });
   }
 

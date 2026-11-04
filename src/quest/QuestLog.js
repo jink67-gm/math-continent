@@ -123,6 +123,7 @@ export class QuestLog {
     const next = this.step;
     const scene = this.scene;
     if (st.done) scene?.hud?.openDialog({ name: st.title, lines: this.fill(st.done) });
+    if (!next && this.vid === 'solidPeaks') scene?.time.delayedCall(2500, () => scene.hud?.showBanner('수학 대륙을 구했어요!', '여섯 마을의 봉인을 모두 지켜 냈어요. 정말 멋져요!'));
     this.reward(st.reward, st.title, next);
     scene?.onQuestAdvance?.(st, next);
     scene?.saveGame({ now: true });
@@ -148,7 +149,7 @@ export class QuestLog {
       if (st.type === 'rune' && st.target.length > 1) t += ` (${st.target.filter((r) => this.runeLit(r)).length}/${st.target.length})`;
       lines.push(t, `   ${st.desc}`);
     } else {
-      lines.push(`★ ${this.scene?.info?.townName || '이 마을'}을(를) 구했어요! 다음 마을로 가요`);
+      lines.push(this.vid === 'solidPeaks' ? '★ 수학 대륙을 모두 구했어요! 축하해요!' : `★ ${this.scene?.info?.townName || '이 마을'}을(를) 구했어요! 다음 마을로 가요`);
     }
     const h = this.state('fractionValley').side.hunt;
     if (this.vid !== 'fractionValley') return lines.join('\n');

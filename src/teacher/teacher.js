@@ -6,7 +6,7 @@ import { firebaseConfig } from '../save/firebase-config.js';
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const USE_EMULATOR = new URLSearchParams(location.search).has('emu');
 
-const VILLAGES = { fractionValley: '분수 계곡 마을' };
+const VILLAGES = { fractionValley: '나눔의 계곡 프락시아' };
 const DIFFS = { easy: '쉬움', normal: '보통', hard: '어려움' };
 
 const $ = (id) => document.getElementById(id);

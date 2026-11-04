@@ -121,7 +121,7 @@ export const NPCS = [
 export const SPOTS = [
   {
     id: 'sign1', kind: 'read', name: '나무 표지판', x: C(MID - 1.6), y: C(5.6), r: 22, label: '표지판 읽기',
-    lines: [['↑ 분수 계곡 마을', '↓ 남쪽으로 갈수록 몬스터가 강해져요. 조심!']],
+    lines: [['↑ 나눔의 계곡 프락시아', '↓ 남쪽으로 갈수록 몬스터가 강해져요. 조심!']],
   },
   {
     id: 'sign2', kind: 'read', name: '나무 표지판', x: C(MID + 4.6), y: C(18.9), r: 22, label: '표지판 읽기',
@@ -130,7 +130,7 @@ export const SPOTS = [
 ];
 
 export const EXITS = [
-  { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '분수 계곡 마을', scene: 'Village', entry: 'south' },
+  { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '나눔의 계곡 프락시아', scene: 'Village', entry: 'south' },
 ];
 
 export const SPAWN = { x: C(MID + 1), y: C(3) };

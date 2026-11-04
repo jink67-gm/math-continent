@@ -109,7 +109,9 @@ export class TerrainGrid {
   bake(scene, rnd, { theme = 'meadow' } = {}) {
     const [ox, oy] = THEMES[theme] || [0, 0];
     const rt = scene.add.renderTexture(0, 0, this.cols * T, this.rows * T).setOrigin(0, 0);
-    const grassOnly = GRASS_TILES.filter(([x, y]) => y === 12); // 무늬 없는 풀 위주
+    // 다른 묶음에는 (2, 11) 자리가 비어 있어서 빼요
+    const grassAll = theme === 'meadow' ? GRASS_TILES : GRASS_TILES.filter(([x, y]) => !(x === 2 && y === 11));
+    const grassOnly = grassAll.filter(([x, y]) => y === 12); // 무늬 없는 풀 위주
     rt.beginDraw();
     for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.cols; x++) {
@@ -118,7 +120,7 @@ export class TerrainGrid {
         let tx;
         let ty;
         if (t === 'g') {
-          const list = rnd() < 0.85 ? grassOnly : GRASS_TILES;
+          const list = rnd() < 0.85 ? grassOnly : grassAll;
           [tx, ty] = list[Math.floor(rnd() * list.length)];
         } else {
           const m = this.mask(x, y, t);

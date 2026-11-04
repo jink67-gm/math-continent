@@ -5,10 +5,13 @@ import { BootScene } from './scenes/BootScene.js';
 import { TitleScene } from './scenes/TitleScene.js';
 import { VillageScene } from './scenes/VillageScene.js';
 import { FieldScene } from './scenes/FieldScene.js';
+import { RockForestScene } from './scenes/RockForestScene.js';
+import { CaveScene } from './scenes/CaveScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { SaveManager } from './save/SaveManager.js';
 import { Party } from './net/Party.js';
 import { Runes } from './math/Runes.js';
+import { QuestLog } from './quest/QuestLog.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -22,7 +25,7 @@ const config = {
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   dom: { createContainer: true },
   input: { activePointers: 3 },
-  scene: [BootScene, TitleScene, VillageScene, FieldScene, HudScene],
+  scene: [BootScene, TitleScene, VillageScene, FieldScene, RockForestScene, CaveScene, HudScene],
 };
 
 // 글꼴을 다 받은 뒤에 시작해야 글자가 기본 글꼴로 그려지지 않아요
@@ -34,6 +37,7 @@ Promise.all([
   game.saves = new SaveManager(game.events);
   game.party = new Party(game);
   game.runes = new Runes(game);
+  game.quests = new QuestLog(game);
   // 소리 끄기 설정은 이 기기에 기억해요
   try { game.sound.mute = localStorage.getItem('mathContinent.mute') === '1'; } catch { /* 괜찮아요 */ }
   // 창을 닫거나 다른 앱으로 넘어갈 때 바로 저장

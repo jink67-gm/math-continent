@@ -1,6 +1,6 @@
 // 그림·소리를 모두 불러오고, 캐릭터·효과 애니메이션을 만들어요.
 
-import { ASSET_ROOT, SHEETS, IMAGES, CHARACTERS, OBJECTS, BGM, AUDIO, MONSTER_SHEETS } from '../data/assets.js';
+import { ASSET_ROOT, SHEETS, IMAGES, CHARACTERS, OBJECTS, BGM, AUDIO, MONSTER_SHEETS, BOSS_SHEETS } from '../data/assets.js';
 import { FONT } from '../ui/style.js';
 
 export const DIRS = ['down', 'up', 'left', 'right'];
@@ -32,6 +32,8 @@ export class BootScene extends Phaser.Scene {
       this.load.image(`face/${c}`, `na/chars/${c}/Faceset.png`);
     }
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon/${m}`, `na/mon/${m}.png`, { frameWidth: 16, frameHeight: 16 });
+    for (const [key, [path, fw]] of Object.entries(BOSS_SHEETS)) this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fw });
+    this.load.image('face/troll', 'na/boss/troll/face.png');
     this.load.audio('bgm_title', BGM.bgm_title);
     for (const [key, path] of Object.entries(AUDIO)) this.load.audio(key, path);
   }
@@ -40,6 +42,7 @@ export class BootScene extends Phaser.Scene {
     this.makeObjectFrames();
     this.makeCharacterAnims();
     this.makeMonsterAnims();
+    this.makeBossAnims();
     this.makeFxAnims();
     this.label.setText('저장 기록 확인 중...');
     this.registry.set('save', await this.loadPromise);
@@ -71,6 +74,14 @@ export class BootScene extends Phaser.Scene {
         this.anims.create({ key: `mon_${m}_${dir}`, frames: this.anims.generateFrameNumbers(`mon/${m}`, { frames: [d, d + 4, d + 8, d + 12] }), frameRate: 7, repeat: -1 });
       });
     }
+  }
+
+  makeBossAnims() {
+    const a = (key, sheet, rate, repeat = -1) => this.anims.create({ key, frames: this.anims.generateFrameNumbers(sheet), frameRate: rate, repeat });
+    a('troll_idle', 'boss/troll_idle', 7);
+    a('troll_attack', 'boss/troll_attack', 12, 0);
+    a('troll_jump', 'boss/troll_jump', 10, 0);
+    a('troll_charge', 'boss/troll_charge', 8);
   }
 
   makeFxAnims() {

@@ -110,7 +110,9 @@ export class Runes {
       return await this.run(q, info, unit, context);
     } finally {
       this.open = false;
-      if (kb) { kb.enabled = true; kb.resetKeys?.(); }
+      if (kb) kb.enabled = true;
+      // 창이 열린 동안 놓친 「키 뗌」 때문에 키가 눌린 채로 남지 않게
+      for (const sc of this.game.scene.getScenes(true)) sc.input?.keyboard?.resetKeys();
     }
   }
 

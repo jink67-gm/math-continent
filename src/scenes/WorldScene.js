@@ -57,6 +57,9 @@ export class WorldScene extends Phaser.Scene {
     this.setupKeys();
     this.scene.launch('Hud', { worldKey: this.scene.key, info: this.info });
     this.hud = this.scene.get('Hud');
+    this.quests = this.game.quests;
+    this.quests.scene = this;
+    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key));
 
     this.sound.stopAll();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
@@ -133,7 +136,7 @@ export class WorldScene extends Phaser.Scene {
     return Math.hypot(vx, vy) > 0.15 ? [vx, vy] : fallback;
   }
 
-  get locked() { return !!this.hud?.dialogOpen || this.player?.state === 'down'; }
+  get locked() { return !!this.hud?.dialogOpen || this.player?.state === 'down' || !!this.game.runes?.open; }
 
   fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false } = {}) {
     const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth);
@@ -168,7 +171,11 @@ export class WorldScene extends Phaser.Scene {
       const n = t.npc;
       n.face(this.player.x, this.player.y);
       n.setTalking(true);
-      this.hud.openDialog({ name: n.def.name, portrait: `face/${n.key}`, lines: n.nextLines(), onClose: () => n.setTalking(false) });
+      const q = this.quests.talk(n.id);
+      this.hud.openDialog({
+        name: n.def.name, portrait: `face/${n.key}`, lines: q ? q.lines : n.nextLines(),
+        onClose: () => { n.setTalking(false); q?.after?.(); },
+      });
       return;
     }
     const s = t.spot;
@@ -180,6 +187,8 @@ export class WorldScene extends Phaser.Scene {
       this.fx('fx_sparkc', 'na/sparkc', this.player.x, this.player.y - 8, { scale: 1.2, depth: this.player.y + 30, add: true });
       this.time.delayedCall(10, () => this.saveGame());
     }
+    if (s.kind === 'rune') { this.useRune(s); return; }
+    if (s.kind === 'bossSeal') { this.useBossSeal?.(); return; }
     if (s.kind === 'difficulty') {
       const now = DIFFICULTY[stats.difficulty].label;
       this.hud.openChoice({
@@ -198,11 +207,28 @@ export class WorldScene extends Phaser.Scene {
     this.hud.openDialog({ name: s.name, lines: s.lines[0] });
   }
 
+  // ── 룬 ───────────────────────────────────────
+  // 퀘스트가 이 룬을 기다리고 있을 때만 문제가 나와요
+  async useRune(s) {
+    if (this.quests.runeLit(s.id)) { this.hud.openDialog({ name: s.name, lines: s.litLines || ['룬이 환하게 빛나고 있어요.'] }); return; }
+    if (!this.quests.canRune(s.id)) { this.hud.openDialog({ name: s.name, lines: s.sleepLines || ['룬이 아직 잠들어 있어요.', '촌장님께 먼저 이야기를 들어 봐요.'] }); return; }
+    this.player.feet.body.setVelocity(0, 0);
+    const res = await this.game.runes.start({ context: 'quest', unit: this.info.unit || 'fractionDivision', title: s.name, line: s.runeLine });
+    if (!this.sys.isActive()) return;
+    if (!res.correct) { this.hud.toast('언제든 다시 도전할 수 있어요'); return; }
+    this.sound.play('sfx_seal', { volume: 0.5 });
+    this.fx('fx_ring', 'na/ring', s.x, s.y - 6, { scale: 2.5, depth: s.y + 40, add: true }).setTint(0xb8a0ff);
+    this.fx('fx_sparkc', 'na/sparkc', s.x, s.y - 10, { scale: 1.6, depth: s.y + 41, add: true });
+    this.onRuneSolved?.(s.id);
+    this.quests.onRune(s.id);
+  }
+
   // ── 출구 ─────────────────────────────────────
   onExit(e) {
     if (this.exitCooldown > this.time.now || this.leaving) return;
     this.exitCooldown = this.time.now + 2500;
     if (!e.scene) { this.hud?.toast(`「${e.to}」은(는) 다음 단계에서 열려요`); return; }
+    if (e.requires && !this.quests.passed(e.requires)) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
     this.goTo(e.scene, e.entry);
   }
 
@@ -217,11 +243,12 @@ export class WorldScene extends Phaser.Scene {
   onPlayerDown() {
     const stats = this.registry.get('player');
     this.player.knockDown();
-    this.hud?.showBanner('쓰러졌어요…', '잃는 것은 없어요. 마을에서 다시 힘을 내요!');
+    this.hud?.showBanner('쓰러졌어요…', '잃는 것은 없어요. 다시 힘을 내요!');
     this.time.delayedCall(1800, () => {
       stats.hp = stats.maxHp;
       stats.sp = stats.maxSp;
-      this.goTo('Village', 'south');
+      const [key, entry] = this.respawnAt?.() || ['Village', 'south'];
+      this.goTo(key, entry);
     });
   }
 
@@ -303,6 +330,13 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // 룬 창이 열려 있는 동안은 세상이 멈춰요 (보스도 기다려 줘요)
+    const paused = !!this.game.runes?.open && !this.combat.coop;
+    if (paused !== !!this.worldPaused) {
+      this.worldPaused = paused;
+      if (paused) { this.physics.world.pause(); this.tweens.pauseAll(); } else { this.physics.world.resume(); this.tweens.resumeAll(); }
+    }
+    if (paused) return;
     const stats = this.registry.get('player');
     stats.playTime = (stats.playTime || 0) + Math.min(1, (time - this.lastTick) / 1000);
     this.lastTick = time;

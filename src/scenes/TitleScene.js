@@ -192,6 +192,6 @@ export class TitleScene extends Phaser.Scene {
     this.game.saves.save(stats, { now: true });
     this.sound.play('sfx_confirm', { volume: 0.5 });
     this.cameras.main.fadeOut(400, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(stats.scene === 'Field' ? 'Field' : 'Village'));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(['Field', 'RockForest', 'Cave'].includes(stats.scene) ? stats.scene : 'Village'));
   }
 }

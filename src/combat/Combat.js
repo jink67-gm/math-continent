@@ -63,6 +63,8 @@ export class Combat {
         if (e.slow && m.alive) m.slow(e.slow);
       } else if (e.t === 'dmg') {
         this.damagePlayer(e.atk, e.fx, e.fy);
+      } else if (e.t === 'unseal' && !this.isGuest) {
+        this.scene.boss?.unseal();
       } else if (e.t === 'orb' && this.isGuest) {
         this.addOrb(e.x, e.y, e.vx, e.vy, 0, true);
       }
@@ -75,8 +77,8 @@ export class Combat {
   get skills() { return skillsFor(this.stats); }
   get hud() { return this.scene.hud; }
 
-  spawnMonster(kind, x, y) {
-    const m = new Monster(this.scene, this, kind, x, y);
+  spawnMonster(kind, x, y, power = 1) {
+    const m = new Monster(this.scene, this, kind, x, y, power);
     if (!m.def.fly) this.scene.physics.add.collider(m.feet, this.scene.solids);
     this.monsters.push(m);
     return m;
@@ -88,7 +90,7 @@ export class Combat {
     let bestD = range;
     for (const m of this.monsters) {
       if (!m.hittable) continue;
-      const d = Math.hypot(m.x - x, m.y - y);
+      const d = Math.hypot(m.x - x, m.y - y) - (m.radius || 0);
       if (d < bestD) { best = m; bestD = d; }
     }
     return best;
@@ -130,7 +132,7 @@ export class Combat {
     let n = 0;
     for (const m of this.monsters) {
       if (!m.hittable) continue;
-      if (Math.hypot(m.x - x, (m.y - y) * 1.2) > r + 5) continue;
+      if (Math.hypot(m.x - x, (m.y - y) * 1.2) > r + 5 + (m.radius || 0)) continue;
       this.damageMonster(m, mult, knock, from, { sound: sound && n === 0, slowMs });
       n++;
     }
@@ -242,7 +244,7 @@ export class Combat {
         this.scene.fx('fx_smoke', 'na/smoke', p.x, p.y - 2, { scale: 0.45, depth: p.y - 2 });
         for (const m of this.monsters) {
           if (!m.hittable || hit.has(m)) continue;
-          if (Math.hypot(m.x - p.x, m.y - p.y) < sk.r + 6) { hit.add(m); this.damageMonster(m, sk.mult, sk.knock); }
+          if (Math.hypot(m.x - p.x, m.y - p.y) < sk.r + 6 + (m.radius || 0)) { hit.add(m); this.damageMonster(m, sk.mult, sk.knock); }
         }
       });
     }
@@ -393,6 +395,7 @@ export class Combat {
     const s = this.stats;
     const d = this.diff;
     s.kills = (s.kills || 0) + 1;
+    this.scene.game.quests?.onPurify(this.scene.scene.key);
     this.scene.sound.play('sfx_purify', { volume: 0.35 });
     const [g0, g1] = m.def.gold;
     const gold = Math.round(Phaser.Math.Between(g0, g1) * d.drop * this.partyGold());
@@ -497,7 +500,7 @@ export class Combat {
       b.s.y += b.vy * dt;
       b.left -= Math.hypot(b.vx, b.vy) * dt;
       b.s.setDepth(b.s.y + 10);
-      const hitM = this.monsters.find((m) => m.hittable && Math.hypot(m.x - b.s.x, m.y - 6 - b.s.y) < b.sk.r + 4);
+      const hitM = this.monsters.find((m) => m.hittable && Math.hypot(m.x - b.s.x, m.y - 6 - b.s.y) < b.sk.r + 4 + (m.radius || 0));
       if (hitM || b.left <= 0) {
         this.scene.fx('fx_flam', 'na/flam', b.s.x, b.s.y, { depth: b.s.y + 20, add: true });
         if (hitM) { this.damageMonster(hitM, b.sk.mult, 1.0); this.hitstop(40); }

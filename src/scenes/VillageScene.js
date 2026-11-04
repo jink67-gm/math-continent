@@ -20,7 +20,12 @@ export class VillageScene extends WorldScene {
     this.mapH = MAP.HEIGHT;
     this.grid = MAP.buildTerrain();
     this.grid.bake(this, seeded(7)).setDepth(-1000);
-    for (const r of this.grid.solidRects()) this.addSolid(r.x, r.y, r.w, r.h);
+    // 다리가 고쳐지면 다리 칸은 물이어도 걸을 수 있어요
+    const B = MAP.BRIDGE;
+    this.bridgeOpen = this.game.quests.passed('bridge');
+    const water = this.grid.blocked.bind(this.grid);
+    this.grid.blocked = (x, y) => water(x, y) && !(this.bridgeOpen && x >= B.x0 && x <= B.x1 && y >= B.y0 && y <= B.y1);
+    this.buildTerrainSolids();
 
     for (const b of MAP.BUILDINGS) this.placeObject(b);
     for (const p of MAP.PROPS) this.placeObject(p);
@@ -35,7 +40,28 @@ export class VillageScene extends WorldScene {
     this.exits = MAP.EXITS;
   }
 
+  buildTerrainSolids() {
+    this.terrainSolids?.forEach((z) => z.destroy());
+    this.terrainSolids = this.grid.solidRects().map((r) => this.addSolid(r.x, r.y, r.w, r.h));
+  }
+
+  // 다리 룬을 풀면 판자가 하나씩 놓이며 다리가 이어져요
+  onRuneSolved(id) {
+    if (id !== 'bridge') return;
+    this.bridgeOpen = true;
+    this.buildTerrainSolids();
+    this.floatPlank?.destroy();
+    const { x0, x1, gap } = MAP.BRIDGE;
+    const cols = 448 / T;
+    for (let x = x0; x <= x1; x++) {
+      const p = this.add.image(x * T, gap * T - 20, 'na/water', 13 * cols + (x === x0 ? 1 : 2)).setOrigin(0, 0).setDepth(-800).setAlpha(0);
+      this.tweens.add({ targets: p, y: gap * T, alpha: 1, duration: 450, delay: (x - x0) * 220, ease: 'Bounce.out' });
+    }
+    this.cameras.main.shake(200, 0.003);
+  }
+
   spawnPoint(entry) {
+    if (entry === 'north') return { x: MAP.VILLAGE.spawn.x, y: 3 * T };
     if (entry === 'south') return { x: MAP.VILLAGE.spawn.x, y: MAP.HEIGHT - 3 * T };
     return MAP.VILLAGE.spawn;
   }
@@ -73,14 +99,16 @@ export class VillageScene extends WorldScene {
   placeBrokenBridge() {
     const { x0, x1, y0, y1, gap } = MAP.BRIDGE;
     const cols = 448 / T;
+    const fixed = this.bridgeOpen;
     for (let y = y0; y <= y1; y++) {
-      if (y === gap) continue;
+      if (y === gap && !fixed) continue;
       for (let x = x0; x <= x1; x++) {
         this.add.image(x * T, y * T, 'na/water', 13 * cols + (x === x0 ? 1 : 2)).setOrigin(0, 0).setDepth(-800);
       }
     }
+    if (fixed) return;
     // 떠내려가는 판자
-    const plank = this.add.image((x0 + 1.3) * T, gap * T + 8, 'na/water', 13 * cols + 1).setAngle(20).setDepth(-799);
+    const plank = this.floatPlank = this.add.image((x0 + 1.3) * T, gap * T + 8, 'na/water', 13 * cols + 1).setAngle(20).setDepth(-799);
     this.tweens.add({ targets: plank, y: plank.y + 2, angle: 28, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
   }
 

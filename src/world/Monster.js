@@ -11,11 +11,16 @@ export const STATES = ['appear', 'idle', 'chase', 'warn', 'lunge', 'rest', 'stun
 const DIRS = ['down', 'up', 'left', 'right'];
 
 export class Monster {
-  constructor(scene, combat, kind, x, y) {
+  // power: 지역 세기 (바위 숲 1.4배 등) — HP·공격력·경험치·골드가 함께 커져요
+  constructor(scene, combat, kind, x, y, power = 1) {
     this.scene = scene;
     this.combat = combat;
     this.kind = kind;
-    this.def = MONSTERS[kind];
+    const b = MONSTERS[kind];
+    this.def = power === 1 ? b : {
+      ...b, hp: Math.round(b.hp * power), atk: Math.round(b.atk * (1 + (power - 1) * 0.7)), def: b.def + 1,
+      exp: Math.round(b.exp * power * 1.1), gold: b.gold.map((g) => Math.round(g * power)),
+    };
     this.home = { x, y };
     this.dir = 'down';
     this.phase = Math.random() * Math.PI * 2;
@@ -108,7 +113,7 @@ export class Monster {
   purify() {
     this.purifyFx();
     this.combat.onPurified(this);
-    this.respawnTimer = this.scene.time.delayedCall(RESPAWN_MS, () => this.spawn());
+    if (!this.noRespawn) this.respawnTimer = this.scene.time.delayedCall(RESPAWN_MS, () => this.spawn());
   }
 
   purifyFx() {

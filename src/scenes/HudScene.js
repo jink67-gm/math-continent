@@ -52,6 +52,11 @@ export class HudScene extends Phaser.Scene {
     this.makeSaveIndicator();
     this.makeMenuButton();
     this.partyText = crisp(this.add.text(16, 112, '', textStyle(12, '#9be8ff')));
+    // 퀘스트 알림판과 길 안내 화살표
+    this.questText = crisp(this.add.text(16, 132, '', textStyle(12, '#fff3c4', { lineSpacing: 4 })));
+    this.arrow = this.add.graphics().setDepth(5);
+    this.bossBar = this.add.graphics().setDepth(6);
+    this.bossName = crisp(this.add.text(W / 2 + 10, 26, '', textStyle(13, '#ffe9a8')).setOrigin(0.5).setDepth(7));
     const pmsg = (m) => this.toast(m);
     this.game.events.on('party:msg', pmsg);
     this.events.once('shutdown', () => this.game.events.off('party:msg', pmsg));
@@ -182,6 +187,46 @@ export class HudScene extends Phaser.Scene {
     const refresh = () => { if (this.menuItems === items) this.openParty(); };
     this.game.events.once('party:msg', refresh);
     items.push({ destroy: () => this.game.events.off('party:msg', refresh) });
+  }
+
+  drawBoss() {
+    const b = this.world.boss;
+    const g = this.bossBar.clear();
+    if (!b?.engaged) { this.bossName.setText(''); return; }
+    const x = W / 2 - 130;
+    const y = 38;
+    const w = 280;
+    g.fillStyle(0x16110b, 0.85).fillRoundedRect(x - 6, y - 22, w + 12, 40, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(x - 6, y - 22, w + 12, 40, 8);
+    g.fillStyle(0x000000, 0.7).fillRect(x, y, w, 10);
+    g.fillStyle(b.sealed ? 0xb48cff : 0xe0563c, 1).fillRect(x + 1, y + 1, (w - 2) * Math.max(0, b.hp / b.maxHp), 8);
+    for (const m of [0.66, 0.33]) g.fillStyle(0xffffff, 0.7).fillRect(x + w * m, y, 2, 10);
+    this.bossName.setText(b.sealed ? `${b.def.name} · 보호막!` : b.def.name);
+  }
+
+  drawQuest(time) {
+    const q = this.game.quests;
+    this.questText.setText(q.tracker());
+    const g = this.arrow.clear();
+    const goal = q.goal(this.worldKey);
+    const p = this.world.player;
+    if (!goal || this.dialogOpen) return;
+    const dx = goal.x - p.x;
+    const dy = goal.y - p.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 36) return;
+    // 주인공 둘레에 목표 쪽을 가리키는 노란 화살표
+    const cam = this.world.cameras.main;
+    const wv = cam.worldView;
+    const a = Math.atan2(dy, dx);
+    const r = 34 + Math.sin(time / 180) * 4;
+    const cx = (p.x - wv.x) * cam.zoom + Math.cos(a) * r * 1.6;
+    const cy = (p.y - 8 - wv.y) * cam.zoom + Math.sin(a) * r * 1.6;
+    const pt = (ang, len) => [cx + Math.cos(a + ang) * len, cy + Math.sin(a + ang) * len];
+    const [x1, y1] = pt(0, 14);
+    const [x2, y2] = pt(2.5, 11);
+    const [x3, y3] = pt(-2.5, 11);
+    g.fillStyle(0x1b1208, 0.8).fillTriangle(x1 + 2, y1 + 2, x2 + 2, y2 + 2, x3 + 2, y3 + 2);
+    g.fillStyle(0xffd866, 0.95).fillTriangle(x1, y1, x2, y2, x3, y3);
   }
 
   flashHurt() {
@@ -617,6 +662,8 @@ export class HudScene extends Phaser.Scene {
     const party = this.game.party;
     const peer = party.active && party.peer;
     const together = peer && this.world.combat.coop;
+    this.drawQuest(time);
+    this.drawBoss();
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
       : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);
     const boost = this.world.combat.boost() > 1;

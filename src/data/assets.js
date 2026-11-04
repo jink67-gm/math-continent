@@ -21,6 +21,14 @@ export const SHEETS = {
 };
 
 // 필드 몬스터 (SpriteSheet 16px, 가로 4칸 = 아래·위·왼·오, 세로 4줄 = 움직임)
+// 보스 (60px 칸)
+export const BOSS_SHEETS = {
+  'boss/troll_idle': ['na/boss/troll/idle.png', 60],
+  'boss/troll_attack': ['na/boss/troll/attack.png', 60],
+  'boss/troll_jump': ['na/boss/troll/jump.png', 60],
+  'boss/troll_charge': ['na/boss/troll/charge.png', 60],
+};
+
 export const MONSTER_SHEETS = ['Slime', 'Mushroom', 'Butterfly', 'Spirit', 'Flam'];
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)
@@ -89,6 +97,23 @@ export const OBJECTS = {
   laundry: ['na/element', 14, 3, 2, 1],
   fence: ['na/element', 11, 3, 3, 1],
   sign: ['na/element', 0, 2, 1, 1],
+  // 바위·수정 (TilesetNature)
+  rock_grey: ['na/nature', 15, 14, 2, 2],
+  rock_grey_big: ['na/nature', 17, 14, 4, 3],
+  rock_grey_tall: ['na/nature', 21, 14, 2, 3],
+  rock_grey_stack: ['na/nature', 16, 5, 3, 3],
+  rock_grey_s: ['na/nature', 17, 17, 1, 1],
+  rock_brown: ['na/nature', 15, 10, 2, 2],
+  rock_brown_big: ['na/nature', 17, 10, 4, 3],
+  rock_brown_tall: ['na/nature', 21, 10, 2, 3],
+  rock_brown_s: ['na/nature', 15, 12, 1, 1],
+  crystal_a: ['na/nature', 0, 15, 1, 1],
+  crystal_b: ['na/nature', 1, 15, 1, 1],
+  crystal_c: ['na/nature', 2, 15, 1, 1],
+  crystal_d: ['na/nature', 3, 15, 1, 1],
+  ore_a: ['na/nature', 4, 15, 1, 1],
+  ore_b: ['na/nature', 5, 15, 1, 1],
+  stump: ['na/nature', 0, 8, 2, 2],
   notice: ['na/element', 6, 3, 1, 2],
 };
 
@@ -97,6 +122,8 @@ export const BGM = {
   bgm_title: ['na/music/title.ogg', 'audio/bgm/title_theme.mp3'],
   bgm_town: ['na/music/village.ogg', 'audio/bgm/town_theme.mp3'],
   bgm_field: ['audio/bgm/field_theme.mp3'],
+  bgm_dungeon: ['audio/bgm/dungeon_theme.mp3'],
+  bgm_boss: ['audio/bgm/boss_theme.mp3'],
 };
 
 export const AUDIO = {

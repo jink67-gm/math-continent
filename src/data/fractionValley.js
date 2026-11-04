@@ -16,7 +16,8 @@ const SPRING = { x: 27, y: 21.5 }; // 치유의 샘 가운데 (칸 경계 기준
 
 export const VILLAGE = {
   id: 'fractionValley',
-  name: '분수 계곡 마을',
+  name: '나눔의 계곡 프락시아',
+  unit: 'fractionDivision',
   subtitle: '분수의 나눗셈',
   bgm: 'bgm_town',
   mapV: 2, // 지도 크기가 바뀌면 올려요 (예전 위치로 불러오지 않게)
@@ -135,7 +136,7 @@ export const NPCS = [
   {
     id: 'chief', sprite: 'OldMan', name: '풍차 촌장 모모', x: C(18.2), y: C(ROAD + 0.4),
     lines: [
-      ['분수 계곡에 온 걸 환영하네. 바람이 참 좋지?', '그런데 요즘 풍차가 힘없이 돌고 있다네.'],
+      ['나눔의 계곡에 온 걸 환영하네. 바람이 참 좋지?', '그런데 요즘 풍차가 힘없이 돌고 있다네.'],
       ['풍차가 다시 힘차게 돌려면 「분수의 결정」이 필요하다네.', '북쪽 다리가 부서져서 동굴로 갈 수가 없어…'],
       ['계곡 동굴은 위험하니 회복약을 꼭 챙기게.'],
     ],
@@ -174,7 +175,7 @@ export const NPCS = [
   {
     id: 'pipi', sprite: 'Spirit', name: '안내 정령 피피', x: C(MID - 1.2), y: C(29.5), float: true,
     lines: [
-      ['모험가님, 분수 계곡 마을에 온 걸 환영해요!', '먼저 풍차 촌장님께 인사드려 볼까요? 광장 왼쪽 위 큰 집이에요.'],
+      ['모험가님, 나눔의 계곡 프락시아에 온 걸 환영해요!', '먼저 풍차 촌장님께 인사드려 볼까요? 광장 왼쪽 위 큰 집이에요.'],
       ['마을 사람 가까이에서 E 키(또는 💬 버튼)를 누르면 이야기할 수 있어요.'],
       ['Space로 구르기, J로 공격! 1~4 키로 스킬을 쓸 수 있어요.', '마을 안은 안전하니 마음껏 연습해 보세요.'],
       ['남쪽 길로 나가면 「출발의 초원」이에요. 몬스터가 공격하기 전에 빨간 원이 보이면 구르기로 피하세요!'],
@@ -190,8 +191,10 @@ export const SPOTS = [
     lines: [['맑은 샘물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']],
   },
   {
-    id: 'bridge', kind: 'read', name: '부서진 나무다리', x: C(MID + 1), y: C(8.6), r: 26, label: '다리 살펴보기',
-    lines: [['강을 건너는 나무다리가 부서져 있어요.', '다리 기둥에 수학 룬이 새겨져 있어요. 룬을 맞추면 다시 이어진대요!']],
+    id: 'bridge', kind: 'rune', name: '다리 기둥의 룬', x: C(MID + 1), y: C(8.6), r: 26, label: '룬 살펴보기',
+    runeLine: '다리 기둥의 룬이 희미하게 빛나요. 문제를 풀면 다리가 다시 이어져요!',
+    sleepLines: ['강을 건너는 나무다리가 부서져 있어요.', '다리 기둥에 수학 룬이 새겨져 있어요. 촌장님께 먼저 이야기를 들어 봐요.'],
+    litLines: ['룬이 환하게 빛나요. 다리가 튼튼하게 이어져 있어요.'],
   },
   {
     id: 'board', kind: 'difficulty', name: '모험 게시판', x: C(MID + 3.4), y: C(30.6), r: 24, label: '난이도 바꾸기',
@@ -210,5 +213,5 @@ export const SPOTS = [
 
 export const EXITS = [
   { id: 'south', x: C(MID - 1), y: HEIGHT - 6, w: C(4), h: 6, to: '출발의 초원', scene: 'Field', entry: 'north' },
-  { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '계곡 바위 숲' },
+  { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '계곡 바위 숲', scene: 'RockForest', entry: 'south', requires: 'bridge', lockedMsg: '다리가 부서져서 건널 수 없어요' },
 ];

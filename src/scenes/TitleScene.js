@@ -3,7 +3,7 @@
 import { textStyle, crisp } from '../ui/style.js';
 import { TerrainGrid, seeded } from '../world/terrain.js';
 import { HEROES } from '../data/assets.js';
-import { DIFFICULTY, DIFF_ORDER, normalizeStats } from '../data/rules.js';
+import { DIFFICULTY, DIFF_ORDER, normalizeStats, normalizeCode } from '../data/rules.js';
 
 const W = 960;
 const H = 540;
@@ -44,6 +44,7 @@ export class TitleScene extends Phaser.Scene {
     this.button(W / 2, 300, '새 게임', 'ui2/button_primary', () => (save ? this.confirmNew() : this.openSelect()), this.menu);
     const cont = this.button(W / 2, 360, save ? `이어하기 · ${save.name}` : '이어하기', 'ui2/button_brown', () => save && this.startGame(save), this.menu);
     if (!save) cont.setAlpha(0.5);
+    this.button(W / 2, 420, '저장 코드로 불러오기', 'ui2/button_brown', () => this.openCodeLoad(), this.menu, 260, 40, 15);
 
     crisp(this.add.text(W / 2, H - 14, '6학년 2학기 수학 RPG · 화면을 누르면 소리가 나요', textStyle(11, '#c9d6c2')).setOrigin(0.5, 1));
 
@@ -131,6 +132,43 @@ export class TitleScene extends Phaser.Scene {
       this.heroL.setVisible(true);
       this.heroR.setVisible(true);
     }, null, 170, 34, 15));
+  }
+
+  // 다른 기기에서 하던 캐릭터를 저장 코드로 불러와요
+  openCodeLoad() {
+    this.menu.setVisible(false);
+    const box = [];
+    const keep = (o) => { box.push(o); return o; };
+    const g = keep(this.add.graphics());
+    g.fillStyle(0x16110b, 0.94).fillRoundedRect(W / 2 - 250, 250, 500, 200, 10)
+      .lineStyle(3, 0xe8c36a, 1).strokeRoundedRect(W / 2 - 250, 250, 500, 200, 10);
+    keep(crisp(this.add.text(W / 2, 278, '저장 코드 8글자를 넣어 주세요', textStyle(16, '#ffe9a8')).setOrigin(0.5)));
+    const input = keep(this.add.dom(W / 2, 326).createElement('input', 'class: name-input'));
+    input.node.className = 'name-input';
+    input.node.placeholder = '예: K7QM-3PXA';
+    input.node.maxLength = 9;
+    input.node.style.textTransform = 'uppercase';
+    input.node.style.letterSpacing = '2px';
+    const msg = keep(crisp(this.add.text(W / 2, 364, '', textStyle(12, '#ff9b8a')).setOrigin(0.5)));
+    const close = () => { box.forEach((o) => o.destroy()); this.menu.setVisible(true); };
+    let busy = false;
+    const go = async () => {
+      if (busy) return;
+      const code = normalizeCode(input.node.value);
+      if (!code) { msg.setColor('#ff9b8a').setText('8글자를 모두 넣어 주세요 (숫자 0·1, 글자 O·I는 없어요)'); return; }
+      busy = true;
+      msg.setColor('#cfe3c8').setText('불러오는 중...');
+      const res = await this.game.saves.loadByCode(code);
+      busy = false;
+      if (!this.sys.isActive()) return;
+      if (res.error) { msg.setColor('#ff9b8a').setText(res.error); return; }
+      box.forEach((o) => o.destroy());
+      this.startGame(res.save);
+    };
+    input.node.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) go(); });
+    keep(this.button(W / 2 - 100, 412, '뒤로', 'ui2/button_brown', close, null, 170, 36, 15));
+    keep(this.button(W / 2 + 100, 412, '불러오기', 'ui2/button_green', go, null, 170, 36, 15));
+    input.node.focus();
   }
 
   // 이어할 기록이 있을 때 새 게임을 누르면 한 번 더 물어봐요

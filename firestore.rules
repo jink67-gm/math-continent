@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// 수학 대륙 Firestore 보안 규칙
+// 배포: Firebase 콘솔 → Firestore Database → 규칙 탭에 이 파일 내용을 붙여 넣고 「게시」
+//
+// 선생님 등록: Firestore에 teachers 모음을 만들고, 문서 ID를 선생님 Google 이메일로 해서 문서 하나를 만들어요.
+//   (예: teachers/teacher@school.kr, 필드는 아무거나 — name: "담임")
+//   그 이메일로 teacher.html 에 Google 로그인하면 선생님 화면을 쓸 수 있어요.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isTeacher() {
+      return signedIn() && 'email' in request.auth.token
+        && exists(/databases/$(database)/documents/teachers/$(request.auth.token.email));
+    }
+    // 저장 번호는 늘어나기만 해요 (옛 기록이 새 기록을 덮지 않게)
+    function versionUp() {
+      return !('saveVersion' in resource.data) || request.resource.data.saveVersion > resource.data.saveVersion;
+    }
+
+    // 학생 기록: 기기(익명 로그인)마다 하나. 자기 것만 읽고 쓰고, 지울 수 없어요.
+    match /users/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isTeacher();
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && request.auth.uid == uid && versionUp();
+      allow delete: if false;
+
+      // 예전 게임의 문제 풀이 기록
+      match /mathLogs/{logId} {
+        allow read: if (signedIn() && request.auth.uid == uid) || isTeacher();
+        allow create: if signedIn() && request.auth.uid == uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // 저장 코드 사본: 코드를 아는 기기만 읽고 쓸 수 있어요 (목록 보기는 선생님만)
+    match /saves/{code} {
+      allow get: if signedIn();
+      allow list: if isTeacher();
+      allow create: if signedIn() && code.size() == 8 && request.resource.data.code == code;
+      allow update: if signedIn() && request.resource.data.code == code && versionUp();
+      allow delete: if isTeacher();
+
+      // 선생님의 선물: 선생님만 보내고, 학생 기기는 받은 뒤 지워요
+      match /grants/{grantId} {
+        allow read, delete: if signedIn();
+        allow create: if isTeacher();
+        allow update: if false;
+      }
+    }
+
+    // 학급 설정 (경험치 2배 시간 등)
+    match /config/{docId} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+
+    // 선생님 명단: 본인 것만 확인할 수 있고, 콘솔에서만 바꿀 수 있어요
+    match /teachers/{email} {
+      allow get: if signedIn() && 'email' in request.auth.token && request.auth.token.email == email;
+      allow list, write: if false;
+    }
+  }
+}

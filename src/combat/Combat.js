@@ -338,7 +338,13 @@ export class Combat {
     const gold = Math.round(Phaser.Math.Between(g0, g1) * d.drop * this.partyGold());
     this.dropCoins(m.x, m.y, gold);
     if (Math.random() < 0.05 * d.drop) this.dropPotion(m.x, m.y);
-    this.gainExp(Math.round(m.def.exp * d.exp * this.partyExp()));
+    this.gainExp(Math.round(m.def.exp * d.exp * this.partyExp() * this.boost()));
+  }
+
+  // 선생님이 켠 「경험치 2배 시간」
+  boost() {
+    const until = this.scene.game.classCfg?.expBoostUntil || 0;
+    return Date.now() < until ? 2 : 1;
   }
 
   partyExp() { return 1; }  // 2인 협동이면 0.8 (다음 단계)

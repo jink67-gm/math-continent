@@ -2,7 +2,7 @@
 
 import { textStyle, crisp, FONT } from '../ui/style.js';
 import { HEROES } from '../data/assets.js';
-import { DIFFICULTY } from '../data/rules.js';
+import { DIFFICULTY, formatCode } from '../data/rules.js';
 import { T } from '../world/terrain.js';
 
 const W = 960;
@@ -50,7 +50,66 @@ export class HudScene extends Phaser.Scene {
     }
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
     this.makeSaveIndicator();
+    this.makeMenuButton();
+    this.boostText = crisp(this.add.text(W - 18, 200, '', textStyle(13, '#ffe066')).setOrigin(1, 0.5));
+    this.tweens.add({ targets: this.boostText, alpha: 0.55, duration: 600, yoyo: true, repeat: -1 });
     this.hurtFlash = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a1a, 0).setDepth(60);
+  }
+
+  // ── 메뉴 (상태 막대 오른쪽): 저장 코드 보기, 소리 켜기/끄기 ──
+  makeMenuButton() {
+    const c = this.add.container(300, 30);
+    const g = this.add.graphics();
+    g.fillStyle(0x16110b, 0.85).fillRoundedRect(-26, -16, 52, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-26, -16, 52, 32, 8);
+    const t = crisp(this.add.text(0, 0, '메뉴', textStyle(12, '#ffe9a8')).setOrigin(0.5));
+    c.add([g, t]).setSize(52, 32).setInteractive({ useHandCursor: true });
+    c.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.openMenu(); });
+    this.input.keyboard.on('keydown-ESC', () => { if (this.menuItems) this.closeMenu(); else if (!this.dialogOpen) this.openMenu(); });
+  }
+
+  openMenu() {
+    const s = this.stats;
+    this.dialogOpen = true;
+    this.choiceOpen = true;
+    const items = [];
+    this.menuItems = items;
+    const bw = 440;
+    const bh = 280;
+    const bx = (W - bw) / 2;
+    const by = (H - bh) / 2 - 10;
+    items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
+    items.push(crisp(this.add.text(W / 2, by + 28, '메뉴', textStyle(18, '#ffe9a8')).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 62, '내 저장 코드', textStyle(13, '#cfe3c8')).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 98, formatCode(s.saveCode), textStyle(34, '#ffffff', { strokeThickness: 6 })).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 136, '다른 기기에서 「저장 코드로 불러오기」에 이 코드를 넣으면\n같은 캐릭터로 이어서 할 수 있어요. 친구에게는 알려 주지 마세요!',
+      textStyle(11, '#e6f0dd', { align: 'center', lineSpacing: 4 })).setOrigin(0.5, 0).setDepth(47)));
+    const btn = (x, y, w, label, fn) => {
+      const g = this.add.graphics().setDepth(47);
+      const t = crisp(this.add.text(x, y, label, textStyle(15, '#ffffff')).setOrigin(0.5).setDepth(48));
+      const paint = (txt) => {
+        t.setText(txt);
+        g.clear().fillStyle(0x3a2c1c, 1).fillRoundedRect(x - w / 2, y - 19, w, 38, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(x - w / 2, y - 19, w, 38, 8);
+      };
+      paint(label);
+      const z = this.add.zone(x, y, w, 38).setInteractive({ useHandCursor: true }).setDepth(49);
+      z.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.sound.play('sfx_click', { volume: 0.4 }); fn(paint); });
+      items.push(g, t, z);
+    };
+    const soundLabel = () => (this.game.sound.mute ? '소리 켜기' : '소리 끄기');
+    btn(W / 2 - 90, by + 214, 160, soundLabel(), (paint) => {
+      this.game.sound.mute = !this.game.sound.mute;
+      try { localStorage.setItem('mathContinent.mute', this.game.sound.mute ? '1' : '0'); } catch { /* 저장 못 해도 괜찮아요 */ }
+      paint(soundLabel());
+    });
+    btn(W / 2 + 90, by + 214, 160, '닫기', () => this.closeMenu());
+    this.world.sound.play('sfx_open', { volume: 0.35 });
+  }
+
+  closeMenu() {
+    this.menuItems?.forEach((o) => o.destroy());
+    this.menuItems = null;
+    this.choiceOpen = false;
+    this.time.delayedCall(120, () => { this.dialogOpen = false; });
   }
 
   flashHurt() {
@@ -483,5 +542,7 @@ export class HudScene extends Phaser.Scene {
     this.drawSkills();
     this.drawMinimap(time);
     this.potText.setText(`${this.stats.potions ?? 0}`);
+    const boost = this.world.combat.boost() > 1;
+    this.boostText.setText(boost ? '★ 경험치 2배 시간!' : '');
   }
 }

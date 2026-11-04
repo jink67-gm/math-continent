@@ -13,6 +13,18 @@
 - 문서 요약 칸: `nickname`, `level`, `currentVillage`, `playTime`, `schemaVersion`(새 게임은 3).
   기존 게임 기록(schemaVersion 2)은 이어서 쓰지 않고, 새로 시작하면 그 위에 새 기록이 저장돼요.
 
+## 저장 코드 · 선생님 화면 (처음 한 번 설정 필요)
+- 캐릭터마다 8글자 **저장 코드**가 있어요 (게임 안 「메뉴」에서 보기). 다른 기기의 타이틀에서 「저장 코드로 불러오기」에 넣으면 이어서 해요.
+  기록은 Firestore `saves/{코드}`에도 함께 저장돼요.
+- **선생님 화면**: `teacher.html` (예: `https://jink67-gm.github.io/math-continent/teacher.html`)
+  - Google로 로그인 → 학생 목록(레벨·있는 곳·난이도·플레이 시간·저장 코드), 경험치·골드·회복약 선물, 학급 「경험치 2배 시간」
+- 설정 순서 (Firebase 콘솔, 한 번만)
+  1. Firestore Database → 규칙: 저장소의 `firestore.rules` 내용을 붙여 넣고 「게시」
+     (배포 전에는 저장 코드·선생님 기능만 안 되고, 원래 저장은 그대로 돼요)
+  2. Authentication → 로그인 방법: **Google** 사용 설정. 설정 → 승인된 도메인에 `jink67-gm.github.io`가 있는지 확인
+  3. Firestore Database → 데이터: `teachers` 모음을 만들고, 문서 ID를 선생님 Google 이메일로 해서 문서 하나 추가 (필드는 아무거나, 예: `name: 담임`)
+- 개발할 때: 주소 끝에 `?emu`를 붙이면 내 컴퓨터의 Firebase 에뮬레이터(auth 9099, firestore 8080)에 연결해요.
+
 ## 지금 들어 있는 것 (1단계: 분수 계곡 마을)
 - 타이틀 → 모험가 고르기(남·여, 별명) → 분수 계곡 마을
 - 16px 픽셀 타일 마을(화면 3배): 큰길, 광장과 치유의 샘, 북쪽 강과 부서진 다리, 연못, 8칸 중 심은 칸으로 보는 ½·¼·⅛ 분수 밭

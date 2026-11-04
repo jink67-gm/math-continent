@@ -40,7 +40,30 @@ export function normalizeStats(s) {
   s.hp = Math.min(s.maxHp, s.hp ?? s.maxHp);
   s.sp = Math.min(s.maxSp, s.sp ?? s.maxSp);
   s.kills ??= 0;
+  s.village ??= 'fractionValley';
+  s.saveCode = normalizeCode(s.saveCode) || genCode();
+  s.grantsApplied ??= [];
   return s;
+}
+
+// ── 저장 코드 ───────────────────────────────────
+// 8글자 (헷갈리는 0·O·1·I는 빼요). 다른 기기에서 이 코드를 넣으면 같은 캐릭터로 이어 해요.
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+export function genCode() {
+  const a = new Uint32Array(8);
+  crypto.getRandomValues(a);
+  return Array.from(a, (n) => CODE_CHARS[n % CODE_CHARS.length]).join('');
+}
+
+// 입력한 코드를 정리해요 (소문자·빈칸·하이픈 허용). 틀린 모양이면 null
+export function normalizeCode(text) {
+  const c = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return c.length === 8 && [...c].every((ch) => CODE_CHARS.includes(ch)) ? c : null;
+}
+
+export function formatCode(code) {
+  return code ? `${code.slice(0, 4)}-${code.slice(4)}` : '';
 }
 
 // 피해 계산: 공격력 × 배율 ± 10%, 방어력의 절반만큼 줄고, 10% 확률로 치명타(1.5배)

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>선생님 화면 · 수학 대륙</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
+  <style>
+    @font-face { font-family: 'Galmuri11'; src: url('fonts/Galmuri11.woff2') format('woff2'); }
+    :root {
+      --bg: #f6f1e4; --panel: #fffaf0; --ink: #2b2014; --muted: #6f604c; --line: #e2d5bb;
+      --accent: #2f6a3a; --accent-ink: #ffffff; --gold: #c99a2e; --warn: #b23a2a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    header { background: #1b2a1f; color: #fff3c4; padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    header h1 { font-family: 'Galmuri11', sans-serif; font-size: 20px; margin: 0; flex: 1; }
+    header .who { font-size: 13px; color: #cfe3c8; }
+    main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+    section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+    h2 { font-size: 16px; margin: 0 0 10px; }
+    p.note { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+    button { font: inherit; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+    button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    button:disabled { opacity: .5; cursor: default; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+    label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+    input[type=number], input[type=text] { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; width: 110px; background: #fff; }
+    input[type=text] { width: 240px; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    code { font-family: ui-monospace, Menlo, monospace; letter-spacing: 1px; }
+    .status { font-size: 13px; color: var(--muted); min-height: 1.5em; }
+    .status.err { color: var(--warn); }
+    .boost-on { color: var(--accent); font-weight: 700; }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { input[type=text] { width: 100%; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>수학 대륙 · 선생님 화면</h1>
+    <span class="who" id="who"></span>
+    <button id="logout" hidden>로그아웃</button>
+  </header>
+  <main>
+    <section id="login">
+      <h2>선생님 로그인</h2>
+      <p>학교에서 쓰는 Google 계정으로 로그인해 주세요.</p>
+      <button class="primary" id="google">Google로 로그인</button>
+      <p class="status" id="loginStatus"></p>
+      <p class="note">처음 한 번은 Firebase 콘솔에서 선생님 이메일을 등록해야 해요. 방법은 저장소의 firestore.rules 파일 맨 위에 적혀 있어요.</p>
+    </section>
+
+    <div id="app" hidden style="display:grid;gap:16px">
+      <section>
+        <h2>학급 경험치 2배 시간</h2>
+        <div class="row">
+          <button class="primary" data-boost="30">30분 켜기</button>
+          <button data-boost="60">1시간 켜기</button>
+          <button data-boost="0">끄기</button>
+          <span id="boostState" class="status"></span>
+        </div>
+        <p class="note">켜 두는 동안 모든 학생이 몬스터를 정화할 때 경험치를 2배로 받아요. 학생 화면에는 최대 90초 안에 반영돼요.</p>
+      </section>
+
+      <section>
+        <h2>선물 보내기</h2>
+        <div class="row">
+          <label class="f">경험치 <input type="number" id="gExp" min="0" max="5000" value="0"></label>
+          <label class="f">골드 <input type="number" id="gGold" min="0" max="10000" value="0"></label>
+          <label class="f">회복약 <input type="number" id="gPot" min="0" max="20" value="0"></label>
+          <label class="f">메시지 (학생 화면에 보여요) <input type="text" id="gNote" maxlength="40" placeholder="예: 끝까지 해내서 멋져요!"></label>
+          <button class="primary" id="send">선택한 학생에게 보내기</button>
+        </div>
+        <p class="status" id="sendStatus"></p>
+      </section>
+
+      <section>
+        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h2 style="margin:0">학생 목록 <span id="count" class="status"></span></h2>
+          <div class="row">
+            <button id="toggleCodes">저장 코드 보기</button>
+            <button id="refresh">새로고침</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="all" aria-label="모두 선택"></th>
+                <th>별명</th><th class="num">레벨</th><th>있는 곳</th><th>난이도</th>
+                <th class="num">플레이 시간</th><th>마지막 저장</th><th>저장 코드</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="status" id="listStatus"></p>
+        <p class="note">저장 코드를 잃어버린 학생은 여기서 찾아 알려 주세요. 코드를 아는 사람은 그 캐릭터를 이어 할 수 있으니 다른 학생에게는 보여 주지 마세요.</p>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="src/teacher/teacher.js"></script>
+</body>
+</html>

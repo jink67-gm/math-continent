@@ -64,6 +64,9 @@ export class WorldScene extends Phaser.Scene {
     // 자동 저장: 3분마다 + 창을 닫거나 다른 앱으로 넘어갈 때
     this.lastTick = this.time.now;
     this.time.addEvent({ delay: 180000, loop: true, callback: () => this.saveGame() });
+    // 선생님의 선물·학급 설정: 들어올 때 한 번, 그 뒤 90초마다 확인
+    this.time.delayedCall(2500, () => this.checkTeacher());
+    this.time.addEvent({ delay: 90000, loop: true, callback: () => this.checkTeacher() });
     const saveNow = () => this.saveGame({ now: true });
     this.game.events.on('save:now', saveNow);
     this.events.once('shutdown', () => {
@@ -219,6 +222,34 @@ export class WorldScene extends Phaser.Scene {
       stats.sp = stats.maxSp;
       this.goTo('Village', 'south');
     });
+  }
+
+  async checkTeacher() {
+    const saves = this.game.saves;
+    const stats = this.registry.get('player');
+    this.game.classCfg = (await saves.fetchClassConfig()) || this.game.classCfg || null;
+    const grants = await saves.fetchGrants(stats.saveCode);
+    if (!this.sys.isActive() || this.leaving) return;
+    for (const g of grants) {
+      if (!stats.grantsApplied.includes(g.id)) this.applyGrant(g);
+      saves.removeGrant(stats.saveCode, g.id);
+    }
+  }
+
+  // 선생님이 보낸 경험치·골드·회복약을 받아요 (같은 선물은 한 번만)
+  applyGrant(g) {
+    const stats = this.registry.get('player');
+    const exp = Math.max(0, Math.min(5000, Math.floor(g.exp || 0)));
+    const gold = Math.max(0, Math.min(10000, Math.floor(g.gold || 0)));
+    const potions = Math.max(0, Math.min(20, Math.floor(g.potions || 0)));
+    stats.grantsApplied = [...stats.grantsApplied, g.id].slice(-40);
+    stats.gold += gold;
+    stats.potions = (stats.potions || 0) + potions;
+    const got = [exp && `경험치 ${exp}`, gold && `${gold} G`, potions && `회복약 ${potions}개`].filter(Boolean).join(' · ');
+    this.sound.play('sfx_quest', { volume: 0.5 });
+    this.hud?.showBanner('선생님의 선물!', g.note ? `${g.note} (${got})` : got);
+    if (exp) this.time.delayedCall(1200, () => this.combat.gainExp(exp));
+    this.saveGame({ now: true });
   }
 
   saveGame({ now = false } = {}) {

@@ -9,6 +9,11 @@
 //   save         ← 전체 기록
 //   updatedAt
 // 기존 게임 기록(schemaVersion 2)은 지우지 않고, 새 게임을 시작하면 그 위에 새 기록을 덮어써요.
+//
+// 저장 코드: saves/{code}  ← 캐릭터마다 하나. 다른 기기에서 코드를 넣으면 이어 해요.
+//   saves/{code}/grants/{id}  ← 선생님이 보낸 선물(경험치·골드·회복약). 받으면 지워요.
+// 학급 설정: config/class   ← 경험치 2배 시간 등 (선생님만 바꿀 수 있어요)
+// 보안 규칙은 저장소의 firestore.rules 파일에 있어요. (선생님이 Firebase 콘솔에서 한 번 배포)
 
 import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
 
@@ -17,6 +22,7 @@ const LS_SAVE = 'mathContinent.v2.save';
 export const SCHEMA_VERSION = 3;
 const DEBOUNCE_MS = 2500;
 const RETRY_MS = 20000;
+export const USE_EMULATOR = new URLSearchParams(location.search).has('emu');
 
 function withTimeout(promise, ms) {
   return Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error('시간 초과')), ms))]);
@@ -68,7 +74,12 @@ export class SaveManager {
           import(`${SDK}/firebase-app.js`), import(`${SDK}/firebase-auth.js`), import(`${SDK}/firebase-firestore.js`),
         ]);
         const app = appM.initializeApp(firebaseConfig);
-        this.mods = { authM, fsM, auth: authM.getAuth(app), db: fsM.getFirestore(app) };
+        this.mods = { app, authM, fsM, auth: authM.getAuth(app), db: fsM.getFirestore(app) };
+        // 개발용: 주소 끝에 ?emu 를 붙이면 내 컴퓨터의 Firebase 에뮬레이터에 연결해요
+        if (USE_EMULATOR) {
+          authM.connectAuthEmulator(this.mods.auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+          fsM.connectFirestoreEmulator(this.mods.db, '127.0.0.1', 8080);
+        }
       }
       const { authM, auth } = this.mods;
       await authM.setPersistence(auth, authM.browserLocalPersistence);
@@ -110,7 +121,14 @@ export class SaveManager {
     }
     const lv = local?.saveVersion || 0;
     this.knownMaxVersion = Math.max(lv, cloudVersion);
-    if (cloud && (!local || (cloud.saveVersion || 0) > lv)) {
+    const best = cloud && (!local || (cloud.saveVersion || 0) > lv) ? cloud : local;
+    const newer = await this.newerByCode(best);
+    if (newer) {
+      this.knownMaxVersion = Math.max(this.knownMaxVersion, newer.saveVersion || 0);
+      writeLocal(newer);
+      return newer;
+    }
+    if (best === cloud && cloud) {
       writeLocal(cloud);
       return cloud;
     }
@@ -171,6 +189,7 @@ export class SaveManager {
         // 다른 기기에 더 최신 기록이 있어요 → 번호를 올려서 다음 저장 때 다시 보내요
         this.knownMaxVersion = Math.max(this.knownMaxVersion, res.cv);
       }
+      await this.syncCode(data);
       if (this.pending === data) this.pending = null;
       this.status('saved');
     } catch (e) {
@@ -183,6 +202,91 @@ export class SaveManager {
       this.syncing = false;
       if (this.again) { this.again = false; this.sync(); }
     }
+  }
+
+  codeRef(code) {
+    const { fsM, db } = this.mods;
+    return fsM.doc(db, 'saves', code);
+  }
+
+  // 저장 코드 사본: 실패해도(예: 새 보안 규칙을 아직 배포 안 함) 원래 저장은 그대로예요
+  async syncCode(data) {
+    if (!data.saveCode) return;
+    const { fsM, db } = this.mods;
+    const ref = this.codeRef(data.saveCode);
+    try {
+      await withTimeout(fsM.runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        const cv = snap.exists() ? (snap.data().saveVersion || 0) : 0;
+        if (cv >= data.saveVersion) { this.knownMaxVersion = Math.max(this.knownMaxVersion, cv); return; }
+        tx.set(ref, { ...clean({
+          code: data.saveCode,
+          lastUid: this.uid,
+          nickname: String(data.name).slice(0, 10),
+          level: Math.max(1, Math.floor(data.lv)),
+          currentVillage: data.village,
+          difficulty: data.difficulty,
+          playTime: Math.max(0, Math.floor(data.playTime || 0)),
+          saveVersion: data.saveVersion,
+          save: data,
+        }), updatedAt: fsM.serverTimestamp() });
+      }), 12000);
+      this.codeOk = true;
+    } catch (e) {
+      if (this.codeOk !== false) console.warn('[저장] 저장 코드 사본을 못 올렸어요 (보안 규칙 배포가 필요할 수 있어요).', e);
+      this.codeOk = false;
+    }
+  }
+
+  // 저장 코드로 캐릭터 불러오기 → { save } | { error: '메시지' }
+  async loadByCode(code) {
+    if (!(await withTimeout(this.connect(), 9000).catch(() => false))) return { error: '인터넷에 연결되어 있지 않아요' };
+    try {
+      const snap = await withTimeout(this.mods.fsM.getDoc(this.codeRef(code)), 8000);
+      if (!snap.exists()) return { error: '그런 저장 코드가 없어요. 다시 확인해 주세요' };
+      const save = snap.data().save;
+      this.knownMaxVersion = Math.max(this.knownMaxVersion, save.saveVersion || 0);
+      writeLocal(save);
+      return { save };
+    } catch (e) {
+      console.warn('[저장] 코드로 불러오기 실패', e);
+      return { error: '불러오지 못했어요. 잠시 뒤에 다시 해 주세요' };
+    }
+  }
+
+  // 다른 기기에서 같은 코드로 더 많이 했으면 그 기록을 써요
+  async newerByCode(save) {
+    if (!save?.saveCode || !this.cloud) return null;
+    try {
+      const snap = await withTimeout(this.mods.fsM.getDoc(this.codeRef(save.saveCode)), 6000);
+      const other = snap.exists() ? snap.data().save : null;
+      return other && (other.saveVersion || 0) > (save.saveVersion || 0) ? other : null;
+    } catch { return null; }
+  }
+
+  // 선생님이 보낸 선물 목록
+  async fetchGrants(code) {
+    if (!code || !this.cloud) return [];
+    const { fsM, db } = this.mods;
+    try {
+      const snap = await withTimeout(fsM.getDocs(fsM.collection(db, 'saves', code, 'grants')), 8000);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch { return []; }
+  }
+
+  async removeGrant(code, id) {
+    const { fsM, db } = this.mods;
+    try { await fsM.deleteDoc(fsM.doc(db, 'saves', code, 'grants', id)); } catch { /* 다음에 다시 지워요 */ }
+  }
+
+  // 학급 설정 (경험치 2배 시간 등)
+  async fetchClassConfig() {
+    if (!this.cloud) return null;
+    const { fsM, db } = this.mods;
+    try {
+      const snap = await withTimeout(fsM.getDoc(fsM.doc(db, 'config', 'class')), 6000);
+      return snap.exists() ? snap.data() : null;
+    } catch { return null; }
   }
 
   // 창을 닫기 직전: 기다리지 않고 바로 보내기

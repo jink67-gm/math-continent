@@ -13,7 +13,15 @@ export const SHEETS = {
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
   'na/spark': ['na/fx/particle_spark.png', 10, 8],
+  'na/flam': ['na/fx/flam.png', 32],
+  'na/ice': ['na/fx/ice.png', 32],
+  'na/shield': ['na/fx/shield.png', 24, 26],
+  'na/star': ['na/fx/spark.png', 32],
+  'na/ring': ['na/fx/circle_white.png', 32],
 };
+
+// 필드 몬스터 (SpriteSheet 16px, 가로 4칸 = 아래·위·왼·오, 세로 4줄 = 움직임)
+export const MONSTER_SHEETS = ['Slime', 'Mushroom', 'Butterfly', 'Spirit', 'Flam'];
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)
 export const IMAGES = {
@@ -21,6 +29,7 @@ export const IMAGES = {
   'na/nature': 'na/tiles/TilesetNature.png',
   'na/element': 'na/tiles/TilesetElement.png',
   'na/sword': 'na/fx/sword.png',
+  'na/coin': 'na/fx/coin.png',
   'na/facebox': 'na/ui/FacesetBox.png',
   'ui2/action_attack': 'ui2/action_attack.webp',
   'ui2/action_dodge': 'ui2/action_dodge.webp',
@@ -79,12 +88,15 @@ export const OBJECTS = {
   table: ['na/element', 11, 1, 3, 1],
   laundry: ['na/element', 14, 3, 2, 1],
   fence: ['na/element', 11, 3, 3, 1],
+  sign: ['na/element', 0, 2, 1, 1],
+  notice: ['na/element', 6, 3, 1, 2],
 };
 
 // 배경음악: Ninja Adventure 음악(ogg) + 기존 mp3(ogg를 못 트는 기기용)
 export const BGM = {
   bgm_title: ['na/music/title.ogg', 'audio/bgm/title_theme.mp3'],
   bgm_town: ['na/music/village.ogg', 'audio/bgm/town_theme.mp3'],
+  bgm_field: ['audio/bgm/field_theme.mp3'],
 };
 
 export const AUDIO = {
@@ -99,4 +111,19 @@ export const AUDIO = {
   sfx_skill: 'audio/sfx/skill_cast.mp3',
   sfx_heal: 'audio/sfx/heal.mp3',
   sfx_quest: 'audio/sfx/quest_complete.mp3',
+  sfx_hit: 'audio/sfx/hit_light.mp3',
+  sfx_hit_heavy: 'audio/sfx/hit_heavy.mp3',
+  sfx_crit: 'audio/sfx/critical_hit.mp3',
+  sfx_hurt: 'audio/sfx/player_hit.mp3',
+  sfx_purify: 'audio/sfx/monster_death.mp3',
+  sfx_windup: 'audio/sfx/monster_windup.mp3',
+  sfx_lunge: 'audio/sfx/monster_lunge.mp3',
+  sfx_orb: 'audio/sfx/monster_projectile.mp3',
+  sfx_impact: 'audio/sfx/monster_aoe_impact.mp3',
+  sfx_levelup: 'audio/sfx/level_up.mp3',
+  sfx_gold: 'audio/sfx/gold_pickup.mp3',
+  sfx_shield: 'audio/sfx/shield_on.mp3',
+  sfx_unlock: 'audio/sfx/skill_unlock.mp3',
+  sfx_potion: 'audio/sfx/potion_drink.mp3',
+  sfx_miss: 'audio/sfx/attack_miss.mp3',
 };

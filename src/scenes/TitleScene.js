@@ -3,14 +3,15 @@
 import { textStyle, crisp } from '../ui/style.js';
 import { TerrainGrid, seeded } from '../world/terrain.js';
 import { HEROES } from '../data/assets.js';
+import { DIFFICULTY, DIFF_ORDER, normalizeStats } from '../data/rules.js';
 
 const W = 960;
 const H = 540;
-export function newStats(name, gender) {
-  return {
-    name, gender, lv: 1, exp: 0, next: 25, hp: 120, maxHp: 120, sp: 40, maxSp: 40, gold: 50, potions: 3,
-    village: 'fractionValley', pos: null, playTime: 0,
-  };
+export function newStats(name, gender, difficulty = 'normal') {
+  return normalizeStats({
+    name, gender, difficulty, lv: 1, exp: 0, gold: 50, potions: 3,
+    village: 'fractionValley', scene: 'Village', pos: null, playTime: 0,
+  });
 }
 
 export class TitleScene extends Phaser.Scene {
@@ -108,9 +109,21 @@ export class TitleScene extends Phaser.Scene {
       input.node.blur(); // 한글 입력 중인 글자를 확정해요
       const name = input.node.value.trim();
       if (name.length < 2) { input.node.focus(); input.node.style.borderColor = '#ff6a5a'; return; }
-      this.startGame(newStats(name, gender));
+      this.startGame(newStats(name, gender, difficulty));
     };
     input.node.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) start(); });
+    // 난이도 (가운데 아래): 전투만 바뀌고, 마을 게시판에서 언제든 바꿀 수 있어요
+    let difficulty = 'normal';
+    const diffBtns = {};
+    const paintDiff = () => {
+      for (const [id, b] of Object.entries(diffBtns)) b.setAlpha(id === difficulty ? 1 : 0.45).setScale(id === difficulty ? 1.05 : 1);
+    };
+    keep(crisp(this.add.text(W / 2, 486, '난이도', textStyle(11, '#ffe9a8')).setOrigin(0.5)));
+    DIFF_ORDER.forEach((id, i) => {
+      const b = keep(this.button(W / 2 - 74 + i * 74, 508, DIFFICULTY[id].label, 'ui2/button_brown', () => { difficulty = id; paintDiff(); }, null, 68, 28, 12));
+      diffBtns[id] = b;
+    });
+    paintDiff();
     keep(this.button(W / 2 + 200, 506, '모험 시작!', 'ui2/button_green', start, null, 170, 34, 15));
     keep(this.button(W / 2 - 200, 506, '뒤로', 'ui2/button_brown', () => {
       box.forEach((o) => o.destroy());
@@ -136,10 +149,11 @@ export class TitleScene extends Phaser.Scene {
   }
 
   startGame(stats) {
+    normalizeStats(stats);
     this.registry.set('player', stats);
     this.game.saves.save(stats, { now: true });
     this.sound.play('sfx_confirm', { volume: 0.5 });
     this.cameras.main.fadeOut(400, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Village'));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(stats.scene === 'Field' ? 'Field' : 'Village'));
   }
 }

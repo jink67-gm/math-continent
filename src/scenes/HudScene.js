@@ -1,8 +1,8 @@
 // 화면 위 UI: 상태 막대, 미니맵, 행동 버튼, 조이스틱, 빠른 칸, 대화창, 알림
 
 import { textStyle, crisp, FONT } from '../ui/style.js';
-import * as MAP from '../data/fractionValley.js';
 import { HEROES } from '../data/assets.js';
+import { DIFFICULTY } from '../data/rules.js';
 import { T } from '../world/terrain.js';
 
 const W = 960;
@@ -22,13 +22,15 @@ export class HudScene extends Phaser.Scene {
   constructor() { super('Hud'); }
 
   init(data) {
-    this.villageInfo = data.village;
+    this.worldKey = data.worldKey;
+    this.worldInfo = data.info;
+    this.attackHeld = false;
     this.joy = { x: 0, y: 0 };
     this.dialogOpen = false;
   }
 
   create() {
-    this.village = this.scene.get('Village');
+    this.world = this.scene.get(this.worldKey);
     this.stats = this.registry.get('player');
     this.isTouch = this.sys.game.device.input.touch;
 
@@ -40,14 +42,21 @@ export class HudScene extends Phaser.Scene {
     this.makeDialog();
     this.makePrompt();
     this.toastText = crisp(this.add.text(W / 2, 92, '', textStyle(16, '#ffffff')).setOrigin(0.5).setAlpha(0).setDepth(50));
-    this.showBanner(this.villageInfo.name, this.villageInfo.subtitle);
+    this.showBanner(this.worldInfo.name, this.worldInfo.subtitle);
 
     if (!this.isTouch) {
-      crisp(this.add.text(W / 2, H - 10, 'WASD 이동 · J 공격 · K 스킬 · Space 구르기 · E 대화 · Q 회복약',
+      crisp(this.add.text(W / 2, H - 10, 'WASD 이동 · J 공격(누르고 있기) · 1~4 스킬 · Space 구르기 · E 대화 · Q 회복약',
         textStyle(11, '#d8d0bd')).setOrigin(0.5, 1).setAlpha(0.8));
     }
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
     this.makeSaveIndicator();
+    this.hurtFlash = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a1a, 0).setDepth(60);
+  }
+
+  flashHurt() {
+    this.tweens.killTweensOf(this.hurtFlash);
+    this.hurtFlash.setFillStyle(0xff2a1a, 0.22);
+    this.tweens.add({ targets: this.hurtFlash, fillAlpha: 0, duration: 300 });
   }
 
   // ── 상태 (왼쪽 위) ─────────────────────────────
@@ -90,29 +99,29 @@ export class HudScene extends Phaser.Scene {
   // ── 미니맵 (오른쪽 위) ─────────────────────────
   makeMinimap() {
     const S = 3;
-    const mw = MAP.COLS * S;
-    const mh = MAP.ROWS * S;
+    const grid = this.world.grid;
+    const mw = grid.cols * S;
+    const mh = grid.rows * S;
     const x0 = W - mw - 18;
     const y0 = 34;
     panel(this, x0 - 8, 10, mw + 16, mh + 32 + 26);
-    crisp(this.add.text(x0 + mw / 2, 22, this.villageInfo.name, textStyle(12, '#ffe9a8')).setOrigin(0.5));
+    crisp(this.add.text(x0 + mw / 2, 22, this.worldInfo.name, textStyle(12, '#ffe9a8')).setOrigin(0.5));
     const g = this.add.graphics();
-    const grid = this.village.grid;
     const col = { g: 0x5f9b45, d: 0xc9a066, w: 0x3f86c9 };
-    for (let ty = 0; ty < MAP.ROWS; ty++) {
-      for (let tx = 0; tx < MAP.COLS; tx++) {
+    for (let ty = 0; ty < grid.rows; ty++) {
+      for (let tx = 0; tx < grid.cols; tx++) {
         const c = grid.get(tx, ty);
         g.fillStyle(col[c], 1).fillRect(x0 + tx * S, y0 + ty * S, S + 0.5, S + 0.5);
       }
     }
     g.fillStyle(0x7a5236, 1);
-    for (const b of MAP.BUILDINGS) g.fillRect(x0 + (b.x / T - 1.5) * S, y0 + (b.y / T - 2.5) * S, 3 * S, 2.5 * S);
+    for (const b of this.world.mapBuildings) g.fillRect(x0 + (b.x / T - 1.5) * S, y0 + (b.y / T - 2.5) * S, 3 * S, 2.5 * S);
     g.lineStyle(1, INK, 1).strokeRect(x0, y0, mw, mh);
     this.mini = { x0, y0, S };
     this.miniDots = this.add.graphics();
     this.goldText = crisp(this.add.text(x0 + mw, y0 + mh + 14, '', textStyle(12, '#ffd866')).setOrigin(1, 0.5));
     this.add.image(x0 + 8, y0 + mh + 14, 'items/consumables/scroll').setScale(0.16);
-    crisp(this.add.text(x0 + 18, y0 + mh + 14, '마을', textStyle(11, '#cfe3c8')).setOrigin(0, 0.5));
+    this.diffText = crisp(this.add.text(x0 + 18, y0 + mh + 14, '', textStyle(11, '#cfe3c8')).setOrigin(0, 0.5));
   }
 
   drawMinimap(time) {
@@ -120,15 +129,19 @@ export class HudScene extends Phaser.Scene {
     const g = this.miniDots.clear();
     const k = S / T;
     g.fillStyle(0xfff3c4, 1);
-    for (const n of this.village.npcs) g.fillCircle(x0 + n.x * k, y0 + n.y * k, 1.6);
-    const p = this.village.player;
+    for (const n of this.world.npcs) g.fillCircle(x0 + n.x * k, y0 + n.y * k, 1.6);
+    g.fillStyle(0xff9a3c, 1);
+    for (const m of this.world.combat.monsters) if (m.alive) g.fillRect(x0 + m.x * k - 1, y0 + m.y * k - 1, 2, 2);
+    const p = this.world.player;
     const blink = 0.6 + 0.4 * Math.sin(time / 160);
     g.fillStyle(0xff4b3a, blink).fillCircle(x0 + p.x * k, y0 + p.y * k, 3);
     g.lineStyle(1, 0xffffff, 1).strokeCircle(x0 + p.x * k, y0 + p.y * k, 3);
     this.goldText.setText(`${this.stats.gold} G`);
+    this.diffText.setText(`난이도 ${DIFFICULTY[this.stats.difficulty]?.label || '보통'}`);
   }
 
   // ── 행동 버튼 (오른쪽 아래) ─────────────────────
+  // 공격 버튼 둘레에 스킬 4칸, 왼쪽 아래에 구르기
   makeButtons() {
     const mk = (x, y, key, size, icon, label, fn, iconScale = 0.2) => {
       const c = this.add.container(x, y);
@@ -141,16 +154,67 @@ export class HudScene extends Phaser.Scene {
       c.on('pointerdown', (ptr, lx, ly, ev) => { ev?.stopPropagation(); c.setScale(0.9); fn(); });
       c.on('pointerup', () => c.setScale(1));
       c.on('pointerout', () => c.setScale(1));
+      c.icon = ic;
+      c.label = t;
       return c;
     };
-    const v = () => this.village;
-    this.btnAttack = mk(W - 70, H - 82, 'ui2/action_attack', 92, ['na/slash', 1], '공격 J', () => v().doAttack(), 2);
-    this.btnSkill = mk(W - 168, H - 120, 'ui2/action_skill', 62, ['na/sparkc', 2], '스킬 K', () => v().doSkill(), 1.4);
-    this.btnDodge = mk(W - 150, H - 44, 'ui2/action_dodge', 56, ['na/smoke', 1], '구르기', () => v().doDodge(), 1.2);
-    this.btnTalk = mk(W - 70, H - 190, 'ui2/action_interact', 62, ['face/Spirit'], '대화 E', () => {
+    const v = () => this.world;
+    const ax = W - 78;
+    const ay = H - 86;
+    this.btnAttack = mk(ax, ay, 'ui2/action_attack', 96, ['na/slash', 1], this.isTouch ? '공격' : '공격 J', () => {
+      if (this.dialogOpen) { this.advanceDialog(); return; }
+      this.attackHeld = true;
+      v().combat.attack();
+    }, 2);
+    // 누르고 있으면 콤보가 이어져요
+    const release = () => { this.attackHeld = false; };
+    this.btnAttack.on('pointerup', release);
+    this.btnAttack.on('pointerout', release);
+    this.input.on('pointerup', release);
+
+    this.btnDodge = mk(W - 225, H - 52, 'ui2/action_dodge', 58, ['na/smoke', 1], '구르기', () => v().combat.dodge(...v().moveInput()), 1.2);
+
+    // 스킬 4칸: 공격 버튼 둘레에 부채꼴로
+    this.skillBtns = [];
+    const keys = ['1', '2', '3', '4'];
+    const angles = [180, 213, 246, 279];
+    v().combat.skills.forEach((sk, i) => {
+      const a = Phaser.Math.DegToRad(angles[i]);
+      const x = ax + Math.cos(a) * 100;
+      const y = ay + Math.sin(a) * 100;
+      const b = mk(x, y, 'ui2/action_skill', 54, sk.icon, this.isTouch ? '' : keys[i], () => v().combat.castSkill(i), 1.1);
+      b.label.setY(-34).setText(this.isTouch ? '' : keys[i]);
+      b.dial = this.add.graphics();
+      b.lockText = crisp(this.add.text(0, 0, '', textStyle(11, '#ffe9a8')).setOrigin(0.5));
+      b.cdText = crisp(this.add.text(0, 0, '', textStyle(13, '#ffffff')).setOrigin(0.5));
+      b.add([b.dial, b.lockText, b.cdText]);
+      b.name = sk.name;
+      this.skillBtns.push(b);
+    });
+
+    this.btnTalk = mk(W - 230, H - 250, 'ui2/action_interact', 62, ['face/Spirit'], this.isTouch ? '대화' : '대화 E', () => {
       if (this.dialogOpen) this.advanceDialog(); else v().interact();
     }, 1);
     this.btnTalk.setVisible(false);
+  }
+
+  // 스킬 칸: 잠김(레벨) · 재사용 대기(어두운 부채꼴과 남은 초) · SP 부족(빨간 테두리)
+  drawSkills() {
+    const c = this.world.combat;
+    this.skillBtns.forEach((b, i) => {
+      const st = c.skillState(i);
+      const g = b.dial.clear();
+      const r = 23;
+      b.icon.setAlpha(st.locked ? 0.25 : 1);
+      b.lockText.setText(st.locked ? `Lv${st.sk.lv}` : '');
+      if (!st.locked && st.cdRatio > 0) {
+        g.fillStyle(0x000000, 0.6).slice(0, -2, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * st.cdRatio, false).fillPath();
+        b.cdText.setText(`${Math.ceil(st.cdLeft / 1000)}`);
+      } else {
+        b.cdText.setText('');
+      }
+      if (!st.locked && st.noSp) g.lineStyle(2, 0xff5a4a, 0.9).strokeCircle(0, -2, r);
+    });
   }
 
   // ── 빠른 칸 (아래 가운데) ──────────────────────
@@ -172,9 +236,10 @@ export class HudScene extends Phaser.Scene {
     if (s.potions <= 0) { this.toast('회복약이 없어요'); return; }
     if (s.hp >= s.maxHp) { this.toast('HP가 이미 가득해요'); return; }
     s.potions--;
-    s.hp = Math.min(s.maxHp, s.hp + 40);
-    this.village.saveGame();
-    this.village.sound.play('sfx_heal', { volume: 0.5 });
+    const heal = Math.min(s.maxHp - s.hp, Math.round(s.maxHp * 0.35));
+    s.hp += heal;
+    this.world.combat.popNumber(this.world.player.x, this.world.player.y - 20, `+${heal}`, '#8dff8a', 14);
+    this.world.sound.play('sfx_potion', { volume: 0.5 });
   }
 
   // ── 조이스틱 (왼쪽 아래, 터치 기기) ─────────────
@@ -190,7 +255,7 @@ export class HudScene extends Phaser.Scene {
     this.joyPtr = null;
     this.input.on('pointerdown', (p) => {
       if (this.dialogOpen) { this.advanceDialog(); return; }
-      if (p.x < W * 0.45 && p.y > H * 0.3 && !this.joyPtr) {
+      if (p.x < W * 0.45 && p.y > H * 0.3 && this.joyPtr === null) {
         this.joyPtr = p.id;
         this.joyBase.setPosition(p.x, p.y).setVisible(true);
         this.joyKnob.setPosition(p.x, p.y).setVisible(true);
@@ -263,7 +328,7 @@ export class HudScene extends Phaser.Scene {
     }
     this.dlg.setVisible(true).setAlpha(0);
     this.tweens.add({ targets: this.dlg, alpha: 1, duration: 120 });
-    this.village.sound.play('sfx_open', { volume: 0.35 });
+    this.world.sound.play('sfx_open', { volume: 0.35 });
     this.showPage();
   }
 
@@ -284,8 +349,42 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
+  // 고르기 창 (예: 난이도). 고르거나 닫기를 누를 때까지 주인공은 멈춰 있어요.
+  openChoice({ title, note, options, current, onPick }) {
+    this.dialogOpen = true;
+    this.choiceOpen = true;
+    const items = [];
+    const bw = 460;
+    const bh = 210;
+    const bx = (W - bw) / 2;
+    const by = (H - bh) / 2 - 20;
+    items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
+    items.push(crisp(this.add.text(W / 2, by + 30, title, textStyle(17, '#ffe9a8')).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 60, note, textStyle(12, '#e6f0dd', { align: 'center', wordWrap: { width: bw - 50 } })).setOrigin(0.5, 0).setDepth(47)));
+    const close = () => {
+      items.forEach((o) => o.destroy());
+      this.choiceOpen = false;
+      this.time.delayedCall(120, () => { this.dialogOpen = false; });
+    };
+    const button = (x, y, w, label, on, fn) => {
+      const g = this.add.graphics().setDepth(47);
+      g.fillStyle(on ? 0x2f6a3a : 0x3a2c1c, 1).fillRoundedRect(x - w / 2, y - 20, w, 40, 8)
+        .lineStyle(2, on ? 0xffd866 : GOLD, 1).strokeRoundedRect(x - w / 2, y - 20, w, 40, 8);
+      const t = crisp(this.add.text(x, y, label, textStyle(16, '#ffffff')).setOrigin(0.5).setDepth(48));
+      const z = this.add.zone(x, y, w, 40).setInteractive({ useHandCursor: true }).setDepth(49);
+      z.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.sound.play('sfx_click', { volume: 0.4 }); fn(); });
+      items.push(g, t, z);
+    };
+    options.forEach((o, i) => {
+      const x = W / 2 + (i - (options.length - 1) / 2) * 140;
+      button(x, by + 128, 120, o.label, o.id === current, () => { close(); onPick(o.id); });
+    });
+    button(W / 2, by + 180, 100, '닫기', false, close);
+    this.world.sound.play('sfx_open', { volume: 0.35 });
+  }
+
   advanceDialog() {
-    if (!this.dialogOpen) return;
+    if (!this.dialogOpen || this.choiceOpen) return;
     if (this.dlgTyping) {
       this.typeEvent?.remove();
       this.dlgText.setText(this.dlgPages[this.dlgPage]);
@@ -295,12 +394,12 @@ export class HudScene extends Phaser.Scene {
     }
     this.dlgPage++;
     if (this.dlgPage < this.dlgPages.length) {
-      this.village.sound.play('sfx_click', { volume: 0.3 });
+      this.world.sound.play('sfx_click', { volume: 0.3 });
       this.showPage();
       return;
     }
     this.dlg.setVisible(false);
-    this.village.sound.play('sfx_close', { volume: 0.3 });
+    this.world.sound.play('sfx_close', { volume: 0.3 });
     // 같은 키 입력으로 바로 다시 열리지 않게 한 박자 쉬어요
     this.time.delayedCall(120, () => { this.dialogOpen = false; });
     this.dlgOnClose?.();
@@ -324,7 +423,7 @@ export class HudScene extends Phaser.Scene {
       this.btnTalk?.setVisible(false);
       return;
     }
-    const cam = this.village.cameras.main;
+    const cam = this.world.cameras.main;
     const label = target.type === 'npc' ? '대화' : target.spot.label;
     const text = `${this.isTouch ? '💬' : 'E'} ${label}`;
     if (this.promptText.text !== text) {
@@ -381,6 +480,7 @@ export class HudScene extends Phaser.Scene {
 
   update(time) {
     this.drawBars();
+    this.drawSkills();
     this.drawMinimap(time);
     this.potText.setText(`${this.stats.potions ?? 0}`);
   }

@@ -1,12 +1,14 @@
-// 주인공: 8방향 이동, 3단 콤보 공격, 구르기, 스킬
+// 주인공: 8방향 이동, 공격 자세, 구르기(무적), 맞으면 밀려나기, 스킬 시전
 // 충돌은 발밑의 작은 상자(feet)로만 하고, 그림은 그 위에 따라 붙어요.
+// 언제 때리고 누가 맞는지는 Combat.js가 정해요. 여기서는 몸의 움직임만 다뤄요.
 
-const SPEED = 74;
-const DODGE_SPEED = 200;
-const DODGE_MS = 210;
-const ATK_MS = 230;
+const SPEED = 76;
+const DODGE_SPEED = 210;
+const DODGE_MS = 230;
+const DODGE_INV_MS = 300; // 구르기 무적 시간
 
 const VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+const SWING_BASE = { up: 0, right: 90, down: 180, left: 270 };
 
 export class Player {
   constructor(scene, x, y, sprite) {
@@ -14,8 +16,9 @@ export class Player {
     this.key = sprite; // 캐릭터 폴더 이름 (예: KnightGold)
     this.dir = 'down';
     this.state = 'move';
-    this.combo = 0;
-    this.comboUntil = 0;
+    this.invUntil = 0;
+    this.guardUntil = 0;
+    this.actionEnd = null;
 
     this.shadow = scene.add.ellipse(x, y, 12, 4, 0x000000, 0.3);
     this.feet = scene.add.zone(x, y, 9, 5);
@@ -23,11 +26,15 @@ export class Player {
     this.feet.body.setCollideWorldBounds(true);
     this.sprite = scene.add.sprite(x, y, `ch/${sprite}`, 0).setOrigin(0.5, 1);
     this.sword = scene.add.image(x, y, 'na/sword').setVisible(false);
+    this.lift = 0; // 점프할 때 몸만 위로
     this.play('idle_down');
   }
 
   get x() { return this.feet.x; }
   get y() { return this.feet.y; }
+  get canAct() { return this.state === 'move'; }
+  get invulnerable() { return this.scene.time.now < this.invUntil || this.state === 'down'; }
+  get guarding() { return this.scene.time.now < this.guardUntil; }
 
   play(name) {
     const key = `${this.key}_${name}`;
@@ -36,64 +43,109 @@ export class Player {
 
   facingVector() { return VEC[this.dir]; }
 
-  attack() {
-    if (this.state !== 'move') return false;
-    const now = this.scene.time.now;
-    this.combo = now < this.comboUntil ? (this.combo % 3) + 1 : 1;
-    this.comboUntil = now + 600;
-    this.state = 'atk';
-    this.feet.body.setVelocity(0, 0);
-    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
-    this.swingSword();
-    if (this.combo === 3) {
-      const [vx, vy] = this.facingVector();
-      this.feet.body.setVelocity(vx * 90, vy * 90);
-    }
-    this.scene.time.delayedCall(ATK_MS, () => {
-      this.feet.body.setVelocity(0, 0);
-      this.sword.setVisible(false);
-      this.state = 'move';
-    });
-    return this.combo;
+  faceTo(x, y) {
+    const dx = x - this.x;
+    const dy = y - this.y;
+    if (!dx && !dy) return;
+    this.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
   }
 
-  // 손에 든 칼을 휘두르는 모양 (칼 그림을 돌려서)
-  swingSword() {
-    const base = { up: 0, right: 90, down: 180, left: 270 }[this.dir];
-    const flip = this.combo === 2 ? -1 : 1;
-    this.sword.setVisible(true).setOrigin(0.5, 1).setAngle(base - 70 * flip);
-    this.scene.tweens.add({ targets: this.sword, angle: base + 70 * flip, duration: 140, ease: 'Quad.out' });
+  // 정해진 시간 동안 다른 행동을 못 하게 하고, 끝나면 onEnd를 불러요
+  lock(state, ms, onEnd) {
+    this.state = state;
+    this.actionEnd?.remove();
+    this.actionEnd = this.scene.time.delayedCall(ms, () => {
+      this.actionEnd = null;
+      if (this.state !== state) return;
+      this.feet.body.setVelocity(0, 0);
+      this.sword.setVisible(false);
+      this.sprite.anims.timeScale = 1;
+      this.state = 'move';
+      onEnd?.();
+    });
+  }
+
+  // 공격 한 번: 앞으로 살짝 내딛고 칼을 휘둘러요 (3타는 크게)
+  swing(combo, ms, onEnd) {
+    const [vx, vy] = this.facingVector();
+    const step = combo === 3 ? 110 : 45;
+    this.feet.body.setVelocity(vx * step, vy * step);
+    this.scene.time.delayedCall(combo === 3 ? 120 : 80, () => {
+      if (this.state === 'atk') this.feet.body.setVelocity(0, 0);
+    });
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    const base = SWING_BASE[this.dir];
+    const flip = combo === 2 ? -1 : 1;
+    const arc = combo === 3 ? 100 : 70;
+    this.scene.tweens.killTweensOf(this.sword);
+    this.sword.setVisible(true).setOrigin(0.5, 1).setScale(combo === 3 ? 1.25 : 1).setAngle(base - arc * flip);
+    this.scene.tweens.add({ targets: this.sword, angle: base + arc * flip, duration: combo === 3 ? 170 : 120, ease: 'Quad.out' });
+    this.lock('atk', ms, onEnd);
+  }
+
+  // 칼을 한 바퀴 돌려요 (회전 베기)
+  spin(ms) {
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    this.scene.tweens.killTweensOf(this.sword);
+    const base = SWING_BASE[this.dir];
+    this.sword.setVisible(true).setOrigin(0.5, 1).setScale(1.3).setAngle(base);
+    this.scene.tweens.add({ targets: this.sword, angle: base + 360, duration: ms * 0.8, ease: 'Sine.inOut' });
+    this.feet.body.setVelocity(0, 0);
+    this.lock('cast', ms);
+  }
+
+  // 제자리에서 스킬을 쓰는 자세
+  cast(ms, { jump = 0 } = {}) {
+    this.feet.body.setVelocity(0, 0);
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    if (jump) this.scene.tweens.add({ targets: this, lift: jump, duration: ms * 0.45, yoyo: true, ease: 'Quad.out' });
+    this.lock('cast', ms);
+  }
+
+  // 빠르게 미끄러지듯 이동 (구르기·돌진)
+  rush(vx, vy, speed, ms, state = 'dodge', invMs = ms) {
+    const len = Math.hypot(vx, vy) || 1;
+    this.feet.body.setVelocity((vx / len) * speed, (vy / len) * speed);
+    this.invUntil = Math.max(this.invUntil, this.scene.time.now + invMs);
+    this.lock(state, ms);
   }
 
   dodge(vx, vy) {
-    if (this.state !== 'move') return false;
-    if (!vx && !vy) [vx, vy] = this.facingVector();
-    const len = Math.hypot(vx, vy) || 1;
-    this.state = 'dodge';
-    this.feet.body.setVelocity((vx / len) * DODGE_SPEED, (vy / len) * DODGE_SPEED);
+    if (!this.canAct) return false;
+    if (Math.hypot(vx, vy) < 0.15) [vx, vy] = this.facingVector();
+    else this.faceTo(this.x + vx, this.y + vy);
     this.play(`walk_${this.dir}`);
     this.sprite.anims.timeScale = 2.5;
-    this.scene.tweens.add({ targets: this.sprite, scaleY: 0.75, scaleX: 1.15, duration: DODGE_MS / 2, yoyo: true });
-    this.scene.time.delayedCall(DODGE_MS, () => {
-      this.feet.body.setVelocity(0, 0);
-      this.sprite.anims.timeScale = 1;
-      this.state = 'move';
-    });
+    this.scene.tweens.add({ targets: this.sprite, scaleY: 0.72, scaleX: 1.18, duration: DODGE_MS / 2, yoyo: true });
+    this.rush(vx, vy, DODGE_SPEED, DODGE_MS, 'dodge', DODGE_INV_MS);
     return true;
   }
 
-  skill() {
-    if (this.state !== 'move') return false;
-    this.state = 'skill';
+  // 맞았을 때: 뒤로 밀리고, 잠깐 깜빡이며 무적
+  hurt(fromX, fromY, power = 1) {
+    const dx = this.x - fromX;
+    const dy = this.y - fromY;
+    const len = Math.hypot(dx, dy) || 1;
+    this.sword.setVisible(false);
+    this.feet.body.setVelocity((dx / len) * 150 * power, (dy / len) * 150 * power);
+    this.invUntil = this.scene.time.now + 750;
+    this.sprite.setTintFill(0xffffff);
+    this.scene.time.delayedCall(70, () => this.sprite.clearTint());
+    this.lock('hurt', 200);
+  }
+
+  knockDown() {
+    this.actionEnd?.remove();
+    this.state = 'down';
+    this.sword.setVisible(false);
     this.feet.body.setVelocity(0, 0);
-    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
-    this.scene.tweens.add({ targets: this.sprite, y: this.sprite.y - 4, duration: 120, yoyo: true });
-    this.scene.time.delayedCall(360, () => { this.state = 'move'; });
-    return this.dir;
+    this.sprite.anims.stop();
+    this.scene.tweens.add({ targets: this.sprite, angle: 90, duration: 300 });
   }
 
   // vx, vy: -1~1 입력값
   update(vx, vy, locked) {
+    const now = this.scene.time.now;
     if (this.state === 'move') {
       if (locked) { vx = 0; vy = 0; }
       const len = Math.hypot(vx, vy);
@@ -110,12 +162,14 @@ export class Player {
     }
     const sx = Math.round(this.feet.x);
     const sy = Math.round(this.feet.y + 3);
-    this.sprite.setPosition(sx, sy);
-    this.shadow.setPosition(sx, sy - 1);
+    // 맞은 뒤 무적일 때는 깜빡깜빡 (구르기 중에는 안 깜빡여요)
+    const blink = this.state !== 'dodge' && this.state !== 'down' && now < this.invUntil && Math.floor(now / 70) % 2 === 0;
+    this.sprite.setPosition(sx, sy - Math.round(this.lift)).setAlpha(blink ? 0.35 : 1);
+    this.shadow.setPosition(sx, sy - 1).setScale(1 - this.lift / 40);
     this.sprite.setDepth(sy);
     this.shadow.setDepth(sy - 1);
     // 칼은 손 위치에 (위를 볼 때는 몸 뒤로)
     const hand = { down: [5, -5], up: [-5, -7], left: [-5, -5], right: [5, -5] }[this.dir];
-    this.sword.setPosition(sx + hand[0], sy + hand[1]).setDepth(this.dir === 'up' ? sy - 0.5 : sy + 0.5);
+    this.sword.setPosition(sx + hand[0], sy + hand[1] - this.lift).setDepth(this.dir === 'up' ? sy - 0.5 : sy + 0.5);
   }
 }

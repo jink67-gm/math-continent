@@ -4,6 +4,7 @@
 import { BootScene } from './scenes/BootScene.js';
 import { TitleScene } from './scenes/TitleScene.js';
 import { VillageScene } from './scenes/VillageScene.js';
+import { FieldScene } from './scenes/FieldScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { SaveManager } from './save/SaveManager.js';
 
@@ -19,7 +20,7 @@ const config = {
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   dom: { createContainer: true },
   input: { activePointers: 3 },
-  scene: [BootScene, TitleScene, VillageScene, HudScene],
+  scene: [BootScene, TitleScene, VillageScene, FieldScene, HudScene],
 };
 
 // 글꼴을 다 받은 뒤에 시작해야 글자가 기본 글꼴로 그려지지 않아요

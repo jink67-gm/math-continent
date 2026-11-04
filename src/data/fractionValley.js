@@ -19,6 +19,7 @@ export const VILLAGE = {
   name: '분수 계곡 마을',
   subtitle: '분수의 나눗셈',
   bgm: 'bgm_town',
+  mapV: 2, // 지도 크기가 바뀌면 올려요 (예전 위치로 불러오지 않게)
   spawn: { x: C(MID + 1), y: C(31) },
 };
 
@@ -69,6 +70,7 @@ export const PROPS = [
   P('barrel', 11.4, 26, [12, 8]), P('table', 4.8, 18, null),
   P('laundry', 35, 26, null), P('jar', 41.6, 17, [10, 6]), P('barrel', 26.6, 17, [12, 8]),
   P('scarecrow', 29.8, 30.8, [8, 6]),
+  P('notice', MID + 3.4, 30.2, [8, 5]),
   P('fence', 33.5, 25.2, [48, 6]), P('fence', 36.5, 25.2, [48, 6]), P('fence', 39.5, 25.2, [48, 6]), P('fence', 42.5, 25.2, [48, 6]),
 ];
 
@@ -111,7 +113,7 @@ export function scatterNature(grid) {
     return false;
   };
   const keepOut = [...BUILDINGS.map((b) => ({ x: b.x / T, y: b.y / T - 1.5, r: 3.4 })),
-    ...PLOTS.map((p) => ({ x: p.x + 2, y: p.y + 1, r: 3.2 })), { x: 29.8, y: 30, r: 1.5 }];
+    ...PLOTS.map((p) => ({ x: p.x + 2, y: p.y + 1, r: 3.2 })), { x: 29.8, y: 30, r: 1.5 }, { x: MID + 3.4, y: 29.6, r: 1.6 }];
   const deco = [['bush_a', [10, 5]], ['bush_b', [10, 5]], ['bush_c', [10, 5]], ['flower_a'], ['flower_b'], ['grass_a'], ['grass_b'], ['flower_a']];
   for (let i = 0; i < 170; i++) {
     const cx = 2 + Math.floor(rnd() * (COLS - 4));
@@ -174,7 +176,9 @@ export const NPCS = [
     lines: [
       ['모험가님, 분수 계곡 마을에 온 걸 환영해요!', '먼저 풍차 촌장님께 인사드려 볼까요? 광장 왼쪽 위 큰 집이에요.'],
       ['마을 사람 가까이에서 E 키(또는 💬 버튼)를 누르면 이야기할 수 있어요.'],
-      ['Space로 구르기, J로 공격! 마을 안은 안전하니 마음껏 연습해 보세요.'],
+      ['Space로 구르기, J로 공격! 1~4 키로 스킬을 쓸 수 있어요.', '마을 안은 안전하니 마음껏 연습해 보세요.'],
+      ['남쪽 길로 나가면 「출발의 초원」이에요. 몬스터가 공격하기 전에 빨간 원이 보이면 구르기로 피하세요!'],
+      ['옆의 모험 게시판에서 난이도(쉬움·보통·어려움)를 바꿀 수 있어요.'],
     ],
   },
 ];
@@ -189,6 +193,9 @@ export const SPOTS = [
     id: 'bridge', kind: 'read', name: '부서진 나무다리', x: C(MID + 1), y: C(8.6), r: 26, label: '다리 살펴보기',
     lines: [['강을 건너는 나무다리가 부서져 있어요.', '다리 기둥에 수학 룬이 새겨져 있어요. 룬을 맞추면 다시 이어진대요!']],
   },
+  {
+    id: 'board', kind: 'difficulty', name: '모험 게시판', x: C(MID + 3.4), y: C(30.6), r: 24, label: '난이도 바꾸기',
+  },
   ...PLOTS.map((p, i) => {
     const n = [2, 4, 8][i];
     return {
@@ -202,6 +209,6 @@ export const SPOTS = [
 ];
 
 export const EXITS = [
-  { id: 'south', x: C(MID - 1), y: HEIGHT - 6, w: C(4), h: 6, to: '출발의 초원' },
+  { id: 'south', x: C(MID - 1), y: HEIGHT - 6, w: C(4), h: 6, to: '출발의 초원', scene: 'Field', entry: 'north' },
   { id: 'north', x: C(MID - 1), y: 0, w: C(4), h: 6, to: '계곡 바위 숲' },
 ];

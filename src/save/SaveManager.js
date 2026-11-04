@@ -289,6 +289,28 @@ export class SaveManager {
     } catch { return null; }
   }
 
+  // 룬 풀이 기록: users/{uid}/mathLogs (선생님이 단원별 정답률을 볼 수 있게)
+  addMathLog(log) {
+    (this.logs ||= []).push(log);
+    if (this.logs.length > 50) this.logs.shift();
+    if (isFirebaseConfigured()) { clearTimeout(this.logTimer); this.logTimer = setTimeout(() => this.flushLogs(), 4000); }
+  }
+
+  async flushLogs() {
+    if (!this.logs?.length || !this.cloud) return;
+    const batchLogs = this.logs.splice(0);
+    const { fsM, db } = this.mods;
+    try {
+      const col = fsM.collection(db, 'users', this.uid, 'mathLogs');
+      const batch = fsM.writeBatch(db);
+      for (const l of batchLogs) batch.set(fsM.doc(col), { ...clean(l), createdAt: fsM.serverTimestamp() });
+      await withTimeout(batch.commit(), 10000);
+    } catch (e) {
+      console.warn('[저장] 룬 기록을 못 올렸어요', e);
+      this.logs.unshift(...batchLogs.slice(-30));
+    }
+  }
+
   // 창을 닫기 직전: 기다리지 않고 바로 보내기
   flush() {
     clearTimeout(this.timer);

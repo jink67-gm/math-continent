@@ -1,0 +1,100 @@
+/* 수학 룬 창 — 게임 화면 위에 뜨는 문제 카드 */
+.rune-backdrop {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 12px;
+  background: radial-gradient(circle at 50% 40%, rgba(60, 40, 120, .55), rgba(8, 6, 20, .8));
+  animation: rune-fade .18s ease-out;
+  font-family: 'Galmuri11', sans-serif;
+}
+.rune-backdrop.closing { animation: rune-fade .16s reverse forwards; }
+@keyframes rune-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.rune-card {
+  position: relative; width: min(640px, 100%); max-height: calc(100dvh - 24px); overflow: auto;
+  background: #1c150d; color: #fff8e6; border: 3px solid #e8c36a; border-radius: 12px;
+  box-shadow: 0 0 0 3px #1b1208, 0 0 40px rgba(170, 140, 255, .35), inset 0 0 0 2px #6b4a22;
+  padding: 18px 20px 20px;
+}
+.rune-card.shake { animation: rune-shake .4s; }
+@keyframes rune-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.rune-card.glow { animation: rune-glow 1s ease-out; }
+@keyframes rune-glow { 0% { box-shadow: 0 0 0 3px #1b1208, 0 0 0 rgba(255, 230, 120, 0); } 30% { box-shadow: 0 0 0 3px #1b1208, 0 0 80px rgba(255, 230, 120, .9); } }
+
+.rune-head { display: flex; align-items: center; gap: 12px; }
+.rune-stone {
+  width: 48px; height: 48px; flex: none; display: grid; place-items: center; font-size: 26px;
+  background: radial-gradient(circle, #8b6cff 0%, #3b2a7a 70%); border: 2px solid #e8c36a; border-radius: 50%;
+  box-shadow: 0 0 14px rgba(160, 130, 255, .8);
+}
+.rune-title { font-size: 20px; color: #ffe9a8; line-height: 1.2; }
+.rune-unit { font-size: 12px; color: #cfe3c8; margin-top: 2px; }
+.rune-npc { margin-top: 10px; padding: 8px 12px; background: #2c2216; border-radius: 8px; font-size: 13px; color: #e6f0dd; line-height: 1.5; }
+
+.rune-question {
+  margin: 14px 0; padding: 16px; background: #fff8e6; color: #2b2014; border-radius: 10px;
+  font-family: system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 22px; line-height: 1.7; text-align: center; font-weight: 600;
+}
+.rune-figure { display: flex; justify-content: center; margin-bottom: 10px; }
+.rune-figure .fig, .rune-figure svg { max-width: 100%; height: auto; }
+.fig-row { display: flex; gap: 18px; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 .1em; line-height: 1.05; font-size: .86em; }
+.frac .num { padding: 0 .2em .04em; border-bottom: .09em solid currentColor; }
+.frac .den { padding: .04em .2em 0; }
+.mixed { display: inline-flex; align-items: center; gap: .05em; }
+
+.rune-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rune-choice {
+  display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 8px 12px; cursor: pointer;
+  font: 600 20px system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #2b2014;
+  background: #fff3cf; border: 2px solid #1b1208; border-radius: 10px; box-shadow: 0 4px 0 #1b1208;
+  touch-action: manipulation;
+}
+.rune-choice:hover:not(:disabled) { background: #fffbe6; }
+.rune-choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #1b1208; }
+.rune-choice:disabled { cursor: not-allowed; }
+.rune-choice.wrong { background: #f3c9c4; opacity: .6; text-decoration: line-through; }
+.rune-choice.right { background: #c9f5d6; }
+.rune-choice .no {
+  flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+  background: #3b2a7a; color: #fff; font: 13px 'Galmuri11', sans-serif;
+}
+.rune-choice .txt { flex: 1; text-align: center; }
+.img-choices .rune-choice { min-height: 96px; }
+.img-choices .txt { display: flex; justify-content: center; }
+.img-choices svg { max-height: 86px; width: auto; }
+
+.rune-input-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+.rune-input {
+  width: 180px; padding: 10px 12px; font: 700 24px system-ui, sans-serif; text-align: center;
+  border: 3px solid #e8c36a; border-radius: 10px; background: #fff8e6; color: #2b2014; outline: none;
+}
+.rune-input:focus { box-shadow: 0 0 0 4px rgba(139, 108, 255, .45); }
+.rune-input:disabled { background: #d9d0bd; }
+.rune-suffix { font-size: 20px; }
+.rune-btn {
+  font: 16px 'Galmuri11', sans-serif; color: #fff; padding: 12px 20px; cursor: pointer;
+  background: #2f6a3a; border: 2px solid #ffd866; border-radius: 10px; box-shadow: 0 4px 0 #1b1208;
+  touch-action: manipulation;
+}
+.rune-btn:disabled { opacity: .5; cursor: default; }
+.rune-btn.ghost { background: #3a2c1c; border-color: #6b4a22; font-size: 13px; padding: 8px 14px; }
+
+.rune-feedback { text-align: center; margin-top: 12px; }
+.rune-feedback:empty { display: none; }
+.rune-feedback .wrong { color: #ff9b8a; font-size: 18px; }
+.rune-feedback .wait { color: #e6f0dd; font-size: 13px; margin-top: 4px; }
+.rune-hint { margin-top: 10px; padding: 10px 12px; background: #2a3a2e; border-radius: 8px; color: #e6f0dd; font-size: 14px; line-height: 1.6; }
+.rune-hint[hidden] { display: none; }
+.rune-result { text-align: center; }
+.rune-result .ok { font-size: 24px; color: #ffe066; margin-bottom: 8px; }
+.rune-result .expl {
+  margin: 0 auto 14px; padding: 12px; max-width: 520px; background: #2c2216; border-radius: 8px;
+  font: 16px/1.7 system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #fff8e6;
+}
+.rune-foot { display: flex; justify-content: center; margin-top: 14px; }
+
+@media (max-width: 560px) {
+  .rune-choices { grid-template-columns: 1fr; }
+  .rune-question { font-size: 19px; }
+}

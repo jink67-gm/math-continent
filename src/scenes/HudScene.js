@@ -56,6 +56,15 @@ export class HudScene extends Phaser.Scene {
     this.questText = crisp(this.add.text(16, 132, '', textStyle(12, '#fff3c4', { lineSpacing: 4 })));
     this.arrow = this.add.graphics().setDepth(5);
     this.bossBar = this.add.graphics().setDepth(6);
+    // 성장 시험 단추 (레벨업하면 생겨요, 미뤄도 돼요)
+    this.testBtn = this.add.container(16, 214).setVisible(false);
+    const tg = this.add.graphics();
+    tg.fillStyle(0x3b2a7a, 0.92).fillRoundedRect(0, 0, 150, 30, 8).lineStyle(2, 0xffd866, 1).strokeRoundedRect(0, 0, 150, 30, 8);
+    this.testText = crisp(this.add.text(75, 15, '', textStyle(12, '#ffe9a8')).setOrigin(0.5));
+    this.testBtn.add([tg, this.testText]).setSize(150, 30).setInteractive(new Phaser.Geom.Rectangle(0, 0, 150, 30), Phaser.Geom.Rectangle.Contains);
+    this.testBtn.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.growthTest(); });
+    this.tweens.add({ targets: this.testBtn, alpha: 0.7, duration: 700, yoyo: true, repeat: -1 });
+    this.input.keyboard.on('keydown-T', () => this.world.growthTest());
     this.bossName = crisp(this.add.text(W / 2 + 10, 26, '', textStyle(13, '#ffe9a8')).setOrigin(0.5).setDepth(7));
     const pmsg = (m) => this.toast(m);
     this.game.events.on('party:msg', pmsg);
@@ -382,7 +391,8 @@ export class HudScene extends Phaser.Scene {
       const g = b.dial.clear();
       const r = 23;
       b.icon.setAlpha(st.locked ? 0.25 : 1);
-      b.lockText.setText(st.locked ? `Lv${st.sk.lv}` : '');
+      b.lockText.setText(st.locked ? `Lv${st.sk.lv}` : st.unlearned ? '배우기' : '');
+      if (st.unlearned) b.icon.setAlpha(0.35);
       if (!st.locked && st.cdRatio > 0) {
         g.fillStyle(0x000000, 0.6).slice(0, -2, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * st.cdRatio, false).fillPath();
         b.cdText.setText(`${Math.ceil(st.cdLeft / 1000)}`);
@@ -526,7 +536,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   // 고르기 창 (예: 난이도). 고르거나 닫기를 누를 때까지 주인공은 멈춰 있어요.
-  openChoice({ title, note, options, current, onPick }) {
+  openChoice({ title, note, options, current, onPick, closable = true }) {
     this.dialogOpen = true;
     this.choiceOpen = true;
     const items = [];
@@ -555,7 +565,7 @@ export class HudScene extends Phaser.Scene {
       const x = W / 2 + (i - (options.length - 1) / 2) * 140;
       button(x, by + 128, 120, o.label, o.id === current, () => { close(); onPick(o.id); });
     });
-    button(W / 2, by + 180, 100, '닫기', false, close);
+    if (closable) button(W / 2, by + 180, 100, '닫기', false, close);
     this.world.sound.play('sfx_open', { volume: 0.35 });
   }
 
@@ -664,6 +674,9 @@ export class HudScene extends Phaser.Scene {
     const together = peer && this.world.combat.coop;
     this.drawQuest(time);
     this.drawBoss();
+    const tests = this.stats.tests || 0;
+    this.testBtn.setVisible(tests > 0);
+    if (tests) this.testText.setText(`⭐ 성장 시험 ${tests}${this.isTouch ? '' : ' (T)'}`);
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
       : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);
     const boost = this.world.combat.boost() > 1;

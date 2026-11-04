@@ -21,7 +21,8 @@ export class FieldScene extends WorldScene {
     for (const n of MAP.scatterNature(this.grid)) this.placeObject(n);
 
     this.npcs = MAP.NPCS.map((d) => new Npc(this, d));
-    this.spots = MAP.SPOTS;
+    this.spots = [...MAP.SPOTS];
+    this.placeChests(MAP.CHESTS);
     this.exits = MAP.EXITS;
     for (const s of MAP.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y);
   }

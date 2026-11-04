@@ -87,6 +87,7 @@ export function scatterNature(grid) {
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (grid.get(Math.floor(cx) + dx, Math.floor(cy) + dy) !== 'g') return false;
     if (SPAWNS.some((s) => (s.x / T - cx) ** 2 + (s.y / T - cy) ** 2 < r * r)) return false;
     if (PROPS.some((p) => (p.x / T - cx) ** 2 + (p.y / T - cy) ** 2 < 4)) return false;
+    if (CHESTS.some((p) => (p.x / T - cx) ** 2 + (p.y / T - cy) ** 2 < 6)) return false;
     return true;
   };
   for (let i = 0; i < 26; i++) {
@@ -116,6 +117,12 @@ export const NPCS = [
       ['힘들면 위쪽 길로 마을에 돌아가서 치유의 샘을 마셔요.'],
     ],
   },
+];
+
+// 황금 수학 상자 (숨은 구석)
+export const CHESTS = [
+  { id: 'meadow1', x: C(3.5), y: C(38.5), gold: 40, potions: 1 },
+  { id: 'meadow2', x: C(44), y: C(6.5), gold: 60, armor: 'leather' },
 ];
 
 export const SPOTS = [

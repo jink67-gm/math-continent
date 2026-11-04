@@ -5,7 +5,8 @@ import { Player } from '../world/Player.js';
 import { Combat } from '../combat/Combat.js';
 import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
-import { normalizeStats, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
+import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
+import { WEAPONS, ARMORS } from '../data/items.js';
 
 export const ZOOM = 3;
 
@@ -189,6 +190,7 @@ export class WorldScene extends Phaser.Scene {
     }
     if (s.kind === 'rune') { this.useRune(s); return; }
     if (s.kind === 'bossSeal') { this.useBossSeal?.(); return; }
+    if (s.kind === 'chest') { this.openChest(s); return; }
     if (s.kind === 'difficulty') {
       const now = DIFFICULTY[stats.difficulty].label;
       this.hud.openChoice({
@@ -221,6 +223,76 @@ export class WorldScene extends Phaser.Scene {
     this.fx('fx_sparkc', 'na/sparkc', s.x, s.y - 10, { scale: 1.6, depth: s.y + 41, add: true });
     this.onRuneSolved?.(s.id);
     this.quests.onRune(s.id);
+  }
+
+  // ── 성장 룬 ──────────────────────────────────
+  async learnSkill(sk) {
+    const res = await this.game.runes.start({ context: 'skill', unit: this.info.unit, allowLater: true, line: `「${sk.name}」의 룬이에요. 풀면 새 기술을 배워요!` });
+    if (!this.sys.isActive() || !res.correct) return;
+    const stats = this.registry.get('player');
+    if (!stats.learned.includes(sk.id)) stats.learned.push(sk.id);
+    this.sound.play('sfx_unlock', { volume: 0.55 });
+    this.fx('fx_ring', 'na/ring', this.player.x, this.player.y - 4, { scale: 2.4, depth: this.player.y + 30, add: true }).setTint(0xb8a0ff);
+    this.hud.showBanner(`새 스킬: ${sk.name}`, `${this.combat.skills.indexOf(sk) + 1}번 칸에서 쓸 수 있어요`);
+    this.saveGame({ now: true });
+  }
+
+  // 레벨업 성장 시험: 맞히면 보너스 능력치를 골라요 (미뤄도 돼요)
+  async growthTest() {
+    const stats = this.registry.get('player');
+    if (!stats.tests || this.locked) return;
+    const res = await this.game.runes.start({ context: 'levelup', unit: this.info.unit, allowLater: true });
+    if (!this.sys.isActive() || !res.correct) return;
+    this.hud.openChoice({
+      title: '보너스 능력을 골라요',
+      note: '고른 능력이 영원히 올라가요.',
+      options: [{ id: 'atk', label: '힘 +2' }, { id: 'hp', label: '체력 +15' }, { id: 'sp', label: '마력 +8' }],
+      onPick: (id) => {
+        const add = { atk: 2, hp: 15, sp: 8 }[id];
+        stats.bonus[id] = (stats.bonus[id] || 0) + add;
+        stats.tests = Math.max(0, stats.tests - 1);
+        refreshMax(stats);
+        if (id === 'hp') stats.hp += add;
+        if (id === 'sp') stats.sp += add;
+        this.sound.play('sfx_levelup', { volume: 0.5 });
+        this.hud.toast(`${{ atk: '힘', hp: '체력', sp: '마력' }[id]}이(가) ${add} 올랐어요!`);
+        this.saveGame({ now: true });
+      },
+      closable: false,
+    });
+  }
+
+  // 황금 수학 상자: 룬을 풀면 열려요 (한 번만)
+  async openChest(c) {
+    const stats = this.registry.get('player');
+    if (stats.chests.includes(c.id)) { this.hud.openDialog({ name: '빈 상자', lines: ['이미 열어 본 상자예요.'] }); return; }
+    const res = await this.game.runes.start({ context: 'chest', unit: this.info.unit, allowLater: true });
+    if (!this.sys.isActive() || !res.correct) return;
+    stats.chests.push(c.id);
+    c.sprite?.setFrame(1);
+    this.sound.play('sfx_chest', { volume: 0.55 });
+    this.fx('fx_sparkc', 'na/sparkc', c.x, c.y - 8, { scale: 1.4, depth: c.y + 30, add: true }).setTint(0xffe066);
+    const got = [];
+    if (c.gold) { this.combat.dropCoins(c.x, c.y + 6, c.gold); got.push(`${c.gold} G`); }
+    if (c.potions) { stats.potions += c.potions; got.push(`회복약 ${c.potions}개`); }
+    if (c.weapon && !stats.bag.weapons.includes(c.weapon)) { stats.bag.weapons.push(c.weapon); got.push(WEAPONS[c.weapon].name); }
+    if (c.armor && !stats.bag.armors.includes(c.armor)) { stats.bag.armors.push(c.armor); got.push(ARMORS[c.armor].name); }
+    this.hud.showBanner('황금 수학 상자!', got.join(' · '));
+    this.saveGame({ now: true });
+  }
+
+  placeChests(list) {
+    const stats = this.registry.get('player');
+    for (const c of list || []) {
+      const opened = stats.chests.includes(c.id);
+      c.sprite = this.add.sprite(c.x, c.y, 'na/chest', opened ? 1 : 0).setOrigin(0.5, 1).setScale(1.2).setDepth(c.y).setTint(0xffe9a0);
+      this.addSolid(c.x - 8, c.y - 6, 16, 6);
+      if (!opened) {
+        const sp = this.add.sprite(c.x, c.y - 16, 'na/spark', 0).setBlendMode('ADD').setDepth(c.y + 1).setTint(0xffe066);
+        sp.play('fx_spark');
+      }
+      this.spots.push({ ...c, kind: 'chest', name: '황금 수학 상자', r: 22, label: '상자 열기' });
+    }
   }
 
   // ── 출구 ─────────────────────────────────────

@@ -37,6 +37,7 @@ export class CaveScene extends WorldScene {
 
     this.spots = MAP.SPOTS.filter((s) => s.id !== 'door' || !q.passed('seal'));
     this.exits = MAP.EXITS;
+    this.placeChests(MAP.CHESTS);
     for (const s of MAP.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y, MAP.CAVE.power);
 
     // 보스 (정화했으면 그 자리에 분수의 결정 받침대만 남아요)

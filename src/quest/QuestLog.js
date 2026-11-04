@@ -3,6 +3,7 @@
 // 화면 쪽(장면·HUD)은 이 파일에 "무슨 일이 있었는지"만 알려 주면 돼요.
 
 import { MAIN, SIDE } from '../data/quests.js';
+import { skillsFor } from '../data/skills.js';
 
 export class QuestLog {
   constructor(game) {
@@ -52,6 +53,14 @@ export class QuestLog {
       if (h.state === 'active' && !h.told) {
         return { lines: side.start, after: () => { h.told = true; this.scene?.hud?.toast(`곁 퀘스트: ${side.title}`); } };
       }
+    }
+    // 룬 할아버지: 레벨이 되면 스킬의 룬을 내 줘요
+    if (npcId === 'runeMaster') {
+      const s = this.stats;
+      const sk = skillsFor(s).find((k) => k.lv <= s.lv && !(s.learned || []).includes(k.id));
+      if (sk) return { lines: [`오오, 「${sk.name}」을(를) 배울 때가 되었구나.`, '이 룬을 깨우면 가르쳐 주마. 천천히 생각해 보거라.'], after: () => this.scene?.learnSkill(sk) };
+      const next = skillsFor(s).find((k) => k.lv > s.lv);
+      if (next) return { lines: [`다음 기술 「${next.name}」은(는) 레벨 ${next.lv}이 되면 가르쳐 주마.`] };
     }
     // 촌장님은 지금 할 일을 다시 알려 줘요
     if (npcId === 'chief' && st && st.type !== 'talk') {

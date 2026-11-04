@@ -3,13 +3,14 @@
 import { textStyle, crisp } from '../ui/style.js';
 import { TerrainGrid, seeded } from '../world/terrain.js';
 import { HEROES } from '../data/assets.js';
+import { skillsFor } from '../data/skills.js';
 import { DIFFICULTY, DIFF_ORDER, normalizeStats, normalizeCode } from '../data/rules.js';
 
 const W = 960;
 const H = 540;
 export function newStats(name, gender, difficulty = 'normal') {
   return normalizeStats({
-    name, gender, difficulty, lv: 1, exp: 0, gold: 50, potions: 3,
+    name, gender, difficulty, lv: 1, exp: 0, gold: 50, potions: 3, learned: [skillsFor({ gender })[0].id],
     village: 'fractionValley', scene: 'Village', pos: null, playTime: 0,
   });
 }

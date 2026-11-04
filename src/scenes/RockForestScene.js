@@ -22,7 +22,8 @@ export class RockForestScene extends WorldScene {
     g.fillStyle(0x1d1424, 1).fillEllipse(m.x, m.y + 10, 38, 16);
     for (const p of MAP.PROPS) this.placeObject(p);
     for (const n of MAP.scatterNature(this.grid)) this.placeObject(n);
-    this.spots = MAP.SPOTS;
+    this.spots = [...MAP.SPOTS];
+    this.placeChests(MAP.CHESTS);
     this.exits = MAP.EXITS;
     for (const s of MAP.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y, MAP.FOREST.power);
   }

@@ -18,6 +18,7 @@ export const SHEETS = {
   'na/shield': ['na/fx/shield.png', 24, 26],
   'na/star': ['na/fx/spark.png', 32],
   'na/ring': ['na/fx/circle_white.png', 32],
+  'na/chest': ['na/fx/chest.png', 16, 14],
 };
 
 // 필드 몬스터 (SpriteSheet 16px, 가로 4칸 = 아래·위·왼·오, 세로 4줄 = 움직임)

@@ -1,6 +1,9 @@
 // 성장·난이도 규칙을 한곳에 모아 둔 곳
 // 숫자를 바꾸면 게임 전체 밸런스가 바뀌어요.
 
+import { weaponOf, armorOf } from './items.js';
+import { skillsFor } from './skills.js';
+
 export const MAX_LV = 30;
 
 // 난이도: 학생이 캐릭터를 만들 때 고르고, 마을 게시판에서 바꿀 수 있어요.
@@ -28,6 +31,23 @@ export function levelStats(lv) {
   };
 }
 
+// 레벨 + 성장 시험 보너스 + 장비(강화 포함)를 모두 더한 능력치
+export function statsOf(s) {
+  const ls = levelStats(s.lv);
+  const b = s.bonus || {};
+  const w = weaponOf(s);
+  const a = armorOf(s);
+  const wp = s.gear?.wPlus || 0;
+  const ap = s.gear?.aPlus || 0;
+  return {
+    ...ls,
+    atk: Math.round((ls.atk + (b.atk || 0) + w.atk) * (1 + wp * 0.15)),
+    def: ls.def + (b.def || 0) + a.def + ap,
+    maxHp: ls.maxHp + (b.hp || 0) + a.hp + ap * 6,
+    maxSp: ls.maxSp + (b.sp || 0) + (w.sp || 0),
+  };
+}
+
 // 저장 기록에 빠진 값을 채우고, 레벨에 맞는 최대치를 다시 계산해요
 export function normalizeStats(s) {
   s.lv = Math.max(1, Math.min(MAX_LV, s.lv || 1));
@@ -35,8 +55,14 @@ export function normalizeStats(s) {
   s.gold ??= 0;
   s.potions ??= 3;
   s.difficulty = DIFFICULTY[s.difficulty] ? s.difficulty : 'normal';
-  const ls = levelStats(s.lv);
-  Object.assign(s, { maxHp: ls.maxHp, maxSp: ls.maxSp, next: ls.next });
+  s.bonus ??= {};
+  s.gear ??= { weapon: 'wood_sword', armor: 'cloth', wPlus: 0, aPlus: 0 };
+  s.bag ??= { weapons: [s.gear.weapon], armors: [s.gear.armor] };
+  s.tests ??= 0; // 아직 안 본 성장 시험 수
+  // 배운 스킬 (예전 기록은 레벨에 맞는 스킬을 모두 배운 것으로)
+  s.learned ??= skillsFor(s).filter((k) => k.lv <= s.lv).map((k) => k.id);
+  s.chests ??= [];
+  refreshMax(s);
   s.hp = Math.min(s.maxHp, s.hp ?? s.maxHp);
   s.sp = Math.min(s.maxSp, s.sp ?? s.maxSp);
   s.kills ??= 0;
@@ -44,6 +70,12 @@ export function normalizeStats(s) {
   s.saveCode = normalizeCode(s.saveCode) || genCode();
   s.grantsApplied ??= [];
   return s;
+}
+
+// 최대 HP·SP·다음 레벨 경험치를 다시 계산해요 (레벨업·장비 바꿀 때)
+export function refreshMax(s) {
+  const st = statsOf(s);
+  Object.assign(s, { maxHp: st.maxHp, maxSp: st.maxSp, next: st.next });
 }
 
 // ── 저장 코드 ───────────────────────────────────

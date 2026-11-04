@@ -36,7 +36,7 @@ export class VillageScene extends WorldScene {
     this.mapBuildings = MAP.BUILDINGS;
 
     this.npcs = MAP.NPCS.map((d) => new Npc(this, d));
-    this.spots = MAP.SPOTS;
+    this.spots = [...MAP.SPOTS];
     this.exits = MAP.EXITS;
   }
 

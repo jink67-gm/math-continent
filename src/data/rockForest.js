@@ -83,6 +83,7 @@ export function scatterNature(grid) {
     for (let dy = -2; dy <= 1; dy++) for (let dx = -2; dx <= 2; dx++) if (grid.get(Math.floor(cx) + dx, Math.floor(cy) + dy) !== 'g') return false;
     if (SPAWNS.some((s) => (s.x / T - cx) ** 2 + (s.y / T - cy) ** 2 < r * r)) return false;
     if (PROPS.some((p) => (p.x / T - cx) ** 2 + (p.y / T - cy) ** 2 < 16)) return false;
+    if (CHESTS.some((p) => (p.x / T - cx) ** 2 + (p.y / T - cy) ** 2 < 8)) return false;
     return out.every((o) => o.flat || (o.x / T - cx) ** 2 + (o.y / T - cy) ** 2 > 5);
   };
   // 바위와 소나무 무리
@@ -106,6 +107,11 @@ export function scatterNature(grid) {
   }
   return out;
 }
+
+export const CHESTS = [
+  { id: 'forest1', x: C(4), y: C(40.5), gold: 70, potions: 1 },
+  { id: 'forest2', x: C(43.5), y: C(31), gold: 40, weapon: 'iron_sword' },
+];
 
 export const SPOTS = [
   {

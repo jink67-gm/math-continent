@@ -80,6 +80,11 @@ export const SPOTS = [
   },
 ];
 
+export const CHESTS = [
+  { id: 'cave1', x: C(36), y: C(45.5), gold: 90, potions: 2 },
+  { id: 'cave2', x: C(3.5), y: C(34), gold: 110, potions: 1 },
+];
+
 export const EXITS = [
   { id: 'south', x: C(18), y: HEIGHT - 6, w: C(5), h: 6, to: '계곡 바위 숲', scene: 'RockForest', entry: 'north' },
 ];
@@ -97,6 +102,7 @@ export function scatterDeco(grid) {
     if (WALLS.some((w) => Math.abs(w.y - cy) < 2)) continue;
     if (SPAWNS.some((s) => (s.x / T - cx) ** 2 + (s.y / T - cy) ** 2 < 6)) continue;
     if (SPOTS.some((s) => (s.x / T - cx) ** 2 + (s.y / T - cy) ** 2 < 9)) continue;
+    if (CHESTS.some((s) => (s.x / T - cx) ** 2 + (s.y / T - cy) ** 2 < 6)) continue;
     if ((cx - 20) ** 2 + (cy - 9.5) ** 2 < 70) continue; // 보스 방 가운데는 비워요
     const k = crystals[Math.floor(rnd() * crystals.length)];
     out.push({ k, x: C(cx + 0.5), y: C(cy + 1), solid: [10, 5], glow: k.startsWith('crystal') });

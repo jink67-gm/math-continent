@@ -4,7 +4,7 @@
 
 import { Monster } from '../world/Monster.js';
 import { skillsFor } from '../data/skills.js';
-import { diff, levelStats, rollDamage, MAX_LV } from '../data/rules.js';
+import { diff, statsOf, refreshMax, rollDamage, MAX_LV } from '../data/rules.js';
 import { textStyle, crisp } from '../ui/style.js';
 
 // 3단 콤보: 공격 시간, 맞는 순간, 범위, 배율, 밀어내는 힘
@@ -140,7 +140,7 @@ export class Combat {
   }
 
   damageMonster(m, mult, knock, from = this.player, { sound = true, slowMs = 0 } = {}) {
-    const atk = levelStats(this.stats.lv).atk;
+    const atk = statsOf(this.stats).atk;
     const { dmg, crit } = rollDamage(atk, mult, m.def.def);
     m.hit(dmg, from.x, from.y, knock);
     if (slowMs && m.alive) m.slow(slowMs);
@@ -193,6 +193,7 @@ export class Combat {
     return {
       sk,
       locked: this.stats.lv < sk.lv,
+      unlearned: this.stats.lv >= sk.lv && !(this.stats.learned || []).includes(sk.id),
       cdLeft: Math.max(0, this.cd[i] - now),
       cdRatio: Math.max(0, this.cd[i] - now) / sk.cd,
       noSp: this.stats.sp < sk.sp,
@@ -205,6 +206,7 @@ export class Combat {
     const st = this.skillState(i);
     if (!st.sk) return;
     if (st.locked) { this.hud?.toast(`레벨 ${st.sk.lv}이 되면 배울 수 있어요`); return; }
+    if (st.unlearned) { this.hud?.toast(`마을의 룬 할아버지께 「${st.sk.name}」을(를) 배워요`); return; }
     if (st.cdLeft > 0) { this.hud?.toast(`${(st.cdLeft / 1000).toFixed(1)}초 뒤에 쓸 수 있어요`); return; }
     if (st.noSp) { this.hud?.toast('SP가 부족해요'); return; }
     if (p.state === 'atk') p.state = 'move';
@@ -361,7 +363,7 @@ export class Combat {
       return false;
     }
     const s = this.stats;
-    let { dmg } = rollDamage(atk, 1, levelStats(s.lv).def);
+    let { dmg } = rollDamage(atk, 1, statsOf(s).def);
     dmg = Math.max(1, Math.round(dmg * this.diff.dmgTaken * (p.guarding ? 1 - this.guardCut : 1)));
     s.hp = Math.max(0, s.hp - dmg);
     this.popNumber(p.x, p.y - 20, dmg, '#ff6a5a', 14);
@@ -451,9 +453,8 @@ export class Combat {
     while (s.lv < MAX_LV && s.exp >= s.next) {
       s.exp -= s.next;
       s.lv++;
-      // 공격력·방어력은 저장하지 않고 그때그때 레벨에서 계산해요
-      const ls = levelStats(s.lv);
-      Object.assign(s, { maxHp: ls.maxHp, maxSp: ls.maxSp, next: ls.next });
+      s.tests = (s.tests || 0) + 1; // 레벨마다 성장 시험 하나 (미뤄도 돼요)
+      refreshMax(s);
       up = true;
     }
     if (!up) return;
@@ -475,7 +476,7 @@ export class Combat {
     if (learned) {
       this.scene.time.delayedCall(1600, () => {
         this.scene.sound.play('sfx_unlock', { volume: 0.5 });
-        this.hud?.toast(`새 스킬을 배웠어요: ${learned.name}`);
+        this.hud?.toast(`룬 할아버지께 새 스킬 「${learned.name}」을(를) 배울 수 있어요!`);
       });
     }
     this.scene.saveGame();

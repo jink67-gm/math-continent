@@ -13,6 +13,7 @@ const config = {
   width: 960,
   height: 540,
   backgroundColor: '#14201a',
+  pixelArt: true,
   roundPixels: true,
   physics: { default: 'arcade', arcade: { debug: false } },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },

@@ -1,7 +1,9 @@
-// 그림·소리를 모두 불러오고, 주인공·마을 사람 애니메이션을 만들어요.
+// 그림·소리를 모두 불러오고, 캐릭터·효과 애니메이션을 만들어요.
 
-import { ASSET_ROOT, IMAGE_KEYS, AUDIO, HERO_FRAMES, NPC_SPRITES } from '../data/assets.js';
+import { ASSET_ROOT, SHEETS, IMAGES, CHARACTERS, OBJECTS, BGM, AUDIO } from '../data/assets.js';
 import { FONT } from '../ui/style.js';
+
+export const DIRS = ['down', 'up', 'left', 'right'];
 
 export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
@@ -20,49 +22,51 @@ export class BootScene extends Phaser.Scene {
     this.loadPromise = this.game.saves.load().catch(() => null);
 
     this.load.setPath(ASSET_ROOT);
-    for (const key of IMAGE_KEYS) this.load.image(key, `${key}.webp`);
+    for (const [key, v] of Object.entries(SHEETS)) {
+      const [path, fw = 16, fh = fw] = Array.isArray(v) ? v : [v];
+      this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
+    }
+    for (const [key, path] of Object.entries(IMAGES)) this.load.image(key, path);
+    for (const c of CHARACTERS) {
+      this.load.spritesheet(`ch/${c}`, `na/chars/${c}/SpriteSheet.png`, { frameWidth: 16, frameHeight: 16 });
+      this.load.image(`face/${c}`, `na/chars/${c}/Faceset.png`);
+    }
+    this.load.audio('bgm_title', BGM.bgm_title);
     for (const [key, path] of Object.entries(AUDIO)) this.load.audio(key, path);
   }
 
   async create() {
-    this.makeHeroAnims();
-    this.makeNpcAnims();
+    this.makeObjectFrames();
+    this.makeCharacterAnims();
+    this.makeFxAnims();
     this.label.setText('저장 기록 확인 중...');
     this.registry.set('save', await this.loadPromise);
     this.registry.set('legacy', this.game.saves.legacy);
     this.scene.start('Title');
   }
 
-  makeHeroAnims() {
-    const rates = { idle: 2.5, walk: 10, atk: 18, dodge: 14, skill: 12, hit: 10 };
-    for (const g of ['male', 'female']) {
-      for (const [set, anims] of Object.entries(HERO_FRAMES)) {
-        for (const [name, count] of Object.entries(anims)) {
-          const kind = name.split('_')[0];
-          const frames = [];
-          for (let i = 1; i <= count; i++) frames.push({ key: `${set}/${g}/${name}_${i}` });
-          this.anims.create({
-            key: `${g}_${name}`, frames,
-            frameRate: name.startsWith('walk_left') || name.startsWith('walk_right') ? 14 : rates[kind],
-            repeat: kind === 'idle' || kind === 'walk' ? -1 : 0,
-          });
-        }
-      }
+  // 큰 타일 그림에서 집·나무·소품을 잘라 이름을 붙여요
+  makeObjectFrames() {
+    for (const [name, [sheet, x, y, w, h]] of Object.entries(OBJECTS)) {
+      this.textures.get(sheet).add(name, 0, x * 16, y * 16, w * 16, h * 16);
     }
   }
 
-  makeNpcAnims() {
-    const make = (base, key) => {
-      this.anims.create({
-        key: `${key}_idle`, frameRate: 3, repeat: -1, yoyo: true,
-        frames: ['idle_01', 'idle_02', 'idle_03'].map((f) => ({ key: `${base}/${f}` })),
+  makeCharacterAnims() {
+    for (const c of CHARACTERS) {
+      const key = `ch/${c}`;
+      DIRS.forEach((dir, d) => {
+        this.anims.create({ key: `${c}_walk_${dir}`, frames: this.anims.generateFrameNumbers(key, { frames: [d, d + 4, d + 8, d + 12] }), frameRate: 8, repeat: -1 });
+        this.anims.create({ key: `${c}_idle_${dir}`, frames: this.anims.generateFrameNumbers(key, { frames: [d] }), frameRate: 1 });
+        this.anims.create({ key: `${c}_atk_${dir}`, frames: this.anims.generateFrameNumbers(key, { frames: [16 + d, 16 + d] }), frameRate: 9 });
       });
-      this.anims.create({
-        key: `${key}_talk`, frameRate: 7, repeat: -1,
-        frames: ['talk_01', 'talk_02', 'talk_03', 'talk_04'].map((f) => ({ key: `${base}/${f}` })),
-      });
-    };
-    for (const n of NPC_SPRITES) make(`npc3/${n}`, n);
-    make('pack4/pipi', 'pipi');
+    }
+  }
+
+  makeFxAnims() {
+    this.anims.create({ key: 'fx_slash', frames: this.anims.generateFrameNumbers('na/slash'), frameRate: 20 });
+    this.anims.create({ key: 'fx_smoke', frames: this.anims.generateFrameNumbers('na/smoke'), frameRate: 16 });
+    this.anims.create({ key: 'fx_sparkc', frames: this.anims.generateFrameNumbers('na/sparkc'), frameRate: 14 });
+    this.anims.create({ key: 'fx_spark', frames: this.anims.generateFrameNumbers('na/spark'), frameRate: 10, repeat: -1 });
   }
 }

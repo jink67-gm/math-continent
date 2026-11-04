@@ -1,7 +1,7 @@
 # 수학 대륙: 여섯 마을의 봉인
 
 6학년 2학기 수학 액션 RPG. Phaser 3로 마을 하나씩 새로 만들고 있어요.
-그림·소리는 `assets` 폴더에 있는 기존 자료를 그대로 씁니다.
+그림·배경음악은 **Ninja Adventure**(CC0) 에셋을, 효과음은 기존 게임 자료를 씁니다.
 
 - 주소: `https://jink67-gm.github.io/math-continent/`
 - 내 컴퓨터에서 볼 때: VS Code Live Server로 이 폴더를 열기 (`index.html`을 더블클릭하면 실행되지 않아요)
@@ -15,8 +15,9 @@
 
 ## 지금 들어 있는 것 (1단계: 분수 계곡 마을)
 - 타이틀 → 모험가 고르기(남·여, 별명) → 분수 계곡 마을
-- 64px 타일로 그린 마을: 큰길, 광장과 치유의 샘, 북쪽 강과 부서진 다리, 연못, ½·¼·⅛ 분수 밭
-- 마을 사람 8명 (촌장 모모, 룬 할아버지, 상인 루루, 대장장이 쿵쿵, 경비병, 여관 주인, 꼬마 콩이, 요정 피피)
+- 16px 픽셀 타일 마을(화면 3배): 큰길, 광장과 치유의 샘, 북쪽 강과 부서진 다리, 연못, 8칸 중 심은 칸으로 보는 ½·¼·⅛ 분수 밭
+- 마을 사람 8명 (촌장 모모, 룬 할아버지, 상인 루루, 대장장이 쿵쿵, 경비병, 여관 주인, 꼬마 콩이, 정령 피피)
+- 주인공: 남 = 황금 기사, 여 = 붉은 두건 마법사
 - 액션 RPG 조작: 8방향 이동, 3단 콤보 공격(J), 스킬(K), 구르기(Space), 대화(E), 회복약(Q)
 - 화면 UI: 상태(HP·SP·EXP), 미니맵, 행동 버튼, 빠른 칸, 대화창(초상화·타자 효과), 터치 조이스틱
 
@@ -38,4 +39,6 @@
 |---|---|
 | Phaser 3.80.1 | MIT (`lib/LICENSE-phaser.md`) |
 | 갈무리 (Galmuri) 2.40.3 · quiple | SIL OFL 1.1 (`fonts/OFL-Galmuri.md`) |
-| 그림·효과음·배경음악 (`assets/`) | 기존 게임 자료 (출처는 선생님 기록 참고) |
+| Ninja Adventure 에셋 · Pixel-Boy & AAA (`assets/na/`) | CC0 (`assets/na/LICENSE.txt`) · https://pixel-boy.itch.io/ninja-adventure-asset-pack |
+| 흙/풀 연결 규칙 (`src/world/blobTiles.js`) | Ninja Adventure Godot 프로젝트 tileset.tres에서 옮김 (CC0) |
+| 효과음·버튼 그림 (`assets/audio`, `assets/ui2` 등) | 기존 게임 자료 |

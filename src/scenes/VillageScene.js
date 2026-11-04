@@ -1,4 +1,5 @@
 // 마을 장면: 땅·건물·소품·마을 사람을 놓고 주인공을 움직여요.
+// 그림은 16px 픽셀이라 카메라를 3배로 키워서 보여요.
 // 화면 위 UI(HUD, 대화창, 조이스틱)는 HudScene이 따로 그려요.
 
 import { T, seeded } from '../world/terrain.js';
@@ -6,14 +7,17 @@ import { Player } from '../world/Player.js';
 import { Npc } from '../world/Npc.js';
 import { textStyle, crisp } from '../ui/style.js';
 import * as MAP from '../data/fractionValley.js';
-import { ASSET_ROOT, BGM } from '../data/assets.js';
+import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
+
+export const ZOOM = 3;
+const MAP_VERSION = 2; // 지도 크기가 바뀌면 올려요 (예전 위치로 불러오지 않게)
 
 export class VillageScene extends Phaser.Scene {
   constructor() { super('Village'); }
 
   preload() {
     const key = MAP.VILLAGE.bgm;
-    if (!this.cache.audio.exists(key)) this.load.audio(key, ASSET_ROOT + BGM[key]);
+    if (!this.cache.audio.exists(key)) this.load.audio(key, BGM[key].map((p) => ASSET_ROOT + p));
   }
 
   create() {
@@ -30,11 +34,13 @@ export class VillageScene extends Phaser.Scene {
     for (const b of MAP.BUILDINGS) this.placeObject(b);
     for (const p of MAP.PROPS) this.placeObject(p);
     for (const n of MAP.scatterNature(this.grid)) this.placeObject(n);
+    this.placePlots();
     this.placeBrokenBridge();
+    this.placeSpringSparkles();
 
     // 주인공
-    const at = stats.village === MAP.VILLAGE.id && stats.pos ? stats.pos : MAP.VILLAGE.spawn;
-    this.player = new Player(this, at.x, at.y, stats.gender);
+    const at = stats.village === MAP.VILLAGE.id && stats.pos && stats.mapV === MAP_VERSION ? stats.pos : MAP.VILLAGE.spawn;
+    this.player = new Player(this, at.x, at.y, HEROES[stats.gender] || HEROES.male);
     this.physics.add.collider(this.player.feet, this.solids);
 
     // 마을 사람
@@ -46,17 +52,16 @@ export class VillageScene extends Phaser.Scene {
     this.spots = MAP.SPOTS;
 
     // 마을 밖으로 나가는 길
-    this.exitZones = MAP.EXITS.map((e) => {
+    for (const e of MAP.EXITS) {
       const z = this.add.zone(e.x + e.w / 2, e.y + e.h / 2, e.w, e.h);
       this.physics.add.existing(z, true);
       this.physics.add.overlap(this.player.feet, z, () => this.onExit(e));
-      return z;
-    });
+    }
 
     // 카메라
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, MAP.WIDTH, MAP.HEIGHT);
-    cam.startFollow(this.player.sprite, true, 0.12, 0.12, 0, 40);
+    cam.setZoom(ZOOM).setBounds(0, 0, MAP.WIDTH, MAP.HEIGHT).setRoundPixels(true);
+    cam.startFollow(this.player.sprite, true, 0.15, 0.15, 0, 10);
     cam.fadeIn(500, 0, 0, 0);
 
     // 키보드
@@ -75,10 +80,9 @@ export class VillageScene extends Phaser.Scene {
     this.bgm = this.sound.add(MAP.VILLAGE.bgm, { loop: true, volume: 0.4 });
     this.bgm.play();
 
-    // 자동 저장: 3분마다 + 창을 닫거나 다른 앱으로 넘어갈 때
-    // (30초 → 3분: Firestore 하루 무료 쓰기 한도를 아끼려고. 이 기기에는 저장할 때마다 바로 남아요)
+    // 자동 저장: 30초마다 + 창을 닫거나 다른 앱으로 넘어갈 때
     this.lastTick = this.time.now;
-    this.time.addEvent({ delay: 180000, loop: true, callback: () => this.saveGame() });
+    this.time.addEvent({ delay: 30000, loop: true, callback: () => this.saveGame() });
     const saveNow = () => this.saveGame({ now: true });
     this.game.events.on('save:now', saveNow);
 
@@ -96,38 +100,79 @@ export class VillageScene extends Phaser.Scene {
   }
 
   placeObject(o) {
-    const img = this.add.image(o.x, o.y, o.k).setOrigin(0.5, 1).setScale(o.s);
-    img.setDepth(o.flat ? -900 + o.y / 10000 : o.y);
-    if (o.k === 'village2/plaza_round') img.setDepth(-950);
+    const sheet = this.objectSheet(o.k);
+    const img = this.add.image(Math.round(o.x), Math.round(o.y), sheet, o.k).setOrigin(0.5, 1);
+    img.setDepth(o.flat ? -900 : o.y);
     if (o.solid === 'building') {
-      const w = img.displayWidth * 0.86;
-      const h = img.displayHeight * 0.36;
-      this.addSolid(o.x - w / 2, o.y - h - 4, w, h);
+      // 지붕은 지나갈 수 있게 아래쪽(벽)만 막아요
+      const w = img.width - 4;
+      const h = Math.min(img.height * 0.45, 26);
+      this.addSolid(o.x - w / 2, o.y - h, w, h - 1);
     } else if (Array.isArray(o.solid)) {
       const [w, h] = o.solid;
       this.addSolid(o.x - w / 2, o.y - h, w, h);
     }
-    if (o.label && o.k.includes('garden_plot')) {
-      crisp(this.add.text(o.x, o.y - img.displayHeight - 2, o.label, textStyle(13, '#fff7d6'))
-        .setOrigin(0.5, 1).setDepth(o.y + 1));
-    }
     return img;
   }
 
-  // 가운데가 끊어진 나무다리
+  objectSheet(name) {
+    for (const s of ['na/house', 'na/nature', 'na/element']) if (this.textures.get(s).has(name)) return s;
+    return 'na/nature';
+  }
+
+  // 분수 밭: 8칸 중 일부에만 싹을 심어요
+  placePlots() {
+    for (const p of MAP.PLOTS) {
+      const x0 = p.x * T;
+      const y0 = p.y * T;
+      for (let cy = 0; cy < 2; cy++) {
+        for (let cx = 0; cx < 4; cx++) {
+          // 밭 테두리 조각 (TilesetField 3×3 묶음: 0~2줄)
+          const col = cx === 0 ? 0 : cx === 3 ? 2 : 1;
+          const row = cy === 0 ? 0 : 2;
+          this.add.image(x0 + cx * T, y0 + cy * T, 'na/field', row * 5 + col).setOrigin(0, 0).setDepth(-900);
+        }
+      }
+      // 8칸을 셀 수 있게 칸 사이에 옅은 선
+      const lines = this.add.graphics().setDepth(-899);
+      lines.lineStyle(1, 0x8a4a1e, 0.55);
+      for (let i = 1; i < 4; i++) lines.lineBetween(x0 + i * T + 0.5, y0 + 3, x0 + i * T + 0.5, y0 + 2 * T - 3);
+      lines.lineBetween(x0 + 3, y0 + T + 0.5, x0 + 4 * T - 3, y0 + T + 0.5);
+      for (let i = 0; i < p.planted; i++) {
+        const cx = i % 4;
+        const cy = Math.floor(i / 4);
+        this.add.image(x0 + cx * T + 8, y0 + cy * T + 14, 'na/nature', 'crop').setOrigin(0.5, 1).setDepth(y0 + cy * T + 14);
+      }
+      crisp(this.add.text(x0 + 2 * T, y0 - 2, p.label, textStyle(12, '#fff7d6')).setOrigin(0.5, 1).setScale(1 / ZOOM))
+        .setDepth(y0 + 1);
+      this.addSolid(x0, y0 + 4, 4 * T, 2 * T - 6);
+    }
+  }
+
+  // 가운데가 끊어진 나무다리 (TilesetWater 아래쪽 나무판)
   placeBrokenBridge() {
-    const { x, top, bottom } = MAP.BRIDGE;
-    const key = 'terrain3/bridge_v_deck';
-    const src = this.textures.get(key).getSourceImage();
-    const s = (bottom - top) / src.height;
-    const cut = src.height * 0.36;
-    this.add.image(x, top, key).setOrigin(0.5, 0).setScale(s).setCrop(0, 0, src.width, cut).setDepth(-800);
-    this.add.image(x, top, key).setOrigin(0.5, 0).setScale(s)
-      .setCrop(0, src.height - cut, src.width, cut).setDepth(-800);
-    // 물에 떠내려가는 판자 조각
-    const plank = this.add.image(x + 30, top + (bottom - top) / 2, key).setScale(s * 0.5)
-      .setCrop(0, src.height * 0.45, src.width, src.height * 0.08).setAngle(18).setDepth(-799);
-    this.tweens.add({ targets: plank, y: plank.y + 6, angle: 24, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    const { x0, x1, y0, y1, gap } = MAP.BRIDGE;
+    const cols = 448 / T;
+    for (let y = y0; y <= y1; y++) {
+      if (y === gap) continue;
+      for (let x = x0; x <= x1; x++) {
+        this.add.image(x * T, y * T, 'na/water', 13 * cols + (x === x0 ? 1 : 2)).setOrigin(0, 0).setDepth(-800);
+      }
+    }
+    // 떠내려가는 판자
+    const plank = this.add.image((x0 + 1.3) * T, gap * T + 8, 'na/water', 13 * cols + 1).setAngle(20).setDepth(-799);
+    this.tweens.add({ targets: plank, y: plank.y + 2, angle: 28, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+  }
+
+  // 치유의 샘 위로 반짝이는 빛 (판타지 분위기)
+  placeSpringSparkles() {
+    const s = MAP.SPOTS.find((p) => p.kind === 'heal');
+    for (let i = 0; i < 5; i++) {
+      const sp = this.add.sprite(s.x + (Math.random() - 0.5) * 30, s.y - 28 - Math.random() * 10, 'na/spark', 0)
+        .setBlendMode('ADD').setAlpha(0.85).setDepth(s.y + 40);
+      sp.play({ key: 'fx_spark', startFrame: i % 7 });
+      this.tweens.add({ targets: sp, y: sp.y - 10, alpha: 0.2, duration: 1400 + i * 300, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
   }
 
   // ── 입력 ─────────────────────────────────────
@@ -141,18 +186,23 @@ export class VillageScene extends Phaser.Scene {
 
   get locked() { return !!this.hud?.dialogOpen; }
 
+  fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false } = {}) {
+    const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth);
+    if (add) s.setBlendMode('ADD');
+    s.play(anim);
+    s.once('animationcomplete', () => s.destroy());
+    return s;
+  }
+
   doAttack() {
     if (this.locked) return;
     const combo = this.player.attack();
     if (!combo) return;
     this.sound.play(`sfx_swing${combo}`, { volume: 0.5 });
     const [fx, fy] = this.player.facingVector();
-    const fxKey = combo === 3 ? 'effects/slash_orange' : 'effects/slash_blue';
-    const slash = this.add.image(this.player.x + fx * 44, this.player.y - 40 + fy * 30, fxKey)
-      .setScale(combo === 3 ? 0.55 : 0.42).setDepth(this.player.y + 50).setBlendMode('ADD')
-      .setAngle({ up: -90, down: 90, left: 180, right: 0 }[this.player.dir] + (combo === 2 ? 30 : 0));
-    if (this.player.dir === 'left') slash.setFlipY(true);
-    this.tweens.add({ targets: slash, alpha: 0, scale: slash.scale * 1.25, duration: 220, onComplete: () => slash.destroy() });
+    const angle = { right: 0, down: 90, left: 180, up: 270 }[this.player.dir];
+    this.fx('fx_slash', 'na/slash', this.player.x + fx * 12, this.player.y - 6 + fy * 9,
+      { angle, scale: combo === 3 ? 1.2 : 0.9, depth: this.player.y + 20 });
   }
 
   doDodge() {
@@ -160,22 +210,17 @@ export class VillageScene extends Phaser.Scene {
     const [vx, vy] = this.moveInput();
     if (!this.player.dodge(vx, vy)) return;
     this.sound.play('sfx_dodge', { volume: 0.5 });
-    const dust = this.add.image(this.player.x, this.player.y + 4, 'effects/dust_cloud').setScale(0.3).setAlpha(0.8)
-      .setDepth(this.player.y - 2);
-    this.tweens.add({ targets: dust, alpha: 0, scale: 0.45, duration: 400, onComplete: () => dust.destroy() });
+    this.fx('fx_smoke', 'na/smoke', this.player.x, this.player.y - 4, { scale: 0.6, depth: this.player.y - 2 });
   }
 
   doSkill() {
     if (this.locked) return;
     const stats = this.registry.get('player');
     if (stats.sp < 10) { this.hud?.toast('SP가 부족해요'); return; }
-    const side = this.player.skill();
-    if (!side) return;
+    if (!this.player.skill()) return;
     stats.sp -= 10;
     this.sound.play('sfx_skill', { volume: 0.5 });
-    const fx = this.add.image(this.player.x + (side === 'left' ? -60 : 60), this.player.y - 46, 'effects/burst_gold_big')
-      .setScale(0.2).setBlendMode('ADD').setDepth(this.player.y + 50);
-    this.tweens.add({ targets: fx, scale: 0.55, alpha: 0, duration: 450, onComplete: () => fx.destroy() });
+    this.fx('fx_sparkc', 'na/sparkc', this.player.x, this.player.y - 6, { scale: 1.6, depth: this.player.y + 20, add: true });
     this.cameras.main.shake(120, 0.004);
   }
 
@@ -187,11 +232,11 @@ export class VillageScene extends Phaser.Scene {
     let bestD = Infinity;
     for (const n of this.npcs) {
       const d = Math.hypot(n.x - px, (n.y - py) * 1.3);
-      if (d < 90 && d < bestD) { best = { type: 'npc', npc: n, x: n.x, y: n.y + n.headY - 6 }; bestD = d; }
+      if (d < 22 && d < bestD) { best = { type: 'npc', npc: n, x: n.x, y: n.y + n.headY - 4 }; bestD = d; }
     }
     for (const s of this.spots) {
       const d = Math.hypot(s.x - px, (s.y - py) * 1.3);
-      if (d < s.r && d < bestD) { best = { type: 'spot', spot: s, x: s.x, y: s.y - 70 }; bestD = d; }
+      if (d < s.r && d < bestD) { best = { type: 'spot', spot: s, x: s.x, y: s.y - 20 }; bestD = d; }
     }
     return best;
   }
@@ -202,21 +247,18 @@ export class VillageScene extends Phaser.Scene {
     if (!t) return;
     if (t.type === 'npc') {
       const n = t.npc;
-      n.face(this.player.x);
+      n.face(this.player.x, this.player.y);
       n.setTalking(true);
-      const portrait = n.def.portrait || `npc3/portraits/${n.def.sprite}`;
-      this.hud.openDialog({ name: n.def.name, portrait, lines: n.nextLines(), onClose: () => n.setTalking(false) });
+      this.hud.openDialog({ name: n.def.name, portrait: `face/${n.key}`, lines: n.nextLines(), onClose: () => n.setTalking(false) });
     } else {
       const s = t.spot;
       if (s.kind === 'heal') {
         const stats = this.registry.get('player');
         stats.hp = stats.maxHp;
-        this.time.delayedCall(10, () => this.saveGame());
         stats.sp = stats.maxSp;
         this.sound.play('sfx_heal', { volume: 0.6 });
-        const fx = this.add.image(this.player.x, this.player.y - 40, 'effects/heal_green').setScale(0.3)
-          .setBlendMode('ADD').setDepth(this.player.y + 60);
-        this.tweens.add({ targets: fx, y: fx.y - 40, alpha: 0, duration: 900, onComplete: () => fx.destroy() });
+        this.fx('fx_sparkc', 'na/sparkc', this.player.x, this.player.y - 8, { scale: 1.2, depth: this.player.y + 30, add: true });
+        this.time.delayedCall(10, () => this.saveGame());
       }
       this.hud.openDialog({ name: s.name, lines: s.lines[0] });
     }
@@ -231,6 +273,7 @@ export class VillageScene extends Phaser.Scene {
   saveGame({ now = false } = {}) {
     const stats = this.registry.get('player');
     stats.village = MAP.VILLAGE.id;
+    stats.mapV = MAP_VERSION;
     stats.pos = { x: Math.round(this.player.x), y: Math.round(this.player.y) };
     this.game.saves.save(stats, { now });
   }
@@ -246,5 +289,3 @@ export class VillageScene extends Phaser.Scene {
     this.hud?.setPrompt(this.locked ? null : this.nearest());
   }
 }
-
-export { T };

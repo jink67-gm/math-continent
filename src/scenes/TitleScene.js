@@ -2,6 +2,7 @@
 
 import { textStyle, crisp } from '../ui/style.js';
 import { TerrainGrid, seeded } from '../world/terrain.js';
+import { HEROES } from '../data/assets.js';
 
 const W = 960;
 const H = 540;
@@ -17,13 +18,13 @@ export class TitleScene extends Phaser.Scene {
 
   create() {
     // 배경: 초원 타일 + 어두운 하늘빛
-    const g = new TerrainGrid(16, 9);
-    g.rect(7, 0, 9, 9, 'd');
-    g.bake(this, seeded(3)).setAlpha(0.55);
+    const g = new TerrainGrid(20, 12);
+    g.rect(9, 0, 10, 11, 'd');
+    g.bake(this, seeded(3)).setScale(3).setAlpha(0.55);
     const sky = this.add.graphics();
     sky.fillGradientStyle(0x1b2a4a, 0x1b2a4a, 0x14201a, 0x14201a, 0.85, 0.85, 0.4, 0.4).fillRect(0, 0, W, H);
-    for (const [k, x, s] of [['nature/tree_big', 90, 0.5], ['nature/tree_pine', 880, 0.5], ['nature/tree_big_yellow', 780, 0.38], ['nature/tree_pine', 190, 0.36]]) {
-      this.add.image(x, H + 10, k).setOrigin(0.5, 1).setScale(s).setTint(0x8899aa);
+    for (const [k, x, s] of [['tree_big', 90, 4], ['tree_pine', 880, 4], ['tree_big_pink', 790, 3], ['tree_pine', 190, 3]]) {
+      this.add.image(x, H + 10, 'na/nature', k).setOrigin(0.5, 1).setScale(s).setTint(0x8899aa);
     }
 
     const gems = [0x6fdc6f, 0xa77bff, 0x4fa3ff, 0xff5a5a, 0x3fd6c0, 0xc58bff];
@@ -34,8 +35,8 @@ export class TitleScene extends Phaser.Scene {
     crisp(this.add.text(W / 2, 160, '수학 대륙', textStyle(64, '#fff3c4', { strokeThickness: 10 })).setOrigin(0.5));
     crisp(this.add.text(W / 2, 220, '여섯 마을의 봉인', textStyle(20, '#ffd866')).setOrigin(0.5));
 
-    this.heroL = this.add.sprite(250, 470, 'characters5/male/idle_down_1').setOrigin(0.5, 1).setScale(0.95).play('male_idle_down');
-    this.heroR = this.add.sprite(710, 470, 'characters5/female/idle_down_1').setOrigin(0.5, 1).setScale(0.95).play('female_idle_down');
+    this.heroL = this.add.sprite(250, 470, `ch/${HEROES.male}`, 0).setOrigin(0.5, 1).setScale(8).play(`${HEROES.male}_walk_down`);
+    this.heroR = this.add.sprite(710, 470, `ch/${HEROES.female}`, 0).setOrigin(0.5, 1).setScale(8).play(`${HEROES.female}_walk_down`);
 
     this.menu = this.add.container(0, 0);
     const save = this.registry.get('save');
@@ -79,7 +80,7 @@ export class TitleScene extends Phaser.Scene {
     for (const [gd, x, label] of [['male', W / 2 - 150, '남성 모험가'], ['female', W / 2 + 150, '여성 모험가']]) {
       const c = keep(this.add.container(x, 398));
       const frame = this.add.graphics();
-      const spr = this.add.sprite(0, 50, `characters5/${gd}/idle_down_1`).setOrigin(0.5, 1).setScale(0.75).play(`${gd}_idle_down`);
+      const spr = this.add.sprite(0, 50, `ch/${HEROES[gd]}`, 0).setOrigin(0.5, 1).setScale(6).play(`${HEROES[gd]}_idle_down`);
       const t = crisp(this.add.text(0, 66, label, textStyle(13, '#fff3c4')).setOrigin(0.5));
       c.add([frame, spr, t]).setSize(150, 170).setInteractive({ useHandCursor: true });
       c.on('pointerdown', () => { gender = gd; this.sound.play('sfx_click', { volume: 0.4 }); paint(); });
@@ -90,7 +91,7 @@ export class TitleScene extends Phaser.Scene {
         const on = gd === gender;
         frame.clear().fillStyle(on ? 0x2f4f7a : 0x2a2420, 1).fillRoundedRect(-75, -85, 150, 170, 8)
           .lineStyle(on ? 3 : 1, on ? 0xffd866 : 0x6b4a22, 1).strokeRoundedRect(-75, -85, 150, 170, 8);
-        spr.play(on ? `${gd}_walk_down` : `${gd}_idle_down`, true);
+        spr.play(on ? `${HEROES[gd]}_walk_down` : `${HEROES[gd]}_idle_down`, true);
       }
     };
     paint();

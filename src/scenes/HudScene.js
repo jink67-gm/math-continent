@@ -2,6 +2,8 @@
 
 import { textStyle, crisp, FONT } from '../ui/style.js';
 import * as MAP from '../data/fractionValley.js';
+import { HEROES } from '../data/assets.js';
+import { T } from '../world/terrain.js';
 
 const W = 960;
 const H = 540;
@@ -54,7 +56,7 @@ export class HudScene extends Phaser.Scene {
     panel(this, 10, 10, 262, 78);
     // 얼굴
     const face = this.add.circle(48, 49, 29, 0x2c4a3a).setStrokeStyle(3, GOLD);
-    const img = this.add.image(48, 92, `characters5/${s.gender}/idle_down_1`).setOrigin(0.5, 1).setScale(0.62);
+    const img = this.add.image(48, 49, `face/${HEROES[s.gender] || HEROES.male}`).setScale(1.3);
     const maskG = this.make.graphics().fillCircle(48, 49, 27);
     img.setMask(maskG.createGeometryMask());
     face.setDepth(0);
@@ -87,7 +89,7 @@ export class HudScene extends Phaser.Scene {
 
   // ── 미니맵 (오른쪽 위) ─────────────────────────
   makeMinimap() {
-    const S = 3.2;
+    const S = 3;
     const mw = MAP.COLS * S;
     const mh = MAP.ROWS * S;
     const x0 = W - mw - 18;
@@ -99,12 +101,12 @@ export class HudScene extends Phaser.Scene {
     const col = { g: 0x5f9b45, d: 0xc9a066, w: 0x3f86c9 };
     for (let ty = 0; ty < MAP.ROWS; ty++) {
       for (let tx = 0; tx < MAP.COLS; tx++) {
-        const c = grid.get(tx, ty) === grid.get(tx + 1, ty + 1) ? grid.get(tx, ty) : grid.get(tx + 1, ty + 1);
+        const c = grid.get(tx, ty);
         g.fillStyle(col[c], 1).fillRect(x0 + tx * S, y0 + ty * S, S + 0.5, S + 0.5);
       }
     }
     g.fillStyle(0x7a5236, 1);
-    for (const b of MAP.BUILDINGS) g.fillRect(x0 + (b.x / 64 - 2) * S, y0 + (b.y / 64 - 2.2) * S, 4 * S, 2.2 * S);
+    for (const b of MAP.BUILDINGS) g.fillRect(x0 + (b.x / T - 1.5) * S, y0 + (b.y / T - 2.5) * S, 3 * S, 2.5 * S);
     g.lineStyle(1, INK, 1).strokeRect(x0, y0, mw, mh);
     this.mini = { x0, y0, S };
     this.miniDots = this.add.graphics();
@@ -116,7 +118,7 @@ export class HudScene extends Phaser.Scene {
   drawMinimap(time) {
     const { x0, y0, S } = this.mini;
     const g = this.miniDots.clear();
-    const k = S / 64;
+    const k = S / T;
     g.fillStyle(0xfff3c4, 1);
     for (const n of this.village.npcs) g.fillCircle(x0 + n.x * k, y0 + n.y * k, 1.6);
     const p = this.village.player;
@@ -131,7 +133,8 @@ export class HudScene extends Phaser.Scene {
     const mk = (x, y, key, size, icon, label, fn, iconScale = 0.2) => {
       const c = this.add.container(x, y);
       const base = this.add.image(0, 0, key).setDisplaySize(size, size);
-      const ic = this.add.image(0, -2, icon).setScale(iconScale).setBlendMode('ADD');
+      const [ik, ifr] = Array.isArray(icon) ? icon : [icon, undefined];
+      const ic = this.add.image(0, -2, ik, ifr).setScale(iconScale);
       const t = crisp(this.add.text(0, size / 2 + 2, label, textStyle(10, '#fff3c4')).setOrigin(0.5, 0));
       c.add([base, ic, t]);
       c.setSize(size, size).setInteractive({ useHandCursor: true });
@@ -141,12 +144,12 @@ export class HudScene extends Phaser.Scene {
       return c;
     };
     const v = () => this.village;
-    this.btnAttack = mk(W - 70, H - 82, 'ui2/action_attack', 92, 'effects/slash_orange', '공격 J', () => v().doAttack(), 0.18);
-    this.btnSkill = mk(W - 168, H - 120, 'ui2/action_skill', 62, 'effects/burst_gold_big', '스킬 K', () => v().doSkill(), 0.1);
-    this.btnDodge = mk(W - 150, H - 44, 'ui2/action_dodge', 56, 'effects/dust_cloud', '구르기', () => v().doDodge(), 0.14);
-    this.btnTalk = mk(W - 70, H - 190, 'ui2/action_interact', 62, 'effects/heal_green', '대화 E', () => {
+    this.btnAttack = mk(W - 70, H - 82, 'ui2/action_attack', 92, ['na/slash', 1], '공격 J', () => v().doAttack(), 2);
+    this.btnSkill = mk(W - 168, H - 120, 'ui2/action_skill', 62, ['na/sparkc', 2], '스킬 K', () => v().doSkill(), 1.4);
+    this.btnDodge = mk(W - 150, H - 44, 'ui2/action_dodge', 56, ['na/smoke', 1], '구르기', () => v().doDodge(), 1.2);
+    this.btnTalk = mk(W - 70, H - 190, 'ui2/action_interact', 62, ['face/Spirit'], '대화 E', () => {
       if (this.dialogOpen) this.advanceDialog(); else v().interact();
-    }, 0.12);
+    }, 1);
     this.btnTalk.setVisible(false);
   }
 
@@ -225,7 +228,7 @@ export class HudScene extends Phaser.Scene {
     const bh = 128;
     const box = panel(this, bx, by, bw, bh, 0.92);
     this.dlgPortraitBg = this.add.graphics();
-    this.dlgPortrait = this.add.image(bx + 70, by + bh - 10, 'npc3/portraits/farmer').setOrigin(0.5, 1);
+    this.dlgPortrait = this.add.image(bx + 70, by + bh - 10, 'face/OldMan').setOrigin(0.5, 0.5);
     this.dlgName = crisp(this.add.text(bx + 140, by + 16, '', textStyle(15, '#ffd866')));
     this.dlgText = crisp(this.add.text(bx + 140, by + 44, '', {
       fontFamily: FONT, fontSize: '15px', color: '#fff8e6', lineSpacing: 8, wordWrap: { width: bw - 170, useAdvancedWrap: true },
@@ -253,8 +256,8 @@ export class HudScene extends Phaser.Scene {
     if (hasPortrait) {
       this.dlgPortrait.setTexture(portrait);
       const src = this.dlgPortrait.texture.getSourceImage();
-      this.dlgPortrait.setScale(Math.min(112 / src.width, 150 / src.height));
-      this.dlgPortrait.setY(by + bh - 6);
+      this.dlgPortrait.setScale(Math.floor(Math.min(104 / src.width, (bh - 36) / src.height)));
+      this.dlgPortrait.setPosition(bx + 70, by + bh / 2);
       this.dlgPortraitBg.fillStyle(0x2c4a3a, 1).fillRoundedRect(bx + 14, by + 14, 112, bh - 28, 6)
         .lineStyle(2, GOLD, 1).strokeRoundedRect(bx + 14, by + 14, 112, bh - 28, 6);
     }
@@ -331,7 +334,9 @@ export class HudScene extends Phaser.Scene {
         .lineStyle(2, INK, 1).strokeRoundedRect(-w / 2, -12, w, 24, 10)
         .fillStyle(0xfff8e6, 0.95).fillTriangle(-6, 11, 6, 11, 0, 18);
     }
-    this.prompt.setPosition(target.x - cam.scrollX, target.y - cam.scrollY - 26).setVisible(true);
+    // 마을 카메라는 확대돼 있어서, 세상 좌표를 화면 좌표로 바꿔요
+    const wv = cam.worldView;
+    this.prompt.setPosition((target.x - wv.x) * cam.zoom, (target.y - wv.y) * cam.zoom - 16).setVisible(true);
     this.btnTalk.setVisible(true);
   }
 

@@ -70,4 +70,5 @@
 | Ninja Adventure 에셋 · Pixel-Boy & AAA (`assets/na/`) | CC0 (`assets/na/LICENSE.txt`) · https://pixel-boy.itch.io/ninja-adventure-asset-pack |
 | 흙절벽 타일 · ArMM1998 「Zelda-like tilesets and sprites」 (`assets/zl/`, 색만 맞춤) | CC0 · https://opengameart.org/content/zelda-like-tilesets-and-sprites |
 | 흙/풀 연결 규칙 (`src/world/blobTiles.js`) | Ninja Adventure Godot 프로젝트 tileset.tres에서 옮김 (CC0) |
-| 효과음·버튼 그림 (`assets/audio`, `assets/ui2` 등) | 기존 게임 자료 |
+| 효과음·배경음악 일부·버튼·대화창·아이템 아이콘 (`assets/audio`, `assets/ui`, `assets/ui2`, `assets/items`) | 선생님이 ChatGPT로 직접 만든 자료 (OpenAI 이용약관에 따라 생성물의 권리는 만든 사람에게 있어요) |
+| 나눔스퀘어라운드 · 주아 글꼴 (`assets/fonts`) | 나눔글꼴 라이선스 · SIL OFL 1.1 (`assets/fonts/README.txt`) |

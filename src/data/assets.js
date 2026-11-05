@@ -71,11 +71,12 @@ export const IMAGES = {
 
 // 캐릭터: SpriteSheet.png (16px, 가로 4칸 = 아래·위·왼·오, 세로 0~3줄 걷기, 4줄 공격) + Faceset.png
 export const CHARACTERS = [
-  'KnightGold', 'SorcererBlack', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
+  'NinjaBlue2', 'NinjaYellow', 'KnightGold', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
   'OldWoman', 'Child', 'Spirit', 'Woman', 'Villager2', 'Monk',
 ];
 
-export const HEROES = { male: 'KnightGold', female: 'SorcererBlack' };
+// 주인공: 닌자 (남: 주황 머리띠 파란 닌자 · 여: 꽃 장식 노란 닌자). KnightGold는 프로포르 재상이 써요.
+export const HEROES = { male: 'NinjaBlue2', female: 'NinjaYellow' };
 
 // 그림 일부를 잘라 쓰는 물건: [그림, 칸x, 칸y, 가로칸, 세로칸]
 export const OBJECTS = {

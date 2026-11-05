@@ -7,6 +7,7 @@
   줄 0 풀 가장자리(lip) · 1 절벽 윗줄 · 2 가운데 · 3 아랫줄(뿌리·그림자)
   칸 0 왼쪽 끝 · 1 가운데 · 2 오른쪽 끝 · 3 한 칸짜리
   줄 4: 0 왼쪽 옆 테두리 · 1 위쪽 테두리 · 2 오른쪽 옆 테두리 · 3 동굴 구멍
+  props.png: 바위·자갈·큰 바위·나무 계단
 해골·뼈 같은 그림은 가져오지 않아요.
 """
 import sys
@@ -22,6 +23,7 @@ GREENS = {  # 원래 초록 → (들판, 숲)
     (106, 221, 75): ((198, 210, 88), (146, 188, 72)),
     (50, 142, 65): ((140, 152, 46), (86, 134, 60)),
     (38, 100, 51): ((96, 108, 36), (58, 98, 50)),
+    (46, 202, 53): ((150, 170, 48), (100, 150, 52)),  # 바위 옆 풀포기
 }
 
 src = Image.open(SRC).convert('RGBA')
@@ -63,6 +65,20 @@ def build(k, name):
     recolor(sheet, k).save(OUT / name)
 
 
+def build_props():
+    # 4칸 × 3줄: (0,0) 작은 바위 · (1,0) 납작 바위 · (2,0) 자갈 · (3,0) 계단 윗칸
+    #            (0,1)~(1,2) 큰 바위 2×2 · (3,1) 계단 아랫칸
+    sheet = Image.new('RGBA', (4 * T, 3 * T))
+    for col, (r, c) in enumerate([(5, 8), (5, 9), (5, 10), (20, 19)]):
+        sheet.paste(tile(r, c), (col * T, 0))
+    for dy in range(2):
+        for dx in range(2):
+            sheet.paste(tile(11 + dy, 9 + dx), (dx * T, (1 + dy) * T))
+    sheet.paste(tile(21, 19), (3 * T, T))
+    recolor(sheet, 0).save(OUT / 'props.png')
+
+
 build(0, 'cliff_meadow.png')
 build(1, 'cliff_forest.png')
+build_props()
 print('ok')

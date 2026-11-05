@@ -117,8 +117,8 @@ export class MapScene extends WorldScene {
     const rnd = seeded(b.cols * 31 + b.rows);
     const forest = d.theme === 'forest';
     const trees = forest ? ['tree_big', 'trio_green', 'tree_pine', 'tree_pine', 'tree_green'] : ['tree_big', 'tree_green', 'tree_round', 'tree_pine', 'tree_lime', 'tree_big_orange', 'trio_green'];
-    const rocks = ['rock_brown_big', 'rock_brown', 'rock_brown_tall', 'rock_grey_big', 'rock_grey'];
-    const small = ['bush_a', 'bush_b', 'bush_c', 'grass_a', 'grass_b', 'flower_a', 'flower_b', 'rock_brown_s', 'rock_grey_s'];
+    const rocks = ['zl_boulder', 'zl_rock', 'zl_rock_flat', 'zl_boulder', 'zl_rock'];
+    const small = ['bush_a', 'bush_b', 'bush_c', 'grass_a', 'grass_b', 'flower_a', 'flower_b', 'zl_pebbles', 'zl_rock'];
     const cells = [];
     for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) if (b.isBlock(x, y) && b.innerFace(x, y) < 0) cells.push([x, y]);
     if (!cells.length) return;

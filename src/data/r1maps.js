@@ -125,7 +125,7 @@ export const MAPS = {
       b.path([[33, 12], [34, 8]], 2).circle(34.5, 8, 2, 'd');
       b.circle(12, 27, 2, 'w').circle(34, 28, 2.4, 'w');
       for (const [x, y] of [[11, 8], [27, 9], [13, 31], [38, 32], [31, 23]]) b.obj('tree_big', x, y, { solid: [16, 6], tree: true });
-      for (const [x, y] of [[26, 15], [14, 22]]) b.obj('rock_grey', x, y, { solid: [24, 10] });
+      for (const [x, y] of [[26, 15], [14, 22]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
       b.obj('sign', 3.6, 20.4, { solid: [10, 5] });
       b.roughen(rnd);
 
@@ -162,7 +162,7 @@ export const MAPS = {
       b.path([[21, 19], [25, 22], [25, 30], [31, 30]], 2);
       b.path([[32, 26], [34, 22]], 2).circle(34.5, 22, 2, 'd');
       for (const [x, y] of [[8, 9], [14, 10], [30, 9], [36, 10], [24, 33], [38, 33]]) b.obj(rnd() < 0.5 ? 'tree_big' : 'tree_round', x, y, { solid: [14, 6], tree: true });
-      for (const [x, y] of [[10, 25], [26, 17]]) b.obj('rock_brown', x, y, { solid: [24, 10] });
+      for (const [x, y] of [[10, 25], [26, 17]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
       b.obj('sign', 22.6, 4.6, { solid: [10, 5] });
       b.roughen(rnd);
 
@@ -234,7 +234,7 @@ export const MAPS = {
       b.path([[22, 25], [37, 25]], 2);
       b.circle(14, 23, 2, 'w');
       for (const [x, y] of [[10, 13], [24, 14], [33, 14], [27, 21], [8, 24]]) b.obj(rnd() < 0.5 ? 'tree_big' : 'tree_pine', x, y, { solid: [14, 6], tree: true });
-      for (const [x, y] of [[18, 7], [25, 19], [34, 4]]) b.obj('rock_grey', x, y, { solid: [24, 10] });
+      for (const [x, y] of [[18, 7], [25, 19], [34, 4]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
       b.obj('sign', 23.6, 4.6, { solid: [10, 5] });
       b.roughen(rnd);
 
@@ -270,7 +270,7 @@ export const MAPS = {
       b.block(7, 33, 17, 37).block(24, 33, 36, 37);
       b.path([[20, 37], [20, 11]], 2);
       for (const [x, y] of [[33, 17], [9, 23], [30, 31], [12, 32]]) b.obj(rnd() < 0.5 ? 'tree_big' : 'trio_green', x, y, { solid: [16, 6], tree: true });
-      for (const [x, y] of [[16, 16], [24, 30]]) b.obj('rock_grey_big', x, y, { solid: [40, 14] });
+      for (const [x, y] of [[16, 16], [24, 30]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
       b.obj('cave_mouth', 21, 11, { tint: 0x9a7f78 });
       b.obj('sign', 23.4, 13.4, { solid: [10, 5] });
       b.roughen(rnd);

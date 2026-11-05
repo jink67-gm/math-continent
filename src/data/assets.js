@@ -14,6 +14,7 @@ export const SHEETS = {
   'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
   'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
   'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
+  'zl/props': 'zl/props.png',                        // 바위·자갈·큰 바위·나무 계단 (가로 4칸)
   'na/slash': ['na/fx/slash.png', 32],
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
@@ -126,6 +127,11 @@ export const OBJECTS = {
   ore_b: ['na/nature', 5, 15, 1, 1],
   stump: ['na/nature', 0, 8, 2, 2],
   cave_mouth: ['na/reliefd', 3, 7, 3, 3],
+  // Zelda-like (ArMM1998, CC0) 바위
+  zl_rock: ['zl/props', 0, 0, 1, 1],
+  zl_rock_flat: ['zl/props', 1, 0, 1, 1],
+  zl_pebbles: ['zl/props', 2, 0, 1, 1],
+  zl_boulder: ['zl/props', 0, 1, 2, 2],
   tree_snowpine: ['na/nature', 8, 0, 2, 2],
   tree_whitepine: ['na/nature', 10, 0, 2, 2],
   tree_white: ['na/nature', 12, 0, 2, 2],

@@ -347,7 +347,9 @@ export function drawRelief(scene, b, { cave = false, theme = 'meadow' } = {}) {
         }
       }
       if (b.isStairs(x, y)) {
-        scene.add.image(px, py, 'na/reliefd', 3 * DETAIL_COLS + 5).setOrigin(0, 0).setDepth(-869);
+        // 들판·숲: 나무 계단(Zelda-like) 위·아래 칸 / 동굴: 돌계단
+        if (zl) scene.add.image(px, py, 'zl/props', b.faceRow(x, y) === 0 ? 3 : 7).setOrigin(0, 0).setDepth(-869);
+        else scene.add.image(px, py, 'na/reliefd', 3 * DETAIL_COLS + 5).setOrigin(0, 0).setDepth(-869);
       }
       if (b.isBridge(x, y)) {
         const vertical = b.grid.get(x - 1, y) !== 'w' || b.grid.get(x + 1, y) !== 'w' ? false : true;

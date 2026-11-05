@@ -193,6 +193,9 @@ export class TitleScene extends Phaser.Scene {
     this.game.saves.save(stats, { now: true });
     this.sound.play('sfx_confirm', { volume: 0.5 });
     this.cameras.main.fadeOut(400, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(['Field', 'RockForest', 'Cave', 'Town', 'Wild', 'Dungeon'].includes(stats.scene) ? stats.scene : 'Village', { region: stats.region }));
+    // 예전 1번 마을 장면(Village·Field·RockForest·Cave)으로 저장된 기록은 새 프락시아 마을에서 시작해요
+    const scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
+    const map = stats.scene === 'Map' ? stats.map : 'village';
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(scene, { region: stats.region, map }));
   }
 }

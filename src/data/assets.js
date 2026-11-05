@@ -9,6 +9,8 @@ export const SHEETS = {
   'na/floor': 'na/tiles/TilesetFloor.png',
   'na/water': 'na/tiles/TilesetWater.png',
   'na/field': 'na/tiles/TilesetField.png',
+  'na/relief': 'na/tiles/TilesetRelief.png',        // 절벽 면 (20칸 너비)
+  'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
   'na/slash': ['na/fx/slash.png', 32],
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
@@ -120,6 +122,7 @@ export const OBJECTS = {
   ore_a: ['na/nature', 4, 15, 1, 1],
   ore_b: ['na/nature', 5, 15, 1, 1],
   stump: ['na/nature', 0, 8, 2, 2],
+  cave_mouth: ['na/reliefd', 3, 7, 3, 3],
   tree_snowpine: ['na/nature', 8, 0, 2, 2],
   tree_whitepine: ['na/nature', 10, 0, 2, 2],
   tree_white: ['na/nature', 12, 0, 2, 2],

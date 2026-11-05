@@ -29,6 +29,18 @@ export class Npc {
     this.sync(0);
   }
 
+  // 머리 위 퀘스트 표시 ('!' 새 부탁 · '?' 보고할 것)
+  setMark(mark) {
+    if (mark === this.markNow) return;
+    this.markNow = mark;
+    this.markText?.destroy();
+    this.markText = null;
+    if (!mark) return;
+    this.markText = crisp(this.scene.add.text(this.x, this.y, mark, textStyle(20, mark === '?' ? '#7fe3ff' : '#ffd23f', { strokeThickness: 5 })))
+      .setOrigin(0.5, 1).setScale(1 / 3).setDepth(100001);
+    this.scene.tweens.add({ targets: this.markText, scaleY: 0.4, duration: 400, yoyo: true, repeat: -1 });
+  }
+
   get x() { return this.feet.x; }
   get y() { return this.feet.y; }
 
@@ -83,5 +95,6 @@ export class Npc {
     this.sprite.setDepth(sy);
     this.shadow.setDepth(sy - 1);
     this.tag.setDepth(100000);
+    this.markText?.setPosition(sx, sy + this.headY + float - 5);
   }
 }

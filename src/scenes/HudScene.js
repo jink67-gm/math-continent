@@ -53,6 +53,7 @@ export class HudScene extends Phaser.Scene {
     this.makeMenuButton();
     this.partyText = crisp(this.add.text(16, 112, '', textStyle(12, '#9be8ff')));
     // 퀘스트 알림판과 길 안내 화살표
+    this.questBg = this.add.graphics();
     this.questText = crisp(this.add.text(16, 132, '', textStyle(12, '#fff3c4', { lineSpacing: 4 })));
     this.arrow = this.add.graphics().setDepth(5);
     this.bossBar = this.add.graphics().setDepth(6);
@@ -233,7 +234,12 @@ export class HudScene extends Phaser.Scene {
 
   drawQuest(time) {
     const q = this.game.quests;
-    this.questText.setText(q.tracker());
+    const text = q.tracker();
+    if (text !== this.questText.text) {
+      this.questText.setText(text);
+      // 읽기 쉽게 반투명 바탕
+      this.questBg.clear().fillStyle(0x0f0b06, 0.5).fillRoundedRect(10, 126, this.questText.width + 14, this.questText.height + 12, 6);
+    }
     const g = this.arrow.clear();
     const goal = q.goal(this.world.placeKey);
     const p = this.world.player;
@@ -706,6 +712,10 @@ export class HudScene extends Phaser.Scene {
     this.drawBoss();
     const tests = this.stats.tests || 0;
     this.testBtn.setVisible(tests > 0);
+    // 알림판 길이에 맞춰 단추들을 아래로 쌓아요
+    const below = 132 + this.questText.height + 14;
+    this.testBtn.setY(below);
+    this.greet.setY(tests > 0 ? below + 38 : below);
     if (tests) this.testText.setText(`⭐ 성장 시험 ${tests}${this.isTouch ? '' : ' (T)'}`);
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
       : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);

@@ -403,7 +403,7 @@ export class Combat {
     const s = this.stats;
     const d = this.diff;
     s.kills = (s.kills || 0) + 1;
-    this.scene.game.quests?.onPurify(this.scene.scene.key);
+    this.scene.game.quests?.onPurify(this.scene.placeKey, m.kind);
     this.scene.sound.play('sfx_purify', { volume: 0.35 });
     const [g0, g1] = m.def.gold;
     const gold = Math.round(Phaser.Math.Between(g0, g1) * d.drop * this.partyGold());

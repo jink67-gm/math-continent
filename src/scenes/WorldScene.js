@@ -21,6 +21,8 @@ export class WorldScene extends Phaser.Scene {
 
   // 퀘스트 화살표·장소 이름 (2~6번 마을의 첨탑만 따로 구분해요)
   get placeKey() { return this.region === 'chaosSpire' ? `${this.scene.key}:chaosSpire` : this.scene.key; }
+  // 협동: 같은 지도에 있는지 비교할 때 쓰는 이름 (지역·지도까지 구분)
+  get syncKey() { return `${this.scene.key}:${this.region || this.mapId || ''}`; }
 
   preload() {
     const key = this.info.bgm;
@@ -71,7 +73,7 @@ export class WorldScene extends Phaser.Scene {
     this.hud = this.scene.get('Hud');
     this.quests = this.game.quests;
     this.quests.scene = this;
-    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key, this.region));
+    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key, this.region, this.placeKey));
 
     this.sound.stopAll();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
@@ -116,7 +118,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   objectSheet(name) {
-    for (const s of ['na/house', 'na/nature', 'na/element']) if (this.textures.get(s).has(name)) return s;
+    for (const s of ['na/house', 'na/nature', 'na/element', 'na/reliefd']) if (this.textures.get(s).has(name)) return s;
     return 'na/nature';
   }
 
@@ -217,6 +219,10 @@ export class WorldScene extends Phaser.Scene {
     if (s.kind === 'rune') { this.useRune(s); return; }
     if (s.kind === 'bossSeal') { this.useBossSeal?.(); return; }
     if (s.kind === 'chest') { this.openChest(s); return; }
+    if (s.kind === 'find') {
+      if (!this.quests.onFind(s.id)) this.hud.openDialog({ name: s.name, lines: s.lines[0] });
+      return;
+    }
     if (s.kind === 'difficulty') {
       const now = DIFFICULTY[stats.difficulty].label;
       this.hud.openChoice({
@@ -330,14 +336,14 @@ export class WorldScene extends Phaser.Scene {
     this.exitCooldown = this.time.now + 2500;
     if (!e.scene) { this.hud?.toast(`「${e.to}」은(는) 다음 단계에서 열려요`); return; }
     if (e.requires && !this.quests.passed(e.requires) && !this.game.classCfg?.unlockAll) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
-    this.goTo(e.scene, e.entry, e.region);
+    this.goTo(e.scene, e.entry, e.region, e.map);
   }
 
-  goTo(sceneKey, entry, region) {
+  goTo(sceneKey, entry, region, map) {
     this.leaving = true;
     this.saveGame();
     this.cameras.main.fadeOut(350, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(sceneKey, { entry, region }));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(sceneKey, { entry, region, map }));
   }
 
   // 쓰러지면 잃는 것 없이 마을 입구에서 다시 시작해요
@@ -351,8 +357,8 @@ export class WorldScene extends Phaser.Scene {
       if (this.player.state !== 'down') return;
       stats.hp = stats.maxHp;
       stats.sp = stats.maxSp;
-      const [key, entry, region] = this.respawnAt?.() || ['Village', 'south'];
-      this.goTo(key, entry, region);
+      const [key, entry, region, map] = this.respawnAt?.() || ['Map', 'plaza', null, 'village'];
+      this.goTo(key, entry, region, map);
     });
   }
 
@@ -426,8 +432,8 @@ export class WorldScene extends Phaser.Scene {
     const stats = this.registry.get('player');
     const p = this.player;
     const r = (v) => Math.round(v * 10) / 10;
-    party.sendState({ s: this.scene.key, x: r(p.x), y: r(p.y), d: p.dir, st: p.state, hp: stats.hp, mhp: stats.maxHp, lv: stats.lv });
-    const together = party.together(this.scene.key);
+    party.sendState({ s: this.syncKey, x: r(p.x), y: r(p.y), d: p.dir, st: p.state, hp: stats.hp, mhp: stats.maxHp, lv: stats.lv });
+    const together = party.together(this.syncKey);
     if (together && !c.remote) c.remote = new RemotePlayer(this, { ...party.peer, x: party.peerState.x, y: party.peerState.y });
     if (!together) this.removeRemote();
     c.setCoop(together);
@@ -435,10 +441,10 @@ export class WorldScene extends Phaser.Scene {
       c.remote.update(party.peerState);
       if (party.isHost && time > (this.monSendAt || 0)) {
         this.monSendAt = time + 100;
-        if (c.monsters.length) party.sendMon(this.scene.key, c.monsters.map((m) => m.snapshot()));
+        if (c.monsters.length) party.sendMon(this.syncKey.replace(/[.#$[\]/]/g, '_'), c.monsters.map((m) => m.snapshot()));
       }
       if (!party.isHost) {
-        const arr = party.mon[this.scene.key];
+        const arr = party.mon[this.syncKey.replace(/[.#$[\]/]/g, '_')];
         if (arr) c.monsters.forEach((m, i) => m.applySnapshot(arr[i]));
       }
     }
@@ -457,6 +463,7 @@ export class WorldScene extends Phaser.Scene {
     stats.village = this.info.village || this.info.id; // 필드는 가까운 마을 이름으로 저장 (보안 규칙과 맞추려고)
     stats.area = this.info.id;
     stats.region = this.region || null;
+    stats.map = this.mapId || null;
     stats.scene = this.scene.key;
     stats.mapV = this.info.mapV;
     stats.pos = { x: Math.round(this.player.x), y: Math.round(this.player.y) };

@@ -51,7 +51,7 @@ export function makeTown(id) {
       sleepLines: ['길이 보라색 봉인으로 막혀 있어요.', '대장님께 먼저 이야기를 들어 봐요.'], litLines: ['룬이 환하게 빛나요. 길이 열려 있어요.'] },
   ];
   const i = REGION_ORDER.indexOf(id);
-  const prev = i === 0 ? { scene: 'Village', entry: 'east', to: '나눔의 계곡 프락시아' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
+  const prev = i === 0 ? { scene: 'Map', map: 'east_field', entry: 'east', to: '바람개비 들판' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
   const next = i < REGION_ORDER.length - 1
     ? { scene: 'Town', region: REGION_ORDER[i + 1], entry: 'west', to: REGIONS[REGION_ORDER[i + 1]].name }
     : { scene: 'Dungeon', region: 'chaosSpire', entry: 'south', to: SPIRE.name };

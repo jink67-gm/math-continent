@@ -5,7 +5,7 @@
 import { Monster } from '../world/Monster.js';
 import { skillsFor } from '../data/skills.js';
 import { diff, statsOf, refreshMax, rollDamage, MAX_LV } from '../data/rules.js';
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 // 3단 콤보: 공격 시간, 맞는 순간, 범위, 배율, 밀어내는 힘
 const COMBO = [
@@ -175,7 +175,7 @@ export class Combat {
 
   popNumber(x, y, value, color, size = 13) {
     const t = crisp(this.scene.add.text(x + (Math.random() - 0.5) * 8, y, `${value}`, textStyle(size, color)))
-      .setOrigin(0.5).setScale(1 / 3).setDepth(100002);
+      .setOrigin(0.5).setScale(1 / ZOOM).setDepth(100002);
     this.scene.tweens.add({ targets: t, y: y - 12, duration: 280, ease: 'Quad.out' });
     this.scene.tweens.add({ targets: t, alpha: 0, delay: 450, duration: 300, onComplete: () => t.destroy() });
   }
@@ -475,7 +475,7 @@ export class Combat {
     this.scene.sound.play('sfx_levelup', { volume: 0.5 });
     this.scene.fx('fx_ring', 'na/ring', p.x, p.y - 2, { scale: 2.5, depth: p.y - 3, add: true }).setTint(0xffe066);
     this.scene.fx('fx_sparkc', 'na/sparkc', p.x, p.y - 10, { scale: 1.6, depth: p.y + 30, add: true }).setTint(0xffe066);
-    const t = crisp(this.scene.add.text(p.x, p.y - 26, 'LEVEL UP!', textStyle(16, '#ffe066'))).setOrigin(0.5).setScale(1 / 3).setDepth(100003);
+    const t = crisp(this.scene.add.text(p.x, p.y - 26, 'LEVEL UP!', textStyle(16, '#ffe066'))).setOrigin(0.5).setScale(1 / ZOOM).setDepth(100003);
     this.scene.tweens.add({ targets: t, y: t.y - 14, alpha: 0, delay: 700, duration: 700, onComplete: () => t.destroy() });
     this.hud?.showBanner(`레벨 ${s.lv}!`, 'HP·SP가 모두 회복됐어요');
     const learned = this.skills.find((k) => k.lv === s.lv);

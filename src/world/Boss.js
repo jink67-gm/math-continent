@@ -7,7 +7,7 @@
 // HP 66%·33%가 되면 「수학의 봉인」 보호막을 쳐요. 방 아래쪽 봉인 룬을 풀면 보호막이 깨지고 잠깐 기절해요.
 // Combat이 몬스터처럼 다룰 수 있게 같은 모양(hit, hittable, snapshot …)을 갖췄어요.
 
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 export const TROLL = { id: 'troll', name: '뒤집기 트롤 인버트롤', hp: 900, atk: 15, def: 3, exp: 220, gold: [70, 90], art: { type: 'troll' },
   line: '누가 내 잠을 깨웠지? 다 뒤집어 주마!' };
@@ -139,7 +139,7 @@ export class Boss {
   }
 
   say(text) {
-    const t = crisp(this.scene.add.text(this.x, this.y - 60, text, textStyle(13, '#ffe9a8'))).setOrigin(0.5).setScale(1 / 3).setDepth(100004);
+    const t = crisp(this.scene.add.text(this.x, this.y - 60, text, textStyle(13, '#ffe9a8'))).setOrigin(0.5).setScale(1 / ZOOM).setDepth(100004);
     this.scene.tweens.add({ targets: t, y: t.y - 8, alpha: 0, delay: 1400, duration: 500, onComplete: () => t.destroy() });
   }
 

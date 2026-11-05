@@ -8,9 +8,9 @@ import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
 import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
 import { openShop, openForge, openBag } from '../ui/Panels.js';
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
-export const ZOOM = 3;
+export { ZOOM };
 
 export class WorldScene extends Phaser.Scene {
   // info: { id, name, subtitle, bgm, mapV }
@@ -65,7 +65,9 @@ export class WorldScene extends Phaser.Scene {
 
     const cam = this.cameras.main;
     cam.setZoom(ZOOM).setBounds(0, 0, this.mapW, this.mapH).setRoundPixels(true);
-    cam.startFollow(this.player.sprite, true, 0.15, 0.15, 0, 10);
+    // 카메라는 주인공을 따라가요. 보스가 깨어 있으면 보스 쪽으로 조금 당겨서 둘 다 보이게 해요
+    this.camFocus = this.add.zone(at.x, at.y, 1, 1);
+    cam.startFollow(this.camFocus, true, 0.12, 0.12, 0, 0);
     cam.fadeIn(500, 0, 0, 0);
 
     this.setupKeys();
@@ -388,7 +390,7 @@ export class WorldScene extends Phaser.Scene {
   // 인사말 말풍선
   say(text, who = this.player) {
     const t = crisp(this.add.text(who.x, who.y - 30, text, textStyle(13, '#1b1208', { backgroundColor: '#fff8e6', padding: { x: 6, y: 3 }, strokeThickness: 0 })))
-      .setOrigin(0.5).setScale(1 / 3).setDepth(100005);
+      .setOrigin(0.5).setScale(1 / ZOOM).setDepth(100005);
     this.tweens.add({ targets: t, y: t.y - 6, alpha: 0, delay: 1600, duration: 500, onComplete: () => t.destroy() });
   }
 
@@ -451,6 +453,18 @@ export class WorldScene extends Phaser.Scene {
     c.handleEvents(party.takeEvents());
   }
 
+  updateCamFocus() {
+    const p = this.player.sprite;
+    let fx = p.x;
+    let fy = p.y - 10;
+    const b = this.boss;
+    if (b?.engaged) {
+      fx += Phaser.Math.Clamp((b.x - p.x) * 0.5, -40, 40);
+      fy += Phaser.Math.Clamp((b.y - 20 - p.y) * 0.5, -24, 24);
+    }
+    this.camFocus.setPosition(fx, fy);
+  }
+
   removeRemote() {
     if (!this.combat.remote) return;
     this.combat.remote.destroy();
@@ -490,6 +504,7 @@ export class WorldScene extends Phaser.Scene {
     }
     this.syncParty(time);
     this.combat.update(time, delta);
+    this.updateCamFocus();
     for (const n of this.npcs) n.update(time);
     this.hud?.setPrompt(this.locked ? null : this.nearest());
   }

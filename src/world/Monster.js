@@ -2,7 +2,7 @@
 // 맞으면 뒤로 밀리고 잠깐 멈춰요. HP가 0이 되면 연기와 함께 「정화」되어 사라졌다가 다시 나타나요.
 
 import { MONSTERS } from '../data/monsters.js';
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 const LEASH = 190;      // 집에서 이만큼 멀어지면 돌아가요
 const RESPAWN_MS = 16000;
@@ -133,7 +133,7 @@ export class Monster {
       sp.play({ key: 'fx_spark', startFrame: i });
       s.tweens.add({ targets: sp, y: sp.y - 18 - Math.random() * 10, alpha: 0, duration: 700 + i * 120, onComplete: () => sp.destroy() });
     }
-    const t = crisp(s.add.text(x, y - 18, '정화!', textStyle(12, '#bff7ff')).setOrigin(0.5).setScale(1 / 3).setDepth(100001));
+    const t = crisp(s.add.text(x, y - 18, '정화!', textStyle(12, '#bff7ff')).setOrigin(0.5).setScale(1 / ZOOM).setDepth(100001));
     s.tweens.add({ targets: t, y: t.y - 10, alpha: 0, delay: 300, duration: 600, onComplete: () => t.destroy() });
   }
 

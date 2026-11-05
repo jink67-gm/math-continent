@@ -2,6 +2,9 @@
 
 export const FONT = 'Galmuri11';
 
+// 게임 세상 확대 배율: 4면 화면에 가로 15칸·세로 8칸쯤 보여요 (3이면 20칸·11칸)
+export const ZOOM = 4;
+
 export function textStyle(size = 14, color = '#ffffff', extra = {}) {
   return {
     fontFamily: FONT,

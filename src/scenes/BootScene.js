@@ -87,6 +87,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   makeFxAnims() {
+    this.anims.create({ key: 'fx_fountain', frames: this.anims.generateFrameNumbers('zl/fountain'), frameRate: 6, repeat: -1 });
     this.anims.create({ key: 'fx_flam', frames: this.anims.generateFrameNumbers('na/flam'), frameRate: 14 });
     this.anims.create({ key: 'fx_flam_loop', frames: this.anims.generateFrameNumbers('na/flam', { frames: [1, 2] }), frameRate: 10, repeat: -1 });
     this.anims.create({ key: 'fx_ice', frames: this.anims.generateFrameNumbers('na/ice'), frameRate: 16 });

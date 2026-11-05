@@ -62,7 +62,6 @@ export const MAPS = {
       b.path([[20, 20], [20, 33]], 2);
       b.path([[17, 20], [10, 24], [0, 24]], 2);
       b.path([[30, 20], [30, 22]], 2);
-      b.circle(14, 17, 1.6, 'w');
       // 건물
       b.obj('house_big', 14, 10.6, { solid: 'building', label: '촌장의 집' });
       b.obj('house_round', 25.5, 10.6, { solid: 'building', label: '룬의 집' });
@@ -73,13 +72,19 @@ export const MAPS = {
       b.obj('kiln', 7.4, 31.6, { solid: 'building' });
       // 소품
       b.obj('barrel', 16.4, 22.6, { solid: [12, 8] }).obj('cart', 18.6, 29.6, { solid: [26, 10] }).obj('laundry', 30.4, 16.6, {});
-      b.obj('jar', 38.6, 16.6, { solid: [10, 6] }).obj('barrel', 29.4, 10.6, { solid: [12, 8] }).obj('scarecrow', 41, 27, { solid: [8, 6] });
+      // 광장 분수(치유의 분수) · 시장 천막 · 의자 · 화분 (Zelda-like 소품)
+      b.obj('zl_stall', 14, 18.2, { solid: [76, 22] });
+      [['zl_fruit_y', 12.5], ['zl_fruit_g', 13.5], ['zl_fruit_r', 14.5], ['zl_fruit_o', 15.5]].forEach(([k, x]) => b.obj(k, x, 18.4, {}));
+      b.obj('zl_bench', 25.2, 22.6, { solid: [44, 8] });
+      b.obj('zl_pot_blue', 32.4, 16.8, { solid: [10, 6] }).obj('zl_plant_big', 33.5, 16.8, { solid: [10, 6] });
+      b.obj('zl_pot_white', 9.4, 22.8, { solid: [10, 6] }).obj('zl_pot_bush', 11.4, 10.8, { solid: [10, 6] }).obj('zl_pot_blue', 16.6, 10.8, { solid: [10, 6] });
+      b.obj('zl_crates', 39.8, 16.8, { solid: [28, 10] }).obj('barrel', 29.4, 10.6, { solid: [12, 8] }).obj('scarecrow', 41, 27, { solid: [8, 6] });
       b.obj('sign', 23.4, 30.6, { solid: [10, 5] }).obj('sign', 23.4, 14.8, { solid: [10, 5] });
       for (const x of [33.5, 36.5, 39.5]) b.obj('fence', x, 21.4, { solid: [48, 6] });
       for (const [x, y] of [[11, 3], [27, 4], [17, 6]]) b.obj('tree_green', x, y, { solid: [12, 6], tree: true });
       b.roughen(rnd);
 
-      scatter(b, rnd, 110, { keep: [[14, 17, 3], [36, 24, 5], [21, 18.5, 5]] });
+      scatter(b, rnd, 110, { keep: [[14, 16.5, 4], [36, 24, 5], [21, 18.5, 5], [25, 22, 2]] });
       return b;
     },
     plots: [{ x: 32.5, y: 22.4, label: '1/2 밭', planted: 4 }, { x: 37, y: 22.4, label: '1/4 밭', planted: 2 }, { x: 32.5, y: 25.6, label: '1/8 밭', planted: 1 }],
@@ -95,14 +100,14 @@ export const MAPS = {
       { id: 'runeMaster', sprite: 'OldMan3', name: '룬 할아버지', x: 27.4, y: 11.6, lines: [['기술은 힘만으로 배우는 게 아니란다.', '수학의 룬을 깨워야 하지.']] },
       { id: 'merchant', sprite: 'Villager4', name: '상인 루루', x: 13.8, y: 23.4, role: 'shop', lines: [['어서 오세요! 좋은 물건 많아요~']] },
       { id: 'smith', sprite: 'Shaman', name: '대장장이 쿵쿵', x: 13.6, y: 32.2, role: 'forge', lines: [['쾅! 쾅! 장비를 강화하려면 수학 실력이 필요하지!']] },
-      { id: 'innkeeper', sprite: 'OldWoman', name: '여관 주인 포근', x: 37.4, y: 17.4, lines: [['먼 길 오느라 고생했지요?', '광장 옆 샘물을 마시면 기운이 난답니다.']] },
-      { id: 'child', sprite: 'Child', name: '꼬마 콩이', x: 24, y: 21, wander: 20, lines: [['밭에 심은 칸 수를 세어 봤어?', '8칸 중에 4칸이면 1/2, 2칸이면 1/4이래!']] },
-      { id: 'guard', sprite: 'Knight', name: '경비병 단단', x: 23, y: 16, lines: [['언덕 위에는 촌장님 댁이 있소.', '마을 밖은 위험하니 회복약을 꼭 챙기시오.']] },
+      { id: 'innkeeper', sprite: 'OldWoman', name: '여관 주인 포근', x: 37.4, y: 17.4, lines: [['먼 길 오느라 고생했지요?', '광장 분수의 물을 마시면 기운이 난답니다.']] },
+      { id: 'child', sprite: 'Child', name: '꼬마 콩이', x: 26.5, y: 24.4, wander: 20, lines: [['밭에 심은 칸 수를 세어 봤어?', '8칸 중에 4칸이면 1/2, 2칸이면 1/4이래!']] },
+      { id: 'guard', sprite: 'Knight', name: '경비병 단단', x: 17.6, y: 15.4, lines: [['언덕 위에는 촌장님 댁이 있소.', '마을 밖은 위험하니 회복약을 꼭 챙기시오.']] },
       { id: 'pipi', sprite: 'Spirit', name: '안내 정령 피피', x: 18.4, y: 27.6, float: true,
         lines: [['모험가님, 프락시아 마을에 온 걸 환영해요!', '머리 위에 「!」가 뜬 사람에게 말을 걸면 부탁(퀘스트)을 받을 수 있어요.'], ['마을 밖은 동쪽·남쪽·서쪽·북쪽으로 이어져 있어요.', '지도 오른쪽 위 작은 지도와 노란 화살표를 따라가 보세요!']] },
     ],
     spots: [
-      { id: 'spring', kind: 'heal', name: '치유의 샘', x: 14, y: 19.2, r: 30, label: '샘물 마시기', lines: [['맑은 샘물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },
+      { id: 'spring', kind: 'heal', name: '치유의 분수', x: 21, y: 20.4, r: 34, label: '분수 물 마시기', fountain: true, lines: [['맑은 분수 물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },
       { id: 'board', kind: 'difficulty', name: '모험 게시판', x: 23.4, y: 31, r: 24, label: '난이도 바꾸기' },
       { id: 'mapSign', kind: 'read', name: '마을 안내판', x: 23.4, y: 15.2, r: 22, label: '안내판 읽기',
         lines: [['↑ 바람의 언덕 (권장 Lv4~6)', '→ 바람개비 들판 (Lv1~3)', '↓ 졸졸 시냇가 (Lv2~4)', '← 나무꾼 숲 (Lv3~5)']] },

@@ -300,6 +300,12 @@ export class MapScene extends WorldScene {
 
   springSparkles() {
     const s = this.spots.find((p) => p.kind === 'heal');
+    if (s.fountain) {
+      // 광장 분수 (Zelda-like, 물이 퐁퐁 솟아요). 아래쪽 둥근 돌만 막아요.
+      const fy = s.y - 12;
+      this.add.sprite(s.x, fy, 'zl/fountain', 0).setOrigin(0.5, 1).setDepth(fy).play('fx_fountain');
+      this.addSolid(s.x - 22, fy - 28, 44, 26);
+    }
     for (let i = 0; i < 5; i++) {
       const sp = this.add.sprite(s.x + (Math.random() - 0.5) * 30, s.y - 30 - Math.random() * 10, 'na/spark', 0).setBlendMode('ADD').setAlpha(0.85).setDepth(s.y + 40);
       sp.play({ key: 'fx_spark', startFrame: i % 7 });

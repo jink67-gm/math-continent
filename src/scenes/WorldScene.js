@@ -120,7 +120,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   objectSheet(name) {
-    for (const s of ['na/house', 'na/nature', 'na/element', 'na/reliefd', 'zl/props']) if (this.textures.get(s).has(name)) return s;
+    for (const s of ['na/house', 'na/nature', 'na/element', 'na/reliefd', 'zl/props', 'zl/town']) if (this.textures.get(s).has(name)) return s;
     return 'na/nature';
   }
 

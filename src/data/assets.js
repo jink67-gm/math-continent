@@ -15,6 +15,8 @@ export const SHEETS = {
   'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
   'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
   'zl/props': 'zl/props.png',                        // 바위·자갈·큰 바위·나무 계단 (가로 4칸)
+  'zl/town': 'zl/town.png',                          // 시장 천막·의자·상자·화분 (가로 8칸)
+  'zl/fountain': ['zl/fountain.png', 48],            // 광장 분수 3장면
   'na/slash': ['na/fx/slash.png', 32],
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
@@ -132,6 +134,19 @@ export const OBJECTS = {
   zl_rock_flat: ['zl/props', 1, 0, 1, 1],
   zl_pebbles: ['zl/props', 2, 0, 1, 1],
   zl_boulder: ['zl/props', 0, 1, 2, 2],
+  // Zelda-like 마을 소품
+  zl_stall: ['zl/town', 0, 0, 5, 4],
+  zl_bench: ['zl/town', 5, 0, 3, 2],
+  zl_crates: ['zl/town', 5, 2, 2, 2],
+  zl_fruit_y: ['zl/town', 0, 4, 1, 2],
+  zl_fruit_g: ['zl/town', 1, 4, 1, 2],
+  zl_fruit_r: ['zl/town', 2, 4, 1, 2],
+  zl_fruit_o: ['zl/town', 3, 4, 1, 2],
+  zl_plant_big: ['zl/town', 4, 4, 1, 2],
+  zl_pot_blue: ['zl/town', 5, 4, 1, 1],
+  zl_pot_white: ['zl/town', 6, 4, 1, 1],
+  zl_pot_bush: ['zl/town', 7, 4, 1, 1],
+  zl_stump: ['zl/town', 0, 6, 2, 2],
   tree_snowpine: ['na/nature', 8, 0, 2, 2],
   tree_whitepine: ['na/nature', 10, 0, 2, 2],
   tree_white: ['na/nature', 12, 0, 2, 2],

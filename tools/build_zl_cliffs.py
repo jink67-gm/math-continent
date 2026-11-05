@@ -8,6 +8,7 @@
   칸 0 왼쪽 끝 · 1 가운데 · 2 오른쪽 끝 · 3 한 칸짜리
   줄 4: 0 왼쪽 옆 테두리 · 1 위쪽 테두리 · 2 오른쪽 옆 테두리 · 3 동굴 구멍
   props.png: 바위·자갈·큰 바위·나무 계단
+  town.png: 시장 천막·의자·상자·화분 / fountain.png: 분수 3장면
 해골·뼈 같은 그림은 가져오지 않아요.
 """
 import sys
@@ -78,7 +79,37 @@ def build_props():
     recolor(sheet, 0).save(OUT / 'props.png')
 
 
+def block(r, c, w, h):
+    return src.crop((c * T, r * T, (c + w) * T, (r + h) * T))
+
+
+def build_town():
+    # 마을 소품 (8칸 × 8줄). 위치는 src/data/assets.js 의 OBJECTS 와 맞춰요.
+    sheet = Image.new('RGBA', (8 * T, 8 * T))
+    parts = [
+        ((22, 18, 5, 4), (0, 0)),   # 시장 천막
+        ((4, 28, 3, 2), (5, 0)),    # 긴 의자
+        ((0, 30, 2, 2), (5, 2)),    # 나무 상자 2개
+        ((20, 26, 4, 2), (0, 4)),   # 과일 상자 4개
+        ((1, 32, 1, 2), (4, 4)),    # 큰 화분
+        ((2, 33, 1, 1), (5, 4)),    # 꽃 화분
+        ((0, 35, 1, 1), (6, 4)),    # 꽃 화분 2
+        ((1, 35, 1, 1), (7, 4)),    # 덤불 화분
+        ((3, 31, 2, 2), (0, 6)),    # 그루터기
+        ((2, 34, 3, 1), (2, 6)),    # 나무 판 (안내판)
+    ]
+    for (r, c, w, h), (dx, dy) in parts:
+        sheet.paste(block(r, c, w, h), (dx * T, dy * T))
+    recolor(sheet, 0).save(OUT / 'town.png')
+    # 분수 3장면 (48×48 ×3)
+    f = Image.new('RGBA', (9 * T, 3 * T))
+    for i in range(3):
+        f.paste(block(9, 22 + i * 3, 3, 3), (i * 3 * T, 0))
+    recolor(f, 0).save(OUT / 'fountain.png')
+
+
 build(0, 'cliff_meadow.png')
 build(1, 'cliff_forest.png')
 build_props()
+build_town()
 print('ok')

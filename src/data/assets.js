@@ -76,7 +76,7 @@ export const CHARACTERS = [
 ];
 
 // 주인공: 한복 (Ninja Adventure의 Boy·Princess 옷 색을 바꿈 — tools/build_hanbok.py). KnightGold는 프로포르 재상이 써요.
-//   남: 흰 저고리 · 빨간 고름 · 남색 바지 · 검은 머리   여: 노랑 저고리 · 다홍 치마
+//   남: 검은 도포 · 흰 깃 · 금빛 띠 · 검은 바지 · 검은 머리   여: 흰 저고리 · 분홍 치마 · 분홍 고름 (둘 다 밝은 피부)
 export const HEROES = { male: 'HanbokBoy', female: 'HanbokGirl' };
 
 // 그림 일부를 잘라 쓰는 물건: [그림, 칸x, 칸y, 가로칸, 세로칸]

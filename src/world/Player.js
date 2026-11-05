@@ -86,7 +86,7 @@ export class Player {
     const flip = combo === 2 ? -1 : 1;
     const arc = combo === 3 ? 80 : 60;
     this.scene.tweens.killTweensOf(this.sword);
-    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(combo === 3 ? 1.35 : 1.15).setAngle(base - arc * flip);
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(combo === 3 ? 1.15 : 0.95).setAngle(base - arc * flip);
     this.scene.tweens.add({ targets: this.sword, angle: base + arc * flip, duration: combo === 3 ? 110 : 75, ease: 'Cubic.out' });
     this.lean(combo === 3 ? 1.25 : 1.15);
     this.lock('atk', ms, onEnd);
@@ -105,7 +105,7 @@ export class Player {
     this.sprite.play(`${this.key}_atk_${this.dir}`, true);
     this.scene.tweens.killTweensOf(this.sword);
     const base = BLADE[this.dir];
-    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.4).setAngle(base);
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.15).setAngle(base);
     this.scene.tweens.add({ targets: this.sword, angle: base + 360, duration: ms * 0.6, ease: 'Cubic.out' });
     this.feet.body.setVelocity(0, 0);
     this.lock('cast', ms);
@@ -186,7 +186,7 @@ export class Player {
     this.sprite.setDepth(sy);
     this.shadow.setDepth(sy - 1);
     // 칼은 손 위치에 (위를 볼 때는 몸 뒤로)
-    const hand = { down: [5, -5], up: [-5, -7], left: [-5, -5], right: [5, -5] }[this.dir];
+    const hand = { down: [5, -3], up: [-5, -5], left: [-6, -3], right: [6, -3] }[this.dir]; // 허리 높이 (얼굴을 가리지 않게)
     this.sword.setPosition(sx + hand[0], sy + hand[1] - this.lift).setDepth(this.dir === 'up' ? sy - 0.5 : sy + 0.5);
   }
 }

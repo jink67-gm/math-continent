@@ -34,6 +34,11 @@ export class MapScene extends WorldScene {
   buildWorld() {
     const d = this.def;
     const q = this.game.quests;
+    // 가 본 곳 기억 (지도에 표시)
+    this.dark = null;
+    const st = this.registry.get('player');
+    st.visited ??= [];
+    if (!st.visited.includes(this.mapId)) st.visited.push(this.mapId);
     const b = (this.builder = d.build());
     this.mapW = b.cols * T;
     this.mapH = b.rows * T;
@@ -41,6 +46,7 @@ export class MapScene extends WorldScene {
     const ground = this.grid.bake(this, seeded(b.cols * 7 + b.rows), { theme: d.theme }).setDepth(-1000);
     if (d.tint) ground.setTint(d.tint);
     drawRelief(this, b, { cave: !!d.cave });
+    if (!d.cave) this.blockTops(b, d);
     for (const r of b.solidRects()) this.addSolid(r.x, r.y, r.w, r.h);
     for (const o of b.objects) {
       const img = this.placeObject(o);
@@ -69,7 +75,7 @@ export class MapScene extends WorldScene {
     } else if (d.boss) {
       this.glow(d.boss.x * T, d.boss.y * T - 20, 0xffe066);
     }
-    if (d.cave) { this.caveDeco(b, d); this.dark = this.add.graphics().setDepth(90000); }
+    if (d.cave) { this.caveDeco(b, d); this.makeCaveLight(); }
   }
 
   // 출구: 가장자리 칸 범위 → 픽셀 상자
@@ -103,6 +109,28 @@ export class MapScene extends WorldScene {
 
   respawnAt() {
     return this.def.cave ? ['Map', 'south', null, 'cave1'] : ['Map', 'plaza', null, 'village'];
+  }
+
+  // 절벽 덩어리 위: 빽빽한 나무와 덤불 (걸을 수 없는 곳이라는 걸 한눈에 알게)
+  blockTops(b, d) {
+    const rnd = seeded(b.cols * 31 + b.rows);
+    const forest = d.theme === 'forest';
+    const big = forest ? ['tree_big', 'trio_green', 'tree_pine'] : ['tree_big', 'tree_big_orange', 'tree_big', 'trio_green'];
+    const small = forest ? ['tree_pine', 'tree_green', 'tree_pine'] : ['tree_green', 'tree_round', 'tree_pine', 'tree_lime'];
+    for (let y = 0; y < b.rows; y++) {
+      for (let x = 0; x < b.cols; x++) {
+        if (!b.isBlock(x, y)) continue;
+        const inner = b.isBlock(x, y + 1) && b.isBlock(x - 1, y) && b.isBlock(x + 1, y);
+        const r = rnd();
+        if (inner && r < 0.22) {
+          this.placeObject({ k: big[Math.floor(rnd() * big.length)], x: (x + 0.5) * T, y: (y + 1) * T });
+        } else if (r < 0.5) {
+          this.placeObject({ k: small[Math.floor(rnd() * small.length)], x: (x + 0.5) * T, y: (y + 1) * T });
+        } else if (r < 0.62) {
+          this.placeObject({ k: rnd() < 0.5 ? 'bush_a' : 'bush_b', x: (x + 0.5) * T, y: (y + 1) * T });
+        }
+      }
+    }
   }
 
   // 동굴 바닥의 빛나는 수정·작은 돌 (길·몬스터·룬 근처는 비워요)
@@ -293,9 +321,25 @@ export class MapScene extends WorldScene {
     super.update(time, delta);
     // NPC 머리 위 퀘스트 표시: ! 받을 부탁 · ? 다 했어요
     for (const n of this.npcs) n.setMark?.(this.game.quests.marker(n.id));
-    if (this.dark) {
-      const wv = this.cameras.main.worldView;
-      this.dark.clear().fillStyle(0x0a0614, 0.28).fillRect(wv.x - 4, wv.y - 4, wv.width + 8, wv.height + 8);
+    if (this.dark) this.dark.setPosition(this.player.x, this.player.y - 6);
+  }
+
+  // 동굴 조명: 주인공 둘레만 밝고 바깥은 어두워요 (화면보다 넉넉히 큰 그림을 주인공에 붙여 둬요)
+  makeCaveLight() {
+    const key = 'cave_light';
+    if (!this.textures.exists(key)) {
+      const w = 640;
+      const h = 400;
+      const tex = this.textures.createCanvas(key, w, h);
+      const ctx = tex.getContext();
+      const g = ctx.createRadialGradient(w / 2, h / 2, 28, w / 2, h / 2, 125);
+      g.addColorStop(0, 'rgba(8,5,18,0)');
+      g.addColorStop(0.45, 'rgba(8,5,18,0.38)');
+      g.addColorStop(1, 'rgba(8,5,18,0.78)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      tex.refresh();
     }
+    this.dark = this.add.image(this.player.x, this.player.y, key).setDepth(90000);
   }
 }

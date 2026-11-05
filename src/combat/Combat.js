@@ -129,7 +129,10 @@ export class Combat {
       this.scene.fx('fx_slash', 'na/slash', hx, hy - 3, { angle, scale: combo === 3 ? 1.25 : 0.9, depth: p.y + 20 });
       const n = this.hitArea(hx, hy, c.r, c.mult, c.knock);
       if (n) this.hitstop(c.stop);
-      if (combo === 3 && n) this.scene.cameras.main.shake(90, 0.003);
+      if (combo === 3 && n) {
+        this.scene.cameras.main.shake(90, 0.003);
+        this.scene.burst(hx, hy - 4, { len: 26, rays: 12, ms: 220, depth: p.y + 25 });
+      }
     });
   }
 
@@ -236,7 +239,10 @@ export class Combat {
         this.scene.fx('fx_slash', 'na/slash', p.x + Math.cos(rad) * 16, p.y - 4 + Math.sin(rad) * 12, { angle: a, scale: 1.1, depth: p.y + 20 });
       });
     }
-    this.scene.time.delayedCall(140, () => { if (this.hitArea(p.x, p.y - 2, sk.r, sk.mult, sk.knock)) this.hitstop(70); });
+    this.scene.time.delayedCall(140, () => {
+      this.scene.burst(p.x, p.y - 4, { len: sk.r + 10, rays: 16, color: 0xfff0a0, depth: p.y + 25 });
+      if (this.hitArea(p.x, p.y - 2, sk.r, sk.mult, sk.knock)) this.hitstop(70);
+    });
   }
 
   skill_dash(sk) {
@@ -256,7 +262,11 @@ export class Combat {
         }
       });
     }
-    this.scene.time.delayedCall(ms, () => hit.size && this.hitstop(60));
+    this.scene.time.delayedCall(ms, () => {
+      if (!hit.size) return;
+      this.hitstop(60);
+      this.scene.burst(p.x, p.y - 4, { len: 30, rays: 12, color: 0xffd27a, depth: p.y + 25 });
+    });
   }
 
   skill_guard(sk) {
@@ -280,6 +290,7 @@ export class Combat {
       this.scene.sound.play('sfx_impact', { volume: 0.5 });
       this.scene.fx('fx_ring', 'na/ring', p.x, p.y - 2, { scale: 3.4, depth: p.y - 3, add: true });
       this.scene.fx('fx_sparkc', 'na/sparkc', p.x, p.y - 4, { scale: 2.2, depth: p.y + 20, add: true });
+      this.scene.burst(p.x, p.y - 2, { len: sk.r + 16, rays: 20, color: 0xffc860, ms: 340, width: 3, depth: p.y + 25 });
       if (this.hitArea(p.x, p.y, sk.r, sk.mult, sk.knock)) this.hitstop(110);
     });
   }
@@ -299,6 +310,7 @@ export class Combat {
     const p = this.player;
     p.cast(300);
     this.scene.fx('fx_ring', 'na/ring', p.x, p.y - 2, { scale: 2.8, depth: p.y - 3, add: true }).setTint(0x9fe8ff);
+    this.scene.burst(p.x, p.y - 4, { len: sk.r + 8, rays: 16, color: 0x8fe4ff, ms: 320, depth: p.y + 25 });
     for (const m of this.monsters) {
       if (m.hittable && Math.hypot(m.x - p.x, m.y - p.y) < sk.r + 5) this.scene.fx('fx_ice', 'na/ice', m.x, m.y - 10, { depth: m.y + 10 });
     }
@@ -313,6 +325,7 @@ export class Combat {
     s.hp += amount;
     this.scene.sound.play('sfx_heal', { volume: 0.5 });
     this.scene.fx('fx_sparkc', 'na/sparkc', p.x, p.y - 8, { scale: 1.4, depth: p.y + 30, add: true }).setTint(0x9dff9d);
+    this.scene.burst(p.x, p.y - 8, { len: 24, rays: 10, color: 0x9dff9d, ms: 360, width: 1.6, depth: p.y + 30 });
     this.popNumber(p.x, p.y - 20, `+${amount}`, '#8dff8a', 14);
   }
 
@@ -333,6 +346,7 @@ export class Combat {
           onComplete: () => {
             star.destroy();
             this.scene.fx('fx_star', 'na/star', tx, ty - 4, { scale: 1.8, depth: ty + 20, add: true });
+            this.scene.burst(tx, ty - 4, { len: 30, rays: 14, color: 0xfff27a, depth: ty + 25 });
             this.scene.cameras.main.shake(70, 0.004);
             if (this.hitArea(tx, ty, sk.r, sk.mult, 1.2)) this.hitstop(50);
           },

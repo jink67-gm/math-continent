@@ -7,7 +7,7 @@ import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
 import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
-import { openShop, openForge, openBag } from '../ui/Panels.js';
+import { openShop, openForge, openBag, openWorldMap } from '../ui/Panels.js';
 import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 export { ZOOM };
@@ -154,6 +154,28 @@ export class WorldScene extends Phaser.Scene {
 
   get locked() { return !!this.hud?.dialogOpen || this.player?.state === 'down' || !!this.game.runes?.open || !!this.game.panelOpen; }
 
+  // 빛줄기 폭발: 가운데에서 밝은 선이 사방으로 쫙 퍼졌다가 사라져요 (스킬 · 3단 베기)
+  burst(x, y, { color = 0xfff2b0, rays = 14, len = 34, ms = 260, depth = 0, width = 2.2 } = {}) {
+    const g = this.add.graphics({ x, y }).setDepth(depth).setBlendMode('ADD');
+    const R = Phaser.Math;
+    for (let i = 0; i < rays; i++) {
+      const a = (i / rays) * Math.PI * 2 + R.FloatBetween(-0.18, 0.18);
+      const l = len * R.FloatBetween(0.55, 1.1);
+      const w = width * R.FloatBetween(0.6, 1.2);
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      // 바깥쪽 색 줄기 + 안쪽 흰 심
+      g.fillStyle(color, 0.85).fillTriangle(-s * w, c * w, s * w, -c * w, c * l, s * l);
+      g.fillStyle(0xffffff, 0.9).fillTriangle(-s * w * 0.4, c * w * 0.4, s * w * 0.4, -c * w * 0.4, c * l * 0.6, s * l * 0.6);
+    }
+    g.fillStyle(color, 0.4).fillCircle(0, 0, len * 0.22);
+    g.fillStyle(0xffffff, 0.9).fillCircle(0, 0, len * 0.1);
+    g.setScale(0.35).setRotation(R.FloatBetween(0, Math.PI));
+    this.tweens.add({ targets: g, scale: 1, duration: ms * 0.45, ease: 'Cubic.out' });
+    this.tweens.add({ targets: g, alpha: 0, duration: ms * 0.6, delay: ms * 0.4, onComplete: () => g.destroy() });
+    return g;
+  }
+
   fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false } = {}) {
     const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth);
     if (add) s.setBlendMode('ADD');
@@ -261,6 +283,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   openBag() { if (!this.locked) openBag(this.game, this); }
+  openMap() { if (!this.locked) openWorldMap(this.game, this); }
 
   // ── 성장 룬 ──────────────────────────────────
   async learnSkill(sk) {

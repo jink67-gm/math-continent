@@ -7,6 +7,7 @@
 //   b.stairs(21, 13, 2);                  // 절벽 면에 계단 (지나갈 수 있어요)
 //   b.river([[3, 0], [3, 33]], 2);        // 시내
 //   b.bridge(3, 25, 4, 26);               // 다리 (물 위를 걸어요)
+//   b.block(0, 0, 9, 15);                 // 절벽 덩어리: 높은 숲 지대라 올라갈 수 없어요 (공간을 나눠요)
 //   b.wall(0, 0, 35, 0);                  // 동굴 벽 (던전)
 //   b.obj('house_big', 14, 10);           // 물건 (발밑 칸 좌표)
 //
@@ -24,6 +25,7 @@ export class MapBuilder {
     this.grid = new TerrainGrid(cols, rows);
     this.h = Array.from({ length: rows }, () => Array(cols).fill(0));
     this.wallCells = Array.from({ length: rows }, () => Array(cols).fill(false));
+    this.blockCells = Array.from({ length: rows }, () => Array(cols).fill(false));
     this.stairCells = new Set();
     this.openCells = new Set(); // 절벽 면이지만 지나갈 수 있는 곳 (동굴 입구)
     this.bridgeCells = new Set();
@@ -55,6 +57,17 @@ export class MapBuilder {
 
   high(x0, y0, x1, y1) {
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (this.in(x, y)) this.h[y][x] = 1;
+    return this;
+  }
+
+  // 절벽 덩어리: 높이 1이지만 걸을 수 없어요. 위에는 나무가 빽빽하게 자라요
+  block(x0, y0, x1, y1) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (this.in(x, y)) { this.h[y][x] = 1; this.blockCells[y][x] = true; }
+    return this;
+  }
+
+  unblock(x0, y0, x1, y1) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (this.in(x, y)) this.blockCells[y][x] = false;
     return this;
   }
 
@@ -92,6 +105,7 @@ export class MapBuilder {
   // ── 판정 ──────────────────────────────────────
   hi(x, y) { return this.in(x, y) && this.h[y][x] === 1; }
   isWall(x, y) { return this.in(x, y) && this.wallCells[y][x]; }
+  isBlock(x, y) { return this.in(x, y) && this.blockCells[y][x]; }
   isStairs(x, y) { return this.stairCells.has(this.key(x, y)); }
   isBridge(x, y) { return this.bridgeCells.has(this.key(x, y)); }
 
@@ -111,7 +125,7 @@ export class MapBuilder {
 
   // 걸을 수 있는지 (물건은 따로)
   walkable(x, y) {
-    if (!this.in(x, y) || this.isWall(x, y)) return false;
+    if (!this.in(x, y) || this.isWall(x, y) || this.isBlock(x, y)) return false;
     if (this.isFace(x, y) && !this.openCells.has(this.key(x, y))) return false;
     if (this.grid.get(x, y) === 'w' && !this.isBridge(x, y)) return false;
     return true;
@@ -145,6 +159,32 @@ export class MapBuilder {
       }
     }
     return out;
+  }
+
+  // 어디서 어디로 걸어갈 수 있는지 (칸 단위, 물건은 빼고) — 지도 점검용
+  reachable(sx, sy) {
+    const seen = new Set();
+    const q = [[sx, sy]];
+    const ok = (ax, ay, bx, by) => {
+      if (!this.walkable(bx, by)) return false;
+      const ha = this.hi(ax, ay) || this.isStairs(ax, ay);
+      const hb = this.hi(bx, by) || this.isStairs(bx, by);
+      if (this.isStairs(ax, ay) || this.isStairs(bx, by)) return true;
+      return this.hi(ax, ay) === this.hi(bx, by) || (ha && hb);
+    };
+    seen.add(this.key(sx, sy));
+    while (q.length) {
+      const [x, y] = q.shift();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx;
+        const ny = y + dy;
+        const k = this.key(nx, ny);
+        if (seen.has(k) || !ok(x, y, nx, ny)) continue;
+        seen.add(k);
+        q.push([nx, ny]);
+      }
+    }
+    return seen;
   }
 
   // 언덕 위와 아래에 서 있는지 (몬스터가 절벽을 넘지 않게 쓸 수 있어요)
@@ -201,11 +241,11 @@ export function drawRelief(scene, b, { cave = false } = {}) {
       }
       // 언덕 옆·위 가장자리: 진한 선과 그림자
       if (b.hi(x, y)) {
-        if (b.in(x - 1, y) && !b.hi(x - 1, y) && !b.isWall(x - 1, y)) {
+        if (b.in(x - 1, y) && !b.hi(x - 1, y) && !b.isWall(x - 1, y) && !b.isFace(x - 1, y)) {
           g.fillStyle(0x4a3220, 1).fillRect(px, py, 2, T);
           g.fillStyle(0x000000, 0.18).fillRect(px - 3, py, 3, T);
         }
-        if (b.in(x + 1, y) && !b.hi(x + 1, y) && !b.isWall(x + 1, y)) {
+        if (b.in(x + 1, y) && !b.hi(x + 1, y) && !b.isWall(x + 1, y) && !b.isFace(x + 1, y)) {
           g.fillStyle(0x4a3220, 1).fillRect(px + T - 2, py, 2, T);
           g.fillStyle(0x000000, 0.18).fillRect(px + T, py, 3, T);
         }

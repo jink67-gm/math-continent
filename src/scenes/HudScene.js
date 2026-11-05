@@ -45,7 +45,7 @@ export class HudScene extends Phaser.Scene {
     this.showBanner(this.worldInfo.name, this.worldInfo.subtitle);
 
     if (!this.isTouch) {
-      crisp(this.add.text(W / 2, H - 10, 'WASD 이동 · J 공격(누르고 있기) · 1~4 스킬 · Space 구르기 · E 대화 · Q 회복약',
+      crisp(this.add.text(W / 2, H - 10, 'WASD 이동 · J 공격 · 1~4 스킬 · Space 구르기 · E 대화 · Q 회복약 · M 지도 · B 가방',
         textStyle(11, '#d8d0bd')).setOrigin(0.5, 1).setAlpha(0.8));
     }
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
@@ -67,6 +67,12 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.testBtn, alpha: 0.7, duration: 700, yoyo: true, repeat: -1 });
     this.input.keyboard.on('keydown-T', () => this.world.growthTest());
     this.input.keyboard.on('keydown-B', () => !this.dialogOpen && this.world.openBag());
+    this.input.keyboard.on('keydown-M', () => !this.dialogOpen && this.world.openMap());
+    // 지도 단추 (메뉴 옆)
+    const mc = this.add.container(356, 30);
+    const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-26, -16, 52, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-26, -16, 52, 32, 8);
+    mc.add([mg, crisp(this.add.text(0, 0, '지도', textStyle(12, '#ffe9a8')).setOrigin(0.5))]).setSize(52, 32).setInteractive({ useHandCursor: true });
+    mc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openMap(); });
     // 협동 인사말 (정해진 말만 보낼 수 있어요)
     this.greet = this.add.container(16, 252).setVisible(false);
     ['안녕!', '고마워!', '여기야!', '잘했어!'].forEach((txt, i) => {

@@ -12,7 +12,7 @@ export const R1_MAIN = [
   {
     id: 'meet', title: '풍차 촌장 모모 만나기', type: 'talk', target: 'chief',
     desc: '마을 위쪽 언덕, 큰 집 앞의 촌장님께 인사드려요.',
-    at: { map: 'village', x: 16.6, y: 12.6 },
+    at: { map: 'village', x: 17.6, y: 12.8 },
     lines: [
       '오오, {name}! 정령 피피가 말한 모험가로군.',
       '우리 계곡의 풍차는 「분수의 결정」의 힘으로 돈다네. 그런데 뒤집기 트롤 인버트롤이 결정을 가져가 동굴로 숨어 버렸어.',
@@ -24,14 +24,14 @@ export const R1_MAIN = [
   {
     id: 'runes', title: '세 곳의 룬 돌 깨우기', type: 'rune', target: ['runeA', 'runeB', 'runeC'],
     desc: '들판·시냇가·숲 언덕 위의 룬 돌을 깨워요.',
-    at: { runeA: { map: 'east_field', x: 31.5, y: 7 }, runeB: { map: 'stream', x: 36, y: 23.4 }, runeC: { map: 'forest', x: 10.5, y: 8 } },
+    at: { runeA: { map: 'east_field', x: 34.5, y: 9.4 }, runeB: { map: 'stream', x: 34.5, y: 23.6 }, runeC: { map: 'forest', x: 9.5, y: 8 } },
     done: ['세 룬 돌이 모두 깨어났어요!', '바람의 언덕 북쪽 「돌다리 고개」의 봉인이 풀렸어요. 마을 북쪽으로 나가 언덕을 올라요.'],
     reward: { exp: 60, gold: 40, potions: 2 },
   },
   {
     id: 'cave', title: '뒤집힌 동굴 찾기', type: 'enter', target: 'Map:cave1',
     desc: '바람의 언덕을 지나 돌다리 고개의 동굴로 들어가요.',
-    at: { map: 'pass', x: 20, y: 11 },
+    at: { map: 'pass', x: 21, y: 11 },
     done: ['서늘한 바람이 불어와요…', '동굴 안쪽 봉인된 문 양옆의 룬 기둥 두 개를 깨워야 해요.'],
     reward: { exp: 50, gold: 30 },
   },
@@ -52,7 +52,7 @@ export const R1_MAIN = [
   {
     id: 'report', title: '촌장님께 결정 돌려드리기', type: 'talk', target: 'chief',
     desc: '분수의 결정을 촌장님께 가져다드려요.',
-    at: { map: 'village', x: 16.6, y: 12.6 },
+    at: { map: 'village', x: 17.6, y: 12.8 },
     lines: [
       '오오! 분수의 결정이 다시 반짝이는구먼!',
       '보게, 풍차가 힘차게 돌기 시작했어. {name}, 자네는 나눔의 계곡의 영웅일세!',

@@ -224,7 +224,7 @@ export const MAPS = {
 
   // ── 소용돌이 해저 동굴 1층 ─────────────────────
   dh_cave1: {
-    name: '해저 동굴 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 3.6, cave: true, tint: 0x9fc0d8, node: [430, 30],
+    name: '해저 동굴 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 3.6, cave: true, style: 'sea', tint: 0xa8c8e8, node: [430, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -232,18 +232,18 @@ export const MAPS = {
       b.wall(0, 19, 6, 20).wall(13, 19, 35, 20);     // 왼쪽 틈 (7~12)
       b.wall(0, 9, 15, 10).wall(20, 9, 35, 10);      // 가운데 봉인된 문 (16~19)
       b.wall(26, 32, 30, 34).wall(22, 23, 25, 25).wall(29, 13, 31, 16).wall(4, 12, 6, 15).wall(1, 2, 4, 6).wall(31, 2, 34, 6);
-      b.circle(6, 33, 2, 'w').circle(30, 23, 2, 'w').circle(8, 24, 1.6, 'w');
+      b.circle(6, 33, 2.4, 'w').circle(30, 23, 2.6, 'w').circle(8, 24, 2, 'w').circle(29, 33, 2.2, 'w').circle(4, 15, 1.8, 'w').circle(30, 15, 1.8, 'w');
       b.path([[17, 37], [17, 33], [12, 31], [12, 26], [20, 22], [9, 21], [9, 16], [17, 13], [17, 2]], 2);
       b.circle(17.5, 5, 3, 'd');
       return b;
     },
     door: { x: 18, y: 10.8, w: 4, step: 'seal' },
-    stairsDown: { x: 17.5, y: 4.5 },
+    stairsDown: { x: 17.5, y: 4.5, out: true, label: '▲ 바깥 (소용돌이 바위섬)' },
     spawns: S([['FishRed', 10, 34], ['Mollusc', 26, 35], ['Octopus', 20, 25], ['Axolot', 30, 26], ['Mollusc', 15, 22], ['Octopus', 9, 17], ['FishRed', 26, 14], ['Axolot', 22, 16]]),
     chests: [{ id: 'r3_c1', x: 33, y: 35, gold: 300, potions: 2 }],
     exits: [
       { side: 'south', from: 16, to: 19, map: 'dh_cove', entry: 'cave' },
-      { x: 16, y: 3, w: 3, h: 2, map: 'dh_cave2', entry: 'south', to_name: '해저 동굴 2층', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
+      { x: 16, y: 3, w: 3, h: 2, map: 'dh_cave2', entry: 'south', to_name: '소용돌이 바위섬', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
     ],
     entries: { down: [17.5, 7] },
     spots: [
@@ -256,18 +256,19 @@ export const MAPS = {
 
   // ── 소용돌이 해저 동굴 2층 (데시토드의 방) ─────────
   dh_cave2: {
-    name: '해저 동굴 2층', subtitle: '데시토드의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 3.6, cave: true, tint: 0x7fb0d8, node: [515, 30],
+    name: '소용돌이 바위섬', subtitle: '데시토드의 섬', bgm: 'bgm_dungeon', theme: 'sand', cols: 32, rows: 32, power: 3.6, style: 'whirl', node: [515, 30],
     build() {
-      // 물에 잠긴 동굴: 양옆은 깊은 물길, 가운데 둥근 모래섬에서 싸워요
+      // 해저 동굴을 빠져나오면 소용돌이 한가운데의 바위섬. 둘레는 깊은 바다, 남쪽 배다리로 들어와요.
       const b = new MapBuilder(this.cols, this.rows);
-      b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.ground(1, 2, 6, 30, 'w').ground(25, 2, 30, 30, 'w').circle(8, 4, 2.5, 'w').circle(23, 4, 2.5, 'w').circle(8, 27, 2.6, 'w').circle(23, 27, 2.6, 'w');
-      b.circle(15.5, 13, 8.5, 'd');
-      b.path([[15, 31], [15, 20]], 2);
+      b.ground(0, 0, 31, 31, 'w').circle(15.5, 11.5, 9.6, 'g').circle(15.5, 11.5, 6.5, 'd');
+      b.bridge(15, 21, 16, 31);
+      for (const [x, y] of [[7.5, 5.4], [23.5, 5.4], [6.5, 15.4], [24.5, 15.4], [9.5, 20], [21.5, 20]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
+      for (const [x, y] of [[11, 3.4], [20, 3.4], [5.5, 10.4], [25.5, 10.4]]) b.obj('zl_rock', x, y, { solid: [12, 6] });
       return b;
     },
-    boss: { x: 15.5, y: 10, step: 'decikraken', roomY: 21 },
-    exits: [{ side: 'south', from: 14, to: 17, map: 'dh_cave1', entry: 'down', to_name: '해저 동굴 1층' }],
+    boss: { x: 15.5, y: 9.5, step: 'decikraken', roomY: 19.5 },
+    respawn: ['down', 'dh_cave1'],
+    exits: [{ side: 'south', from: 15, to: 16, map: 'dh_cave1', entry: 'down', to_name: '해저 동굴' }],
     spots: [],
   },
 };

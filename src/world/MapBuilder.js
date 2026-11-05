@@ -15,6 +15,7 @@
 // 높이가 다른 칸 사이(언덕 옆·위 가장자리)에는 얇은 벽을 세워 계단으로만 오르내려요.
 
 import { TerrainGrid, T } from './terrain.js';
+import { drawStyledWall } from './DungeonStyle.js';
 
 export class MapBuilder {
   // faceH: 절벽 높이 (칸) — 2면 제노니아처럼 높은 절벽
@@ -301,7 +302,7 @@ const DETAIL_COLS = 12;
 // 들판·숲의 절벽은 Zelda-like 흙절벽 시트(가로 4칸)를 써요: 줄 0 풀 가장자리 · 1~3 절벽 윗줄·가운데·아랫줄 · 4 테두리
 const ZL_COLS = 4;
 
-export function drawRelief(scene, b, { cave = false, theme = 'meadow' } = {}) {
+export function drawRelief(scene, b, { cave = false, theme = 'meadow', wallStyle = null } = {}) {
   const g = scene.add.graphics().setDepth(-880);
   const R = (cx, cy) => cy * RELIEF_COLS + cx;
   const zl = cave ? null : `zl/cliff_${['forest', 'pink', 'sand', 'snow'].includes(theme) ? theme : 'meadow'}`;
@@ -311,6 +312,7 @@ export function drawRelief(scene, b, { cave = false, theme = 'meadow' } = {}) {
       const px = x * T;
       const py = y * T;
       // 동굴 벽: 위 가장자리 · 가운데 · 아래(받침)
+      if (b.isWall(x, y) && wallStyle && drawStyledWall(scene, g, b, x, y, wallStyle)) continue;
       if (b.isWall(x, y)) {
         const below = b.isWall(x, y + 1);
         const above = b.isWall(x, y - 1);

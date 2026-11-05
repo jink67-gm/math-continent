@@ -12,6 +12,9 @@ export const SHEETS = {
   'na/field': 'na/tiles/TilesetField.png',
   'na/relief': 'na/tiles/TilesetRelief.png',        // 절벽 면 (20칸 너비)
   'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
+  'na/ifloor': 'na/tiles/TilesetInteriorFloor.png',   // 던전 바닥 무늬 (대리석·돌·벽돌, 가로 22칸)
+  'na/iwall': 'na/tiles/TilesetWallSimple.png',       // 던전 벽 틀 (가로 10칸)
+  'na/lava': 'na/tiles/TilesetLava.png',              // 용암 (물 그림 색을 바꿈, tools/build_lava.py)
   'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
   'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
   'zl/cliff_pink': 'zl/cliff_pink.png',              // 흙절벽 — 분홍 꽃잎 땅
@@ -65,6 +68,8 @@ export { MONSTER_KEYS as MONSTER_SHEETS } from './monsters.js';
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)
 export const IMAGES = {
+  'fx/raylight': 'na/fx/raylight.png',
+  'fx/fog': 'na/fx/fog.png',
   'na/house': 'na/tiles/TilesetHouse.png',
   'na/nature': 'na/tiles/TilesetNature.png',
   'na/element': 'na/tiles/TilesetElement.png',

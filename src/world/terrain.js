@@ -108,9 +108,11 @@ export class TerrainGrid {
 
   // 전체 땅을 RenderTexture 한 장에 구워요
   // theme: 'meadow'(밝은 풀) · 'cave'(갈색 땅, TilesetFloor 오른쪽 아래 묶음)
-  bake(scene, rnd, { theme = 'meadow' } = {}) {
+  // water: 물가 테두리 묶음을 따로 고를 때 ('sand' 등) · 'lava'면 용암 그림
+  bake(scene, rnd, { theme = 'meadow', water } = {}) {
     const [ox, oy] = THEMES[theme] || [0, 0];
-    const [wx, wy] = WATER_THEMES[theme] || [0, 0];
+    const lava = water === 'lava';
+    const [wx, wy] = lava ? [0, 0] : WATER_THEMES[water || theme] || [0, 0];
     const rt = scene.add.renderTexture(0, 0, this.cols * T, this.rows * T).setOrigin(0, 0);
     // 다른 묶음에는 (2, 11) 자리가 비어 있어서 빼요
     const grassAll = theme === 'meadow' ? GRASS_TILES : GRASS_TILES.filter(([x, y]) => !(y === 11 && (x === 2 || x === 3)));
@@ -133,13 +135,13 @@ export class TerrainGrid {
           if (t === 'w') {
             // 물 시트에는 흙 시트의 "가득 찬 칸 무늬" 두 개(0~1, 11)가 없어요
             if (ty === 11 && tx < 2) [tx, ty] = [1, 8];
-            sheet = 'na/water';
+            sheet = lava ? 'na/lava' : 'na/water';
             ty -= 1;
             tx += wx;
             ty += wy;
           }
         }
-        const cols = sheet === 'na/water' ? WATER_COLS : FLOOR_COLS;
+        const cols = sheet === 'na/floor' ? FLOOR_COLS : WATER_COLS;
         if (sheet === 'na/floor') { tx += ox; ty += oy; }
         rt.batchDrawFrame(sheet, ty * cols + tx, x * T, y * T);
       }

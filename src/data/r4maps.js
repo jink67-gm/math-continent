@@ -228,7 +228,7 @@ export const MAPS = {
 
   // ── 왕성 지하 저울방 1층 ───────────────────────
   rk_vault1: {
-    name: '왕성 지하 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 4.4, cave: true, tint: 0xc0b0d0, node: [430, 30],
+    name: '왕성 지하 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 4.4, cave: true, style: 'palace', node: [430, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -241,12 +241,13 @@ export const MAPS = {
       return b;
     },
     door: { x: 18, y: 10.8, w: 4, step: 'seal' },
-    stairsDown: { x: 17.5, y: 4.5 },
+    stairsDown: { x: 17.5, y: 4.5, label: '▲ 왕좌의 방' },
+    torches: [[14.5, 8.6], [21.5, 8.6], [3.5, 17.6], [32.5, 17.6], [11.5, 26.6], [24.5, 26.6], [15, 36.6], [21, 36.6]],
     spawns: S([['Reptile2', 12, 34], ['KappaGreen', 28, 35], ['Snake2', 20, 26], ['Racoon', 31, 22], ['Reptile2', 10, 25], ['KappaGreen', 8, 15], ['Snake2', 26, 14], ['Reptile2', 22, 16]]),
     chests: [{ id: 'r4_v1', x: 33, y: 35, gold: 400, potions: 2 }],
     exits: [
       { side: 'south', from: 16, to: 19, map: 'rk_gorge', entry: 'cave' },
-      { x: 16, y: 3, w: 3, h: 2, map: 'rk_vault2', entry: 'south', to_name: '왕성 지하 2층', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
+      { x: 16, y: 3, w: 3, h: 2, map: 'rk_vault2', entry: 'south', to_name: '왕좌의 방', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
     ],
     entries: { down: [17.5, 7] },
     spots: [
@@ -259,7 +260,7 @@ export const MAPS = {
 
   // ── 왕성 지하 2층 (레이시오의 방) ─────────────────
   rk_vault2: {
-    name: '왕성 지하 2층', subtitle: '레이시오의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 4.4, cave: true, tint: 0xc8a0b8, node: [515, 30],
+    name: '왕성 지하 2층', subtitle: '레이시오의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 4.4, cave: true, style: 'palace', node: [515, 30],
     build() {
       // 왕좌의 방: 긴 홀 양쪽에 기둥이 줄지어 서 있고, 가운데 융단이 왕좌까지 이어져요
       const b = new MapBuilder(this.cols, this.rows);
@@ -270,6 +271,7 @@ export const MAPS = {
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'ratio', roomY: 21 },
+    torches: [[8.5, 8.6], [23.5, 8.6], [8.5, 14.6], [23.5, 14.6], [8.5, 20.6], [23.5, 20.6], [11.5, 3.6], [20.5, 3.6]],
     exits: [{ side: 'south', from: 14, to: 17, map: 'rk_vault1', entry: 'down', to_name: '왕성 지하 1층' }],
     spots: [],
   },

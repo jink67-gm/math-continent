@@ -1,6 +1,6 @@
 // 6번 지역: 회전체 산맥 볼테라 (여러 지도가 이어진 구조) — 눈 덮인 산
 //
-//   [눈꽃 비탈 sp_slope] ──▶ [구름 능선 sp_ridge] ──탑 입구──▶ [수정 회전탑 1층] ──▶ [꼭대기 볼텍스]
+//   [눈꽃 비탈 sp_slope] ──▶ [구름 능선 sp_ridge] ──탑 입구──▶ [불꽃 용암굴] ──▶ [구름 위 정상 볼텍스]
 //          │                    ▲ (원기둥 · 원뿔 · 구 룬)
 //   [산골 마을 sp_town] ──▶ 혼돈의 첨탑 (마을을 구한 뒤, 동쪽 길)
 //   ◀ 키르쿠스 호수 │
@@ -185,7 +185,7 @@ export const MAPS = {
   },
 
   // ── 구름 능선 (Lv30) ────────────────────────
-  // 서쪽(눈꽃 비탈)·남쪽(얼어붙은 호수)에서 올라와 만나는 능선. 북쪽 절벽의 회전탑 입구를 봉인 바위가 막아요.
+  // 서쪽(눈꽃 비탈)·남쪽(얼어붙은 호수)에서 올라와 만나는 능선. 북쪽 절벽의 용암굴 입구를 봉인 바위가 막아요.
   sp_ridge: {
     name: '구름 능선', subtitle: '권장 Lv30', bgm: 'bgm_field', theme: 'snow', cols: 44, rows: 34, power: 6.2, node: [390, 95],
     build() {
@@ -200,7 +200,7 @@ export const MAPS = {
       b.path([[24, 18], [38, 18]], 1);
       for (const [x, y] of [[16, 25], [5, 25], [38, 26]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
       for (const [x, y] of [[12, 18.4], [27, 20.4]]) b.obj(snowTree(rnd), x, y, { solid: [14, 6], tree: true });
-      b.obj('cave_mouth', 21, 11, { tint: 0xb8c8e0 });
+      b.obj('cave_mouth', 21, 11, { tint: 0xd09070 });
       b.obj('sign', 24.4, 18.6, { solid: [10, 5] });
       b.roughen(rnd);
       scatter(b, rnd, 90, { keep: [[21, 12, 3], [38, 19, 2]], kinds: SNOW_DECO });
@@ -212,18 +212,18 @@ export const MAPS = {
     exits: [
       { side: 'west', from: 19, to: 23, map: 'sp_slope', entry: 'east' },
       { side: 'south', from: 29, to: 32, map: 'sp_lake', entry: 'north' },
-      { x: 20, y: 9, w: 2, h: 2, map: 'sp_tower1', entry: 'south', to_name: '수정 회전탑' },
+      { x: 20, y: 9, w: 2, h: 2, map: 'sp_tower1', entry: 'south', to_name: '불꽃 용암굴' },
     ],
     entries: { cave: [21, 12.6] },
     spots: [
       { id: 'find_scarf', kind: 'find', name: '눈 더미', x: 38, y: 19.4, r: 22, label: '눈 더미 뒤지기', lines: [['차가운 눈뿐이에요.']] },
-      { id: 'riSign', kind: 'read', name: '표지판', x: 24.4, y: 19, r: 22, label: '표지판 읽기', lines: [['수정 회전탑 ↑', '「돌려서 생긴 모양을 아는 자만 오르라」라고 적혀 있어요.']] },
+      { id: 'riSign', kind: 'read', name: '표지판', x: 24.4, y: 19, r: 22, label: '표지판 읽기', lines: [['불꽃 용암굴 ↑ · 그 너머 구름 위 정상', '「돌려서 생긴 모양을 아는 자만 오르라」라고 적혀 있어요.']] },
     ],
   },
 
-  // ── 수정 회전탑 1층 ───────────────────────────
+  // ── 불꽃 용암굴 (산속) ───────────────────────────
   sp_tower1: {
-    name: '수정 회전탑 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 6.4, cave: true, tint: 0xb8c8e0, node: [430, 30],
+    name: '불꽃 용암굴', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 6.4, cave: true, style: 'lava', tint: 0xc08070, node: [430, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -231,17 +231,19 @@ export const MAPS = {
       b.wall(0, 19, 4, 20).wall(11, 19, 35, 20);     // 왼쪽 틈 (5~10)
       b.wall(0, 9, 15, 10).wall(20, 9, 35, 10);      // 가운데 봉인된 문 (16~19)
       b.wall(6, 32, 9, 34).wall(14, 23, 17, 25).wall(26, 23, 29, 25).wall(29, 13, 31, 16).wall(4, 12, 6, 15).wall(1, 2, 4, 6).wall(31, 2, 34, 6);
+      // 용암 강: 방마다 한쪽을 흐르는 용암
+      b.ground(30, 21, 34, 27, 'w').ground(1, 30, 5, 36, 'w').ground(30, 31, 34, 34, 'w').circle(4, 23, 1.8, 'w').circle(25, 16, 1.6, 'w');
       b.path([[17, 37], [17, 33], [27, 31], [27, 26], [8, 22], [8, 16], [17, 13], [17, 2]], 2);
       b.circle(17.5, 5, 3, 'd');
       return b;
     },
     door: { x: 18, y: 10.8, w: 4, step: 'seal' },
-    stairsDown: { x: 17.5, y: 4.5 },
-    spawns: S([['Reptile', 12, 34], ['DragonYellow', 28, 35], ['Flam2', 20, 26], ['AxolotBlue', 31, 22], ['Reptile', 10, 25], ['DragonYellow', 8, 15], ['Flam2', 26, 14], ['Reptile', 22, 16]]),
+    stairsDown: { x: 17.5, y: 4.5, out: true, label: '▲ 구름 위 정상으로' },
+    spawns: S([['Reptile', 12, 34], ['DragonYellow', 26, 35], ['Flam2', 20, 26], ['Flam2', 22, 27], ['Reptile', 10, 25], ['DragonYellow', 8, 15], ['Flam2', 20, 14], ['DragonYellow', 12, 16]]),
     chests: [{ id: 'r6_t1', x: 33, y: 35, gold: 600, potions: 3 }],
     exits: [
       { side: 'south', from: 16, to: 19, map: 'sp_ridge', entry: 'cave' },
-      { x: 16, y: 3, w: 3, h: 2, map: 'sp_tower2', entry: 'south', to_name: '회전탑 꼭대기', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
+      { x: 16, y: 3, w: 3, h: 2, map: 'sp_tower2', entry: 'south', to_name: '구름 위 정상', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
     ],
     entries: { down: [17.5, 7] },
     spots: [
@@ -252,24 +254,26 @@ export const MAPS = {
     ],
   },
 
-  // ── 수정 회전탑 꼭대기 (볼텍스의 방) ─────────────
+  // ── 구름 위 정상 (볼텍스의 봉우리, 바깥) ─────────────
   sp_tower2: {
-    name: '회전탑 꼭대기', subtitle: '볼텍스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 6.4, cave: true, tint: 0xb0c8f0, node: [515, 30],
+    name: '구름 위 정상', subtitle: '볼텍스의 봉우리', bgm: 'bgm_dungeon', theme: 'snow', cols: 32, rows: 32, power: 6.4, style: 'summit', node: [515, 30],
     build() {
-      // 탑 꼭대기 팔각 홀: 네 모서리를 계단처럼 깎아 팔각형, 양옆에 얼음 웅덩이
+      // 용암굴을 빠져나와 오른 산꼭대기: 눈 덮인 절벽에 둘러싸인 둥근 봉우리, 눈보라가 불어요
       const b = new MapBuilder(this.cols, this.rows);
-      b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      for (let k = 0; k < 7; k++) {
-        b.wall(1, 2 + k, 7 - k, 2 + k).wall(24 + k, 2 + k, 30, 2 + k);
-        b.wall(1, 30 - k, 7 - k, 30 - k).wall(24 + k, 30 - k, 30, 30 - k);
-      }
-      b.ground(3, 13, 4, 16, 'w').ground(27, 13, 28, 16, 'w');
-      b.circle(15.5, 14, 9.5, 'd');
-      b.path([[15, 31], [15, 22]], 2);
+      const rnd = seeded(6606);
+      b.block(0, 0, 31, 2).block(0, 3, 4, 31).block(27, 3, 31, 31).block(5, 25, 12, 31).block(19, 25, 26, 31);
+      b.block(5, 3, 8, 7).block(23, 3, 26, 7).block(5, 17, 6, 20).block(25, 17, 26, 20);
+      b.circle(15.5, 12.5, 8.2, 'd');
+      b.path([[15, 31], [15, 20]], 2);
+      b.ground(9, 21, 10, 22, 'w').ground(21, 21, 22, 22, 'w');
+      for (const [x, y] of [[8.5, 11], [22.5, 11]]) b.obj('zl_boulder', x, y, { solid: [28, 10] });
+      b.roughen(rnd);
+      scatter(b, rnd, 50, { keep: [[15.5, 12.5, 9]], kinds: SNOW_DECO });
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'guardians', roomY: 21 },
-    exits: [{ side: 'south', from: 14, to: 17, map: 'sp_tower1', entry: 'down', to_name: '회전탑 1층' }],
+    respawn: ['down', 'sp_tower1'],
+    exits: [{ side: 'south', from: 14, to: 17, map: 'sp_tower1', entry: 'down', to_name: '불꽃 용암굴' }],
     spots: [],
   },
 };

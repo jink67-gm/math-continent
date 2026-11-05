@@ -241,7 +241,7 @@ export const MAPS = {
 
   // ── 고대 원형 유적 1층 ─────────────────────────
   ck_ruin1: {
-    name: '고대 유적 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 5.4, cave: true, tint: 0xa8c8a8, node: [430, 30],
+    name: '고대 유적 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 5.4, cave: true, style: 'ruins', node: [430, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -254,12 +254,12 @@ export const MAPS = {
       return b;
     },
     door: { x: 18, y: 10.8, w: 4, step: 'seal' },
-    stairsDown: { x: 17.5, y: 4.5 },
+    stairsDown: { x: 17.5, y: 4.5, out: true, label: '▲ 숲 깊은 곳으로' },
     spawns: S([['Spirit2', 10, 34], ['Mushroom2', 29, 35], ['Owl', 12, 24], ['Snake3', 25, 25], ['Spirit2', 30, 23], ['Owl', 8, 16], ['Mushroom2', 26, 14], ['Snake3', 22, 16]]),
     chests: [{ id: 'r5_r1', x: 2.5, y: 35, gold: 500, potions: 2 }],
     exits: [
       { side: 'south', from: 16, to: 19, map: 'ck_path', entry: 'cave' },
-      { x: 16, y: 3, w: 3, h: 2, map: 'ck_ruin2', entry: 'south', to_name: '유적 2층', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
+      { x: 16, y: 3, w: 3, h: 2, map: 'ck_ruin2', entry: 'south', to_name: '고대 숲의 제단', requires: 'seal', lockedMsg: '봉인된 문을 먼저 열어요' },
     ],
     entries: { down: [17.5, 7] },
     spots: [
@@ -272,23 +272,28 @@ export const MAPS = {
 
   // ── 고대 원형 유적 2층 (파이엔트의 방) ───────────────
   ck_ruin2: {
-    name: '고대 유적 2층', subtitle: '파이엔트의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 5.4, cave: true, tint: 0x98c8a0, node: [515, 30],
+    name: '고대 숲의 제단', subtitle: '파이엔트의 숲', bgm: 'bgm_dungeon', theme: 'forest', cols: 32, rows: 32, power: 5.4, style: 'grove', node: [515, 30],
     build() {
-      // 돌 고리 제단: 둥근 제단 둘레에 선돌이 고리처럼 서 있어요 (남쪽은 들어오는 길)
+      // 유적을 빠져나온 숲 깊은 곳: 큰 나무 절벽에 둘러싸인 둥근 제단, 선돌이 고리처럼 서 있어요
       const b = new MapBuilder(this.cols, this.rows);
-      b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.circle(3.5, 4, 2.6, 'w').circle(28, 4, 2.6, 'w').circle(3.5, 28, 2.4, 'w').circle(28, 28, 2.4, 'w');
-      b.circle(15.5, 13, 8.2, 'd');
-      for (let i = 0; i < 14; i++) {
-        const a = (i / 14) * Math.PI * 2;
-        if (Math.abs(a - Math.PI / 2) < 0.5) continue; // 남쪽 입구
-        b.wall(Math.round(15.5 + Math.cos(a) * 11.2), Math.round(13 + Math.sin(a) * 10.2), Math.round(15.5 + Math.cos(a) * 11.2), Math.round(13 + Math.sin(a) * 10.2));
+      const rnd = seeded(5606);
+      b.block(0, 0, 31, 2).block(0, 3, 3, 31).block(28, 3, 31, 31).block(4, 26, 13, 31).block(18, 26, 27, 31);
+      b.block(4, 3, 7, 6).block(24, 3, 27, 6);
+      b.circle(15.5, 12.5, 8, 'd');
+      b.path([[15, 31], [15, 20]], 2);
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        if (Math.abs(a - Math.PI / 2) < 0.4) continue; // 남쪽 입구
+        b.obj('zl_rock', 15.5 + Math.cos(a) * 9.8, 12.8 + Math.sin(a) * 8.6, { solid: [12, 6] });
       }
-      b.path([[15, 31], [15, 21]], 2);
+      for (const [x, y] of [[6, 9], [25, 9], [6, 20], [25, 20]]) b.obj('tree_big', x, y, { solid: [16, 6], tree: true });
+      b.roughen(rnd);
+      scatter(b, rnd, 70, { keep: [[15.5, 12.5, 9]], kinds: FOREST_DECO });
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'piant', roomY: 21 },
-    exits: [{ side: 'south', from: 14, to: 17, map: 'ck_ruin1', entry: 'down', to_name: '유적 1층' }],
+    respawn: ['down', 'ck_ruin1'],
+    exits: [{ side: 'south', from: 14, to: 17, map: 'ck_ruin1', entry: 'down', to_name: '고대 유적' }],
     spots: [],
   },
 };

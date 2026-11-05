@@ -6,6 +6,7 @@ import { seeded, T } from '../world/terrain.js';
 import { Npc } from '../world/Npc.js';
 import { Boss } from '../world/Boss.js';
 import { drawRelief } from '../world/MapBuilder.js';
+import { STYLES, paintFloor, placeTorches, addAtmosphere, ensureTextures } from '../world/DungeonStyle.js';
 import { START_MAP } from '../data/r1maps.js';
 import { ALL_MAPS as MAPS, MAP_REGIONS } from '../data/mapRegions.js';
 import { ASSET_ROOT, BGM } from '../data/assets.js';
@@ -51,9 +52,13 @@ export class MapScene extends WorldScene {
     this.mapW = b.cols * T;
     this.mapH = b.rows * T;
     this.grid = b.grid;
-    const ground = this.grid.bake(this, seeded(b.cols * 7 + b.rows), { theme: d.theme }).setDepth(-1000);
+    const style = (this.style = STYLES[d.style] || null);
+    ensureTextures(this);
+    const ground = this.grid.bake(this, seeded(b.cols * 7 + b.rows), { theme: d.theme, water: style?.water }).setDepth(-1000);
     if (d.tint) ground.setTint(d.tint);
-    drawRelief(this, b, { cave: !!d.cave, theme: d.theme });
+    const floor = paintFloor(this, b, style);
+    if (floor && d.floorTint) floor.setTint(d.floorTint);
+    drawRelief(this, b, { cave: !!d.cave, theme: d.theme, wallStyle: style?.wall });
     if (!d.cave) this.blockTops(b, d);
     for (const r of b.solidRects()) this.addSolid(r.x, r.y, r.w, r.h);
     for (const o of b.objects) {
@@ -84,7 +89,9 @@ export class MapScene extends WorldScene {
     } else if (d.boss) {
       this.glow(d.boss.x * T, d.boss.y * T - 20, 0xffe066);
     }
-    if (d.cave) { this.caveDeco(b, d); this.makeCaveLight(); }
+    if (d.cave) { this.caveDeco(b, d, style?.deco); this.makeCaveLight(style); }
+    placeTorches(this, d.torches);
+    addAtmosphere(this, style, this.mapW, this.mapH);
   }
 
   // 출구: 가장자리 칸 범위 → 픽셀 상자
@@ -117,6 +124,8 @@ export class MapScene extends WorldScene {
   }
 
   respawnAt() {
+    // 바깥 보스 지도는 그 앞 던전 입구에서 다시 시작해요 (def.respawn = [입구, 지도])
+    if (this.def.respawn) return ['Map', this.def.respawn[0], null, this.def.respawn[1]];
     return this.def.cave ? ['Map', 'south', null, this.rc.cave] : ['Map', 'plaza', null, this.rc.town];
   }
 
@@ -183,9 +192,9 @@ export class MapScene extends WorldScene {
   }
 
   // 동굴 바닥의 빛나는 수정·작은 돌 (길·몬스터·룬 근처는 비워요)
-  caveDeco(b, d) {
+  caveDeco(b, d, deco) {
     const rnd = seeded(b.cols * 13 + b.rows);
-    const kinds = ['crystal_a', 'crystal_b', 'crystal_c', 'crystal_d', 'ore_a', 'ore_b', 'rock_grey_s', 'rock_brown_s'];
+    const kinds = deco || ['crystal_a', 'crystal_b', 'crystal_c', 'crystal_d', 'ore_a', 'ore_b', 'rock_grey_s', 'rock_brown_s'];
     const avoid = [...(d.spawns || []).map((s) => [s.x / T, s.y / T]), ...this.spots.map((s) => [s.x / T, s.y / T]), ...(d.chests || []).map((c) => [c.x, c.y])];
     for (let i = 0; i < 70; i++) {
       const x = 1 + Math.floor(rnd() * (b.cols - 2));
@@ -274,13 +283,21 @@ export class MapScene extends WorldScene {
     this.spots = this.spots.filter((s) => s.id !== 'door');
   }
 
+  // 아래층 계단 · 또는 바깥으로 나가는 밝은 출구 (st.out: true, st.label 글자)
   placeStairsDown(st) {
     const x = st.x * T;
     const y = st.y * T;
     const g = this.add.graphics().setDepth(-850);
-    g.fillStyle(0x0b0710, 1).fillRect(x - 16, y - 16, 32, 32);
-    for (let i = 0; i < 4; i++) g.fillStyle(0x6b5a48, 1).fillRect(x - 14 + i * 2, y - 14 + i * 7, 28 - i * 4, 4);
-    crisp(this.add.text(x, y - 20, '▼ 아래층', textStyle(11, '#ffe9a8'))).setOrigin(0.5).setScale(1 / ZOOM).setDepth(y);
+    if (st.out) {
+      g.fillStyle(0x0b0710, 1).fillRect(x - 16, y - 16, 32, 32);
+      g.fillStyle(0xfff3c0, 0.9).fillRect(x - 12, y - 14, 24, 28).fillStyle(0xffffff, 1).fillRect(x - 8, y - 14, 16, 22);
+      const glow = this.add.image(x, y - 4, 'light_glow').setBlendMode('ADD').setTint(0xfff0b0).setScale(1.2).setAlpha(0.7).setDepth(90001);
+      this.tweens.add({ targets: glow, alpha: 0.45, duration: 900, yoyo: true, repeat: -1 });
+    } else {
+      g.fillStyle(0x0b0710, 1).fillRect(x - 16, y - 16, 32, 32);
+      for (let i = 0; i < 4; i++) g.fillStyle(0x6b5a48, 1).fillRect(x - 14 + i * 2, y - 14 + i * 7, 28 - i * 4, 4);
+    }
+    crisp(this.add.text(x, y - 20, st.label || '▼ 아래층', textStyle(11, '#ffe9a8'))).setOrigin(0.5).setScale(1 / ZOOM).setDepth(y);
   }
 
   // 분수 밭: 8칸 중 심은 칸 수로 ½·¼·⅛을 보여 줘요
@@ -380,22 +397,24 @@ export class MapScene extends WorldScene {
   }
 
   // 동굴 조명: 주인공 둘레만 밝고 바깥은 어두워요 (화면보다 넉넉히 큰 그림을 주인공에 붙여 둬요)
-  makeCaveLight() {
-    const key = 'cave_light';
+  // style: 테마마다 어둠의 세기(dark)와 어둠 색(shade)이 달라요 (궁궐은 밝게, 미궁은 어둡게)
+  makeCaveLight(style) {
+    const dark = style?.dark ?? 0.78;
+    const [sr, sg, sb] = style?.shade || [8, 5, 18];
+    const key = `cave_light_${sr}_${sg}_${sb}_${dark}`;
     if (!this.textures.exists(key)) {
       const w = 640;
       const h = 400;
       const tex = this.textures.createCanvas(key, w, h);
       const ctx = tex.getContext();
       const g = ctx.createRadialGradient(w / 2, h / 2, 28, w / 2, h / 2, 125);
-      g.addColorStop(0, 'rgba(8,5,18,0)');
-      g.addColorStop(0.45, 'rgba(8,5,18,0.38)');
-      g.addColorStop(1, 'rgba(8,5,18,0.78)');
+      g.addColorStop(0, `rgba(${sr},${sg},${sb},0)`);
+      g.addColorStop(0.45, `rgba(${sr},${sg},${sb},${(dark * 0.49).toFixed(2)})`);
+      g.addColorStop(1, `rgba(${sr},${sg},${sb},${dark})`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
       tex.refresh();
     }
-    // 주인공은 아직 없을 수 있어요 (동굴에서 이어하기) — 자리는 update에서 맞춰요
     this.dark = this.add.image(0, 0, key).setDepth(90000);
   }
 }

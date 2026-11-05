@@ -235,7 +235,7 @@ export const MAPS = {
 
   // ── 세 방향 미궁 1층 ──────────────────────────
   cb_maze1: {
-    name: '세 방향 미궁 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 2.7, cave: true, tint: 0xc8b8a8, node: [430, 30],
+    name: '세 방향 미궁 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 2.7, cave: true, style: 'labyrinth', node: [430, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -249,6 +249,7 @@ export const MAPS = {
     },
     door: { x: 18, y: 10.8, w: 4, step: 'seal' },
     stairsDown: { x: 17.5, y: 4.5 },
+    torches: [[14.5, 8.6], [21.5, 8.6], [10.5, 18.6], [25.5, 18.6], [12.5, 27.6], [23.5, 27.6], [15, 36.6], [21, 36.6]],
     spawns: S([['Bamboo', 10, 34], ['Mole', 28, 35], ['Owl', 12, 24], ['Bamboo', 25, 25], ['Mole', 30, 23], ['Owl', 8, 16], ['Bamboo', 26, 14], ['Slime3', 22, 16]]),
     chests: [{ id: 'r2_m1', x: 2.5, y: 35, gold: 200, potions: 2 }],
     exits: [
@@ -266,7 +267,7 @@ export const MAPS = {
 
   // ── 세 방향 미궁 2층 (큐블록스의 방) ─────────────
   cb_maze2: {
-    name: '세 방향 미궁 2층', subtitle: '큐블록스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 2.7, cave: true, tint: 0xd8b890, node: [515, 30],
+    name: '세 방향 미궁 2층', subtitle: '큐블록스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 2.7, cave: true, style: 'labyrinth', node: [515, 30],
     build() {
       // 네모난 블록 방: 테두리에 2×2 정육면체 기둥, 구석에는 블록 더미 (쌓기나무처럼)
       const b = new MapBuilder(this.cols, this.rows);
@@ -278,6 +279,7 @@ export const MAPS = {
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'cublox', roomY: 21 },
+    torches: [[8.5, 4.6], [22.5, 4.6], [8.5, 21.6], [22.5, 21.6], [13.5, 29.6], [18.5, 29.6]],
     exits: [{ side: 'south', from: 14, to: 17, map: 'cb_maze1', entry: 'down', to_name: '미궁 1층' }],
     spots: [],
   },

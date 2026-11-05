@@ -63,7 +63,7 @@ export const REGIONS = {
   solidPeaks: {
     n: 6, name: '회전체 산맥 볼테라', subtitle: '원기둥, 원뿔, 구', unit: 'solids',
     theme: 'snow', wildTheme: 'snow', dungeonTint: 0xb8c8e0,
-    wildName: '눈꽃 비탈', dungeonName: '수정 회전탑',
+    wildName: '눈꽃 비탈', dungeonName: '불꽃 용암굴',
     power: 5.5, trees: ['tree_snowpine', 'tree_whitepine', 'pines_snow', 'tree_white'],
     monsters: ['DragonYellow', 'Reptile', 'AxolotBlue', 'Flam2', 'Mole2'], dungeonMonsters: ['DragonYellow', 'Flam2', 'Reptile', 'AxolotBlue'],
     chief: { sprite: 'OldWoman', name: '산지기 할머니 볼타' },

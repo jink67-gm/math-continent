@@ -6,10 +6,12 @@ import { MAPS as M1 } from './r1maps.js';
 import { MAPS as M2 } from './r2maps.js';
 import { MAPS as M3 } from './r3maps.js';
 import { MAPS as M4 } from './r4maps.js';
+import { MAPS as M5 } from './r5maps.js';
 import { R1_MAIN, R1_SIDE } from './r1quests.js';
 import { R2_MAIN, R2_SIDE } from './r2quests.js';
 import { R3_MAIN, R3_SIDE } from './r3quests.js';
 import { R4_MAIN, R4_SIDE } from './r4quests.js';
+import { R5_MAIN, R5_SIDE } from './r5quests.js';
 import { REGIONS } from './regions.js';
 import { TROLL } from '../world/Boss.js';
 
@@ -33,6 +35,11 @@ export const MAP_REGIONS = {
     name: REGIONS.ratioKingdom.name, maps: M4, town: 'rk_town', cave: 'rk_vault1', unit: 'proportion',
     main: R4_MAIN, side: R4_SIDE, save: 'ratioKingdom', boss: REGIONS.ratioKingdom.boss, prefix: 'ratioKingdom',
     chiefIdle: '천칭이 반듯하니 마음이 편하오. 고맙소!',
+  },
+  circleForest: {
+    name: REGIONS.circleForest.name, maps: M5, town: 'ck_town', cave: 'ck_ruin1', unit: 'circle',
+    main: R5_MAIN, side: R5_SIDE, save: 'circleForest', boss: REGIONS.circleForest.boss, prefix: 'circleForest',
+    chiefIdle: '숲이 둥글게 숨 쉬는 소리가 들리니? 고맙구나.',
   },
 };
 

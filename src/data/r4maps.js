@@ -146,7 +146,7 @@ export const MAPS = {
     exits: [
       { side: 'west', from: 15, to: 18, map: 'rk_town', entry: 'east' },
       { side: 'north', from: 30, to: 33, map: 'rk_gorge', entry: 'south' },
-      { side: 'east', from: 20, to: 24, scene: 'Town', region: 'circleForest', entry: 'west', to_name: '원환의 숲 키르쿠스', requires: 'report', lockedMsg: '프로포르의 결정을 먼저 되찾아요' },
+      { side: 'east', from: 20, to: 24, map: 'ck_town', entry: 'west', to_name: '원환의 숲 키르쿠스', requires: 'report', lockedMsg: '프로포르의 결정을 먼저 되찾아요' },
     ],
     spots: [
       runeSpot('runeShare', '비례배분의 룬 돌', 35.5, 26, '사과 과수원', '사과 ●●|●●●'),

@@ -197,7 +197,7 @@ export class TitleScene extends Phaser.Scene {
     let scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
     let map = stats.scene === 'Map' ? stats.map : 'village';
     // 큐베른·데시마르는 여러 지도 구조로 바뀌었어요: 예전 마을·들판·던전에 있었다면 그 지역 마을 지도로
-    const moved = { cubeCity: 'cb_town', decimalHarbor: 'dh_town', ratioKingdom: 'rk_town' }[stats.region];
+    const moved = { cubeCity: 'cb_town', decimalHarbor: 'dh_town', ratioKingdom: 'rk_town', circleForest: 'ck_town' }[stats.region];
     if (scene !== 'Map' && moved) { scene = 'Map'; map = moved; }
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(scene, { region: stats.region, map }));
   }

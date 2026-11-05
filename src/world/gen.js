@@ -51,8 +51,8 @@ export function makeTown(id) {
       sleepLines: ['길이 보라색 봉인으로 막혀 있어요.', '대장님께 먼저 이야기를 들어 봐요.'], litLines: ['룬이 환하게 빛나요. 길이 열려 있어요.'] },
   ];
   const i = REGION_ORDER.indexOf(id);
-  // 2~4번은 여러 지도 구조(data/r2maps.js ~ r4maps.js)라서, 키르쿠스의 서쪽 길은 프로포르 사과 과수원으로 이어져요
-  const prev = i <= 3 ? { scene: 'Map', map: 'rk_orchard', entry: 'east', to: '사과 과수원' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
+  // 2~5번은 여러 지도 구조(data/r2maps.js ~ r5maps.js)라서, 볼테라의 서쪽 길은 키르쿠스 보름달 호수로 이어져요
+  const prev = i <= 4 ? { scene: 'Map', map: 'ck_lake', entry: 'east', to: '보름달 호수' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
   const next = i < REGION_ORDER.length - 1
     ? { scene: 'Town', region: REGION_ORDER[i + 1], entry: 'west', to: REGIONS[REGION_ORDER[i + 1]].name }
     : { scene: 'Dungeon', region: 'chaosSpire', entry: 'south', to: SPIRE.name };

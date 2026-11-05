@@ -143,7 +143,7 @@ export const MAPS = {
     exits: [
       { side: 'west', from: 14, to: 17, map: 'dh_town', entry: 'east' },
       { side: 'north', from: 30, to: 33, map: 'dh_cove', entry: 'south' },
-      { side: 'east', from: 10, to: 14, scene: 'Town', region: 'ratioKingdom', entry: 'west', to_name: '천칭 왕국 프로포르', requires: 'report', lockedMsg: '데시마르의 결정을 먼저 되찾아요' },
+      { side: 'east', from: 10, to: 14, map: 'rk_town', entry: 'west', to_name: '천칭 왕국 프로포르', requires: 'report', lockedMsg: '데시마르의 결정을 먼저 되찾아요' },
     ],
     spots: [
       runeSpot('runeHundredth', '0.01의 룬 돌', 37.5, 20, '등대 방파제', '0.01'),

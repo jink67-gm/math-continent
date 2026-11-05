@@ -5,9 +5,11 @@
 import { MAPS as M1 } from './r1maps.js';
 import { MAPS as M2 } from './r2maps.js';
 import { MAPS as M3 } from './r3maps.js';
+import { MAPS as M4 } from './r4maps.js';
 import { R1_MAIN, R1_SIDE } from './r1quests.js';
 import { R2_MAIN, R2_SIDE } from './r2quests.js';
 import { R3_MAIN, R3_SIDE } from './r3quests.js';
+import { R4_MAIN, R4_SIDE } from './r4quests.js';
 import { REGIONS } from './regions.js';
 import { TROLL } from '../world/Boss.js';
 
@@ -26,6 +28,11 @@ export const MAP_REGIONS = {
     name: REGIONS.decimalHarbor.name, maps: M3, town: 'dh_town', cave: 'dh_cave1', unit: 'decimalDivision',
     main: R3_MAIN, side: R3_SIDE, save: 'decimalHarbor', boss: REGIONS.decimalHarbor.boss, prefix: 'decimalHarbor',
     chiefIdle: '등대 불빛이 오늘도 반짝이는구먼. 고맙네!',
+  },
+  ratioKingdom: {
+    name: REGIONS.ratioKingdom.name, maps: M4, town: 'rk_town', cave: 'rk_vault1', unit: 'proportion',
+    main: R4_MAIN, side: R4_SIDE, save: 'ratioKingdom', boss: REGIONS.ratioKingdom.boss, prefix: 'ratioKingdom',
+    chiefIdle: '천칭이 반듯하니 마음이 편하오. 고맙소!',
   },
 };
 

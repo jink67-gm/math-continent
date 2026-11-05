@@ -7,11 +7,13 @@ import { MAPS as M2 } from './r2maps.js';
 import { MAPS as M3 } from './r3maps.js';
 import { MAPS as M4 } from './r4maps.js';
 import { MAPS as M5 } from './r5maps.js';
+import { MAPS as M6 } from './r6maps.js';
 import { R1_MAIN, R1_SIDE } from './r1quests.js';
 import { R2_MAIN, R2_SIDE } from './r2quests.js';
 import { R3_MAIN, R3_SIDE } from './r3quests.js';
 import { R4_MAIN, R4_SIDE } from './r4quests.js';
 import { R5_MAIN, R5_SIDE } from './r5quests.js';
+import { R6_MAIN, R6_SIDE } from './r6quests.js';
 import { REGIONS } from './regions.js';
 import { TROLL } from '../world/Boss.js';
 
@@ -40,6 +42,12 @@ export const MAP_REGIONS = {
     name: REGIONS.circleForest.name, maps: M5, town: 'ck_town', cave: 'ck_ruin1', unit: 'circle',
     main: R5_MAIN, side: R5_SIDE, save: 'circleForest', boss: REGIONS.circleForest.boss, prefix: 'circleForest',
     chiefIdle: '숲이 둥글게 숨 쉬는 소리가 들리니? 고맙구나.',
+  },
+  // 6번 퀘스트 끝에는 혼돈의 첨탑 단계(spire · spireSeal · zero)가 이어져요 (첨탑은 예전 던전 장면)
+  solidPeaks: {
+    name: REGIONS.solidPeaks.name, maps: M6, town: 'sp_town', cave: 'sp_tower1', unit: 'solids',
+    main: R6_MAIN, side: R6_SIDE, save: 'solidPeaks', boss: REGIONS.solidPeaks.boss, prefix: 'solidPeaks',
+    chiefIdle: '햇살이 참 따뜻하구나. 첨탑만 남았단다, 힘내거라!',
   },
 };
 

@@ -124,9 +124,12 @@ export class MapScene extends WorldScene {
   blockTops(b, d) {
     const rnd = seeded(b.cols * 31 + b.rows);
     const forest = d.theme === 'forest';
-    const trees = forest ? ['tree_big', 'trio_green', 'tree_pine', 'tree_pine', 'tree_green'] : ['tree_big', 'tree_green', 'tree_round', 'tree_pine', 'tree_lime', 'tree_big_orange', 'trio_green'];
+    const snow = d.theme === 'snow';
+    const trees = snow ? ['tree_snowpine', 'tree_whitepine', 'tree_white', 'pines_snow', 'tree_snowpine']
+      : forest ? ['tree_big', 'trio_green', 'tree_pine', 'tree_pine', 'tree_green'] : ['tree_big', 'tree_green', 'tree_round', 'tree_pine', 'tree_lime', 'tree_big_orange', 'trio_green'];
     const rocks = ['zl_boulder', 'zl_rock', 'zl_rock_flat', 'zl_boulder', 'zl_rock'];
-    const small = ['bush_a', 'bush_b', 'bush_c', 'grass_a', 'grass_b', 'flower_a', 'flower_b', 'zl_pebbles', 'zl_rock'];
+    const small = snow ? ['zl_pebbles', 'zl_rock', 'rock_grey_s', 'zl_pebbles', 'zl_rock_flat', 'rock_grey_s', 'zl_pebbles', 'zl_rock', 'rock_grey_s']
+      : ['bush_a', 'bush_b', 'bush_c', 'grass_a', 'grass_b', 'flower_a', 'flower_b', 'zl_pebbles', 'zl_rock'];
     const cells = [];
     for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) if (b.isBlock(x, y) && b.innerFace(x, y) < 0) cells.push([x, y]);
     if (!cells.length) return;
@@ -175,7 +178,7 @@ export class MapScene extends WorldScene {
       const fy = y + rnd();
       if (!free(fx, fy, 0.5)) continue;
       put.push([fx, fy, 0.3]);
-      this.placeObject({ k: ['grass_a', 'grass_b', 'flower_a', 'flower_b'][Math.floor(rnd() * 4)], x: fx * T, y: (fy + 0.5) * T });
+      this.placeObject({ k: (snow ? ['zl_pebbles', 'rock_grey_s', 'zl_pebbles', 'zl_rock'] : ['grass_a', 'grass_b', 'flower_a', 'flower_b'])[Math.floor(rnd() * 4)], x: fx * T, y: (fy + 0.5) * T });
     }
   }
 

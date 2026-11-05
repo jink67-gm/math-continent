@@ -57,8 +57,9 @@ export class QuestLog {
         s.rg ??= {};
         if (!s.rg[rc.save]) {
           // 예전 구조에서 이 마을을 이미 구했으면 그대로 구한 걸로 옮겨요
+          // (볼테라는 그 뒤 첨탑 단계가 같은 차례로 이어져서, 첨탑 진행과 룬도 그대로 옮겨요)
           const old = s.vq?.[vid];
-          s.rg[rc.save] = { main: old && old.main >= 6 ? rc.main.length : 0 };
+          s.rg[rc.save] = old && old.main >= 6 ? { main: Math.min(old.main, rc.main.length), runes: { ...(old.runes || {}) } } : { main: 0 };
         }
         st = s.rg[rc.save];
       }

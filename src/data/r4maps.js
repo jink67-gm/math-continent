@@ -80,14 +80,14 @@ export const MAPS = {
         lines: [['빵 20개를 두 가게가 2 : 3으로 나누어 가져요.', '2+3=5 → 20÷5=4 → 4×2=8개, 4×3=12개 (비례배분)']] },
       { id: 'board', kind: 'difficulty', name: '모험 게시판', x: 23.4, y: 31, r: 24, label: '난이도 바꾸기' },
       { id: 'mapSign', kind: 'read', name: '마을 안내판', x: 24.4, y: 14.2, r: 22, label: '안내판 읽기',
-        lines: [['↑ 저울 평원 (권장 Lv20~22)', '→ 사과 과수원 (Lv21~23)', '↓ 톱니바퀴 언덕 (Lv22~24)', '← 데시마르 등대 방파제']] },
+        lines: [['↑ 저울 평원 (권장 Lv19~21)', '→ 사과 과수원 (Lv20~22)', '↓ 톱니바퀴 언덕 (Lv21~23)', '← 데시마르 등대 방파제']] },
     ],
   },
 
-  // ── 저울 평원 (Lv20~22) ────────────────────────
+  // ── 저울 평원 (Lv19~21) ────────────────────────
   // 남쪽 입구에서 곧게 올라가면 가운데 언덕 위 「비의 룬」. 동쪽 길은 기사의 협곡으로.
   rk_plain: {
-    name: '저울 평원', subtitle: '권장 Lv20~22', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 3.6, node: [250, 100],
+    name: '저울 평원', subtitle: '권장 Lv19~21', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 3.6, node: [250, 100],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(4202);
@@ -113,14 +113,14 @@ export const MAPS = {
     ],
     spots: [
       runeSpot('runeRatio', '비의 룬 돌', 21.5, 5, '저울 평원', '2 : 3'),
-      { id: 'plSign', kind: 'read', name: '표지판', x: 23.6, y: 31.8, r: 22, label: '표지판 읽기', lines: [['저울 평원 · 권장 Lv20~22', '↓ 프로포르 · → 기사의 협곡']] },
+      { id: 'plSign', kind: 'read', name: '표지판', x: 23.6, y: 31.8, r: 22, label: '표지판 읽기', lines: [['저울 평원 · 권장 Lv19~21', '↓ 프로포르 · → 기사의 협곡']] },
     ],
   },
 
-  // ── 사과 과수원 (Lv21~23) ──────────────────────
+  // ── 사과 과수원 (Lv20~22) ──────────────────────
   // 줄지어 선 사과나무 사이 길. 동남쪽 언덕 위 「비례배분의 룬」. 북쪽은 협곡, 동쪽은 키르쿠스 가는 길.
   rk_orchard: {
-    name: '사과 과수원', subtitle: '권장 Lv21~23', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 3.8, node: [400, 200],
+    name: '사과 과수원', subtitle: '권장 Lv20~22', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 3.8, node: [400, 200],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(4303);
@@ -150,14 +150,14 @@ export const MAPS = {
     ],
     spots: [
       runeSpot('runeShare', '비례배분의 룬 돌', 35.5, 26, '사과 과수원', '사과 ●●|●●●'),
-      { id: 'orSign', kind: 'read', name: '표지판', x: 3.6, y: 19.8, r: 22, label: '표지판 읽기', lines: [['사과 과수원 · 권장 Lv21~23', '← 프로포르 · ↑ 기사의 협곡 · → 키르쿠스 가는 길']] },
+      { id: 'orSign', kind: 'read', name: '표지판', x: 3.6, y: 19.8, r: 22, label: '표지판 읽기', lines: [['사과 과수원 · 권장 Lv20~22', '← 프로포르 · ↑ 기사의 협곡 · → 키르쿠스 가는 길']] },
     ],
   },
 
-  // ── 톱니바퀴 언덕 (Lv22~24) ─────────────────────
+  // ── 톱니바퀴 언덕 (Lv21~23) ─────────────────────
   // 북쪽 입구에서 구불구불 내려가는 언덕길. 막다른 동남쪽 언덕 위에 「비례식의 룬」.
   rk_hill: {
-    name: '톱니바퀴 언덕', subtitle: '권장 Lv22~24', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 4.0, node: [250, 290],
+    name: '톱니바퀴 언덕', subtitle: '권장 Lv21~23', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 4.0, node: [250, 290],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(4404);
@@ -183,16 +183,16 @@ export const MAPS = {
     exits: [{ side: 'north', from: 20, to: 23, map: 'rk_town', entry: 'south' }],
     spots: [
       runeSpot('runeGear', '비례식의 룬 돌', 34.5, 23, '톱니바퀴 언덕', '2 : 3 = 4 : 6'),
-      { id: 'hiSign', kind: 'read', name: '표지판', x: 19.4, y: 5, r: 22, label: '표지판 읽기', lines: [['톱니바퀴 언덕 · 권장 Lv22~24', '↑ 프로포르 · 언덕 깊은 곳에 룬 돌이 있대요']] },
+      { id: 'hiSign', kind: 'read', name: '표지판', x: 19.4, y: 5, r: 22, label: '표지판 읽기', lines: [['톱니바퀴 언덕 · 권장 Lv21~23', '↑ 프로포르 · 언덕 깊은 곳에 룬 돌이 있대요']] },
       { id: 'gears', kind: 'read', name: '톱니바퀴 그림판', x: 16.4, y: 18.8, r: 22, label: '그림판 읽기',
         lines: [['큰 톱니(30개)와 작은 톱니(20개)가 맞물려 돌아요.', '큰 톱니가 2바퀴 돌 때 작은 톱니는 3바퀴 → 2 : 3 = 20 : 30 이에요.']] },
     ],
   },
 
-  // ── 기사의 협곡 (Lv23~25) ──────────────────────
+  // ── 기사의 협곡 (Lv22~24) ──────────────────────
   // 서쪽(평원)·남쪽(과수원)에서 들어와 만나는 협곡. 북쪽 절벽의 왕성 지하 입구를 봉인 바위가 막아요.
   rk_gorge: {
-    name: '기사의 협곡', subtitle: '권장 Lv23~25', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 4.2, node: [380, 95],
+    name: '기사의 협곡', subtitle: '권장 Lv22~24', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 4.2, node: [380, 95],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(4505);

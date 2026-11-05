@@ -88,14 +88,14 @@ export const MAPS = {
         lines: [['반지름이 2m인 둥근 화단이에요.', '넓이 = 반지름 × 반지름 × 원주율 = 2 × 2 × 3.14 = 12.56㎡'], ['원을 잘게 잘라 엇갈려 붙이면 직사각형에 가까워져요.', '가로는 원주의 절반, 세로는 반지름 → 넓이 = 반지름 × 반지름 × 원주율!']] },
       { id: 'board', kind: 'difficulty', name: '모험 게시판', x: 23.4, y: 31, r: 24, label: '난이도 바꾸기' },
       { id: 'mapSign', kind: 'read', name: '마을 안내판', x: 24.4, y: 14.2, r: 22, label: '안내판 읽기',
-        lines: [['↑ 둥근 나무 숲 (권장 Lv26~28)', '→ 보름달 호수 (Lv27~29)', '↓ 버섯 빈터 (Lv28~30)', '← 프로포르 사과 과수원']] },
+        lines: [['↑ 둥근 나무 숲 (권장 Lv23~25)', '→ 보름달 호수 (Lv24~26)', '↓ 버섯 빈터 (Lv25~27)', '← 프로포르 사과 과수원']] },
     ],
   },
 
-  // ── 둥근 나무 숲 (Lv26~28) ─────────────────────
+  // ── 둥근 나무 숲 (Lv23~25) ─────────────────────
   // 남쪽 입구 → 가운데 바위를 돌아 서북쪽 언덕 위 「반지름의 룬」. 동쪽 길은 고대 유적 길로. 동북쪽에 버섯 고리.
   ck_ring: {
-    name: '둥근 나무 숲', subtitle: '권장 Lv26~28', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 4.6, node: [250, 100],
+    name: '둥근 나무 숲', subtitle: '권장 Lv23~25', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 4.6, node: [250, 100],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(5202);
@@ -123,14 +123,14 @@ export const MAPS = {
       runeSpot('runeRadius', '반지름의 룬 돌', 8.5, 6, '둥근 나무 숲', '원과 반지름'),
       { id: 'mushRing', kind: 'read', name: '버섯 고리', x: 32, y: 9.6, r: 26, label: '버섯 고리 살펴보기',
         lines: [['덤불과 꽃이 둥글게 둘러선 빈터예요.', '가운데에서 어느 덤불까지 재어도 길이가 같아요 → 반지름!']] },
-      { id: 'riSign', kind: 'read', name: '표지판', x: 23.6, y: 31.8, r: 22, label: '표지판 읽기', lines: [['둥근 나무 숲 · 권장 Lv26~28', '↓ 키르쿠스 · → 고대 유적 길']] },
+      { id: 'riSign', kind: 'read', name: '표지판', x: 23.6, y: 31.8, r: 22, label: '표지판 읽기', lines: [['둥근 나무 숲 · 권장 Lv23~25', '↓ 키르쿠스 · → 고대 유적 길']] },
     ],
   },
 
-  // ── 보름달 호수 (Lv27~29) ──────────────────────
+  // ── 보름달 호수 (Lv24~26) ──────────────────────
   // 가운데 둥근 호수를 달빛 다리가 가로질러요. 동남쪽 언덕 위 「원주율의 룬」. 북쪽은 유적 길, 동쪽은 볼테라 가는 길.
   ck_lake: {
-    name: '보름달 호수', subtitle: '권장 Lv27~29', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 4.8, node: [400, 200],
+    name: '보름달 호수', subtitle: '권장 Lv24~26', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 4.8, node: [400, 200],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(5303);
@@ -156,20 +156,20 @@ export const MAPS = {
     exits: [
       { side: 'west', from: 15, to: 18, map: 'ck_town', entry: 'east' },
       { side: 'north', from: 30, to: 33, map: 'ck_path', entry: 'south' },
-      { side: 'east', from: 20, to: 24, scene: 'Town', region: 'solidPeaks', entry: 'west', to_name: '회전체 산맥 볼테라', requires: 'report', lockedMsg: '키르쿠스의 결정을 먼저 되찾아요' },
+      { side: 'east', from: 20, to: 24, map: 'sp_town', entry: 'west', to_name: '회전체 산맥 볼테라', requires: 'report', lockedMsg: '키르쿠스의 결정을 먼저 되찾아요' },
     ],
     spots: [
       runeSpot('runePi', '원주율의 룬 돌', 35.5, 26, '보름달 호수', '3.14'),
       { id: 'moonLake', kind: 'read', name: '호숫가 팻말', x: 13.4, y: 24, r: 24, label: '팻말 읽기',
         lines: [['보름달 호수의 지름은 약 13칸이에요.', '원주 = 지름 × 원주율 → 13 × 3.14 = 40.82칸을 걸어야 한 바퀴!'], ['어떤 원이든 원주 ÷ 지름은 늘 같아요.', '그 값이 원주율(약 3.14)이에요.']] },
-      { id: 'laSign', kind: 'read', name: '표지판', x: 3.6, y: 19.8, r: 22, label: '표지판 읽기', lines: [['보름달 호수 · 권장 Lv27~29', '← 키르쿠스 · ↑ 고대 유적 길 · → 볼테라 가는 길']] },
+      { id: 'laSign', kind: 'read', name: '표지판', x: 3.6, y: 19.8, r: 22, label: '표지판 읽기', lines: [['보름달 호수 · 권장 Lv24~26', '← 키르쿠스 · ↑ 고대 유적 길 · → 볼테라 가는 길']] },
     ],
   },
 
-  // ── 버섯 빈터 (Lv28~30) ───────────────────────
+  // ── 버섯 빈터 (Lv25~27) ───────────────────────
   // 가운데 바위를 둥글게 도는 고리 길. 남쪽 언덕 위 「원의 넓이의 룬」 (계단은 언덕 아래쪽).
   ck_glade: {
-    name: '버섯 빈터', subtitle: '권장 Lv28~30', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 5.0, node: [250, 290],
+    name: '버섯 빈터', subtitle: '권장 Lv25~27', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 5.0, node: [250, 290],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(5404);
@@ -194,14 +194,14 @@ export const MAPS = {
     exits: [{ side: 'north', from: 20, to: 23, map: 'ck_town', entry: 'south' }],
     spots: [
       runeSpot('runeArea', '원의 넓이의 룬 돌', 21.5, 26, '버섯 빈터', '반지름 × 반지름 × 3.14'),
-      { id: 'glSign', kind: 'read', name: '표지판', x: 23.6, y: 5, r: 22, label: '표지판 읽기', lines: [['버섯 빈터 · 권장 Lv28~30', '↑ 키르쿠스 · 고리 길을 돌아 남쪽 언덕 아래로 올라가요']] },
+      { id: 'glSign', kind: 'read', name: '표지판', x: 23.6, y: 5, r: 22, label: '표지판 읽기', lines: [['버섯 빈터 · 권장 Lv25~27', '↑ 키르쿠스 · 고리 길을 돌아 남쪽 언덕 아래로 올라가요']] },
     ],
   },
 
-  // ── 고대 유적 길 (Lv29~31) ─────────────────────
+  // ── 고대 유적 길 (Lv26~28) ─────────────────────
   // 서쪽(둥근 나무 숲)·남쪽(보름달 호수)에서 들어와 만나는 길. 북쪽 절벽의 유적 입구를 봉인 바위가 막아요.
   ck_path: {
-    name: '고대 유적 길', subtitle: '권장 Lv29~31', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 5.2, node: [380, 95],
+    name: '고대 유적 길', subtitle: '권장 Lv26~28', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 5.2, node: [380, 95],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(5505);

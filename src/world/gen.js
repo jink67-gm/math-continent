@@ -210,8 +210,9 @@ export function makeDungeon(id) {
     { id: `${r.id || id}_d1`, x: C(fx(36)), y: C(45.5), gold: Math.round(70 * r.power), potions: 2 },
     { id: `${r.id || id}_d2`, x: C(fx(3.5)), y: C(34), gold: Math.round(90 * r.power), potions: 2 },
   ];
+  // 첨탑에서 나가면 볼테라 산골 마을 동쪽 길로 (볼테라는 여러 지도 구조, data/r6maps.js)
   const back = id === 'chaosSpire'
-    ? { scene: 'Town', region: 'solidPeaks', entry: 'east', to: REGIONS.solidPeaks.name }
+    ? { scene: 'Map', map: 'sp_town', entry: 'east', to: '산골 마을 볼테라' }
     : { scene: 'Wild', region: id, entry: 'north', to: r.wildName };
   return {
     grid: g, walls, spawns, spots, chests, power: p,

@@ -271,7 +271,7 @@ export const MAPS = {
       b.path([[20, 37], [20, 11]], 2);
       for (const [x, y] of [[33, 17], [9, 23], [30, 31], [12, 32]]) b.obj(rnd() < 0.5 ? 'tree_big' : 'trio_green', x, y, { solid: [16, 6], tree: true });
       for (const [x, y] of [[16, 16], [24, 30]]) b.obj('rock_grey_big', x, y, { solid: [40, 14] });
-      b.obj('cave_mouth', 21, 11, {});
+      b.obj('cave_mouth', 21, 11, { tint: 0x9a7f78 });
       b.obj('sign', 23.4, 13.4, { solid: [10, 5] });
       b.roughen(rnd);
 

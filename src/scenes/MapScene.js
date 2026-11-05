@@ -45,11 +45,12 @@ export class MapScene extends WorldScene {
     this.grid = b.grid;
     const ground = this.grid.bake(this, seeded(b.cols * 7 + b.rows), { theme: d.theme }).setDepth(-1000);
     if (d.tint) ground.setTint(d.tint);
-    drawRelief(this, b, { cave: !!d.cave });
+    drawRelief(this, b, { cave: !!d.cave, theme: d.theme });
     if (!d.cave) this.blockTops(b, d);
     for (const r of b.solidRects()) this.addSolid(r.x, r.y, r.w, r.h);
     for (const o of b.objects) {
       const img = this.placeObject(o);
+      if (o.tint) img.setTint(o.tint);
       if (o.label) crisp(this.add.text(o.x, o.y - img.height - 2, o.label, textStyle(11, '#fff3c4'))).setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(o.y + 1);
     }
     this.mapBuildings = b.objects.filter((o) => o.solid === 'building');

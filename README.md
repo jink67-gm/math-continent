@@ -1,7 +1,7 @@
 # 수학 대륙: 여섯 마을의 봉인
 
 6학년 2학기 수학 액션 RPG. Phaser 3로 마을 하나씩 새로 만들고 있어요.
-그림·배경음악은 **Ninja Adventure**(CC0) 에셋을, 효과음은 기존 게임 자료를 씁니다.
+그림·배경음악은 **Ninja Adventure**(CC0) 에셋을, 절벽은 **Zelda-like tilesets**(ArMM1998, CC0)를, 효과음은 기존 게임 자료를 씁니다.
 
 - 주소: `https://jink67-gm.github.io/math-continent/`
 - 내 컴퓨터에서 볼 때: VS Code Live Server로 이 폴더를 열기 (`index.html`을 더블클릭하면 실행되지 않아요)
@@ -67,5 +67,6 @@
 | Phaser 3.80.1 | MIT (`lib/LICENSE-phaser.md`) |
 | 갈무리 (Galmuri) 2.40.3 · quiple | SIL OFL 1.1 (`fonts/OFL-Galmuri.md`) |
 | Ninja Adventure 에셋 · Pixel-Boy & AAA (`assets/na/`) | CC0 (`assets/na/LICENSE.txt`) · https://pixel-boy.itch.io/ninja-adventure-asset-pack |
+| 흙절벽 타일 · ArMM1998 「Zelda-like tilesets and sprites」 (`assets/zl/`, 색만 맞춤) | CC0 · https://opengameart.org/content/zelda-like-tilesets-and-sprites |
 | 흙/풀 연결 규칙 (`src/world/blobTiles.js`) | Ninja Adventure Godot 프로젝트 tileset.tres에서 옮김 (CC0) |
 | 효과음·버튼 그림 (`assets/audio`, `assets/ui2` 등) | 기존 게임 자료 |

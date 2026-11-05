@@ -1,5 +1,6 @@
 // 게임에서 쓰는 그림·소리 목록
 // 그림: Ninja Adventure (pixel-boy & AAA, CC0) — assets/na
+//       흙절벽: Zelda-like tilesets and sprites (ArMM1998, CC0) — assets/zl (tools/build_zl_cliffs.py로 색을 맞춤)
 // 효과음: 기존 게임 자료 — assets/audio/sfx
 
 export const ASSET_ROOT = 'assets/';
@@ -11,6 +12,8 @@ export const SHEETS = {
   'na/field': 'na/tiles/TilesetField.png',
   'na/relief': 'na/tiles/TilesetRelief.png',        // 절벽 면 (20칸 너비)
   'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
+  'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
+  'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
   'na/slash': ['na/fx/slash.png', 32],
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],

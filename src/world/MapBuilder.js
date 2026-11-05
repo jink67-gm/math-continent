@@ -298,9 +298,14 @@ export class MapBuilder {
 const RELIEF_COLS = 20;
 const DETAIL_COLS = 12;
 
-export function drawRelief(scene, b, { cave = false } = {}) {
+// 들판·숲의 절벽은 Zelda-like 흙절벽 시트(가로 4칸)를 써요: 줄 0 풀 가장자리 · 1~3 절벽 윗줄·가운데·아랫줄 · 4 테두리
+const ZL_COLS = 4;
+
+export function drawRelief(scene, b, { cave = false, theme = 'meadow' } = {}) {
   const g = scene.add.graphics().setDepth(-880);
   const R = (cx, cy) => cy * RELIEF_COLS + cx;
+  const zl = cave ? null : `zl/cliff_${theme === 'forest' ? 'forest' : 'meadow'}`;
+  const Z = (cx, cy) => cy * ZL_COLS + cx;
   for (let y = 0; y < b.rows; y++) {
     for (let x = 0; x < b.cols; x++) {
       const px = x * T;
@@ -320,14 +325,26 @@ export function drawRelief(scene, b, { cave = false } = {}) {
       if (cc) {
         const lf = !!b.cliffCell(x - 1, y);
         const rf = !!b.cliffCell(x + 1, y);
-        const col = lf && rf ? 5 : !lf && rf ? 4 : lf && !rf ? 6 : 9;
         const last = cc.i === cc.n - 1;
         const first = cc.i === 0;
-        const row = cave ? (last ? 2 : 1) : (last ? 7 : 6);
-        scene.add.image(px, py, 'na/relief', R(col, row)).setOrigin(0, 0).setDepth(-870);
-        // 풀과 절벽 사이에 밝은 테두리, 절벽 아래에는 그림자
-        if (first) g.fillStyle(0xc7e07a, 0.9).fillRect(px, py - 1, T, 2);
-        if (last) g.fillStyle(0x000000, 0.18).fillRect(px, py + T, T, 4);
+        if (zl) {
+          const col = lf && rf ? 1 : !lf && rf ? 0 : lf && !rf ? 2 : 3;
+          scene.add.image(px, py, zl, Z(col, last ? 3 : first ? 1 : 2)).setOrigin(0, 0).setDepth(-870);
+        } else {
+          const col = lf && rf ? 5 : !lf && rf ? 4 : lf && !rf ? 6 : 9;
+          scene.add.image(px, py, 'na/relief', R(col, last ? 2 : 1)).setOrigin(0, 0).setDepth(-870);
+          if (first) g.fillStyle(0xc7e07a, 0.9).fillRect(px, py - 1, T, 2);
+          if (last) g.fillStyle(0x000000, 0.18).fillRect(px, py + T, T, 4);
+        }
+      } else if (zl) {
+        // 절벽 바로 위 칸: 풀이 절벽 위로 살짝 늘어진 가장자리
+        const below = b.cliffCell(x, y + 1);
+        if (below && below.i === 0) {
+          const lf = !!b.cliffCell(x - 1, y + 1);
+          const rf = !!b.cliffCell(x + 1, y + 1);
+          const col = lf && rf ? 1 : !lf && rf ? 0 : lf && !rf ? 2 : 3;
+          scene.add.image(px, py, zl, Z(col, 0)).setOrigin(0, 0).setCrop(0, 8, T, 8).setDepth(-869);
+        }
       }
       if (b.isStairs(x, y)) {
         scene.add.image(px, py, 'na/reliefd', 3 * DETAIL_COLS + 5).setOrigin(0, 0).setDepth(-869);
@@ -342,13 +359,17 @@ export function drawRelief(scene, b, { cave = false } = {}) {
         const rock = cave ? 1 : 6;
         if (b.in(x - 1, y) && !b.hi(x - 1, y) && !b.isWall(x - 1, y) && !b.isFace(x - 1, y)) {
           g.fillStyle(0x000000, 0.2).fillRect(px - 3, py, 3, T);
-          scene.add.image(px, py, 'na/relief', R(4, rock)).setOrigin(0, 0).setCrop(0, 0, 5, T).setDepth(-868);
+          if (zl) scene.add.image(px, py, zl, Z(0, 4)).setOrigin(0, 0).setCrop(0, 0, 4, T).setDepth(-868);
+          else scene.add.image(px, py, 'na/relief', R(4, rock)).setOrigin(0, 0).setCrop(0, 0, 5, T).setDepth(-868);
         }
         if (b.in(x + 1, y) && !b.hi(x + 1, y) && !b.isWall(x + 1, y) && !b.isFace(x + 1, y)) {
           g.fillStyle(0x000000, 0.2).fillRect(px + T, py, 3, T);
-          scene.add.image(px, py, 'na/relief', R(6, rock)).setOrigin(0, 0).setCrop(T - 5, 0, 5, T).setDepth(-868);
+          if (zl) scene.add.image(px, py, zl, Z(2, 4)).setOrigin(0, 0).setCrop(T - 4, 0, 4, T).setDepth(-868);
+          else scene.add.image(px, py, 'na/relief', R(6, rock)).setOrigin(0, 0).setCrop(T - 5, 0, 5, T).setDepth(-868);
         }
-        if (b.in(x, y - 1) && !b.hi(x, y - 1) && !b.isWall(x, y - 1)) {
+        if (zl && b.in(x, y - 1) && !b.hi(x, y - 1) && !b.isWall(x, y - 1)) {
+          scene.add.image(px, py, zl, Z(1, 4)).setOrigin(0, 0).setCrop(0, 0, T, 4).setDepth(-868);
+        } else if (b.in(x, y - 1) && !b.hi(x, y - 1) && !b.isWall(x, y - 1)) {
           g.fillStyle(0x3b2a1a, 1).fillRect(px, py, T, 1);
           g.fillStyle(0x8a6a48, 1).fillRect(px, py + 1, T, 2);
           g.fillStyle(0x5a4030, 1).fillRect(px, py + 3, T, 1);

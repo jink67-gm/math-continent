@@ -272,13 +272,19 @@ export const MAPS = {
 
   // ── 고대 원형 유적 2층 (파이엔트의 방) ───────────────
   ck_ruin2: {
-    name: '고대 유적 2층', subtitle: '파이엔트의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 5.4, cave: true, tint: 0x98b898, node: [515, 30],
+    name: '고대 유적 2층', subtitle: '파이엔트의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 5.4, cave: true, tint: 0x98c8a0, node: [515, 30],
     build() {
+      // 돌 고리 제단: 둥근 제단 둘레에 선돌이 고리처럼 서 있어요 (남쪽은 들어오는 길)
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.wall(1, 2, 5, 5).wall(26, 2, 30, 5).wall(1, 25, 6, 30).wall(25, 25, 30, 30);
-      b.circle(15.5, 13, 9.5, 'd');
-      b.path([[15, 31], [15, 20]], 2);
+      b.circle(3.5, 4, 2.6, 'w').circle(28, 4, 2.6, 'w').circle(3.5, 28, 2.4, 'w').circle(28, 28, 2.4, 'w');
+      b.circle(15.5, 13, 8.2, 'd');
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2;
+        if (Math.abs(a - Math.PI / 2) < 0.5) continue; // 남쪽 입구
+        b.wall(Math.round(15.5 + Math.cos(a) * 11.2), Math.round(13 + Math.sin(a) * 10.2), Math.round(15.5 + Math.cos(a) * 11.2), Math.round(13 + Math.sin(a) * 10.2));
+      }
+      b.path([[15, 31], [15, 21]], 2);
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'piant', roomY: 21 },

@@ -259,13 +259,14 @@ export const MAPS = {
 
   // ── 왕성 지하 2층 (레이시오의 방) ─────────────────
   rk_vault2: {
-    name: '왕성 지하 2층', subtitle: '레이시오의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 4.4, cave: true, tint: 0xb0a0c4, node: [515, 30],
+    name: '왕성 지하 2층', subtitle: '레이시오의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 4.4, cave: true, tint: 0xc8a0b8, node: [515, 30],
     build() {
+      // 왕좌의 방: 긴 홀 양쪽에 기둥이 줄지어 서 있고, 가운데 융단이 왕좌까지 이어져요
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.wall(1, 2, 5, 5).wall(26, 2, 30, 5).wall(1, 25, 6, 30).wall(25, 25, 30, 30).wall(1, 12, 2, 17).wall(29, 12, 30, 17);
-      b.circle(15.5, 13, 9, 'd');
-      b.path([[15, 31], [15, 20]], 2);
+      b.wall(1, 2, 4, 30).wall(27, 2, 30, 30);
+      for (const y of [5, 11, 17, 23]) b.wall(7, y, 7, y + 1).wall(24, y, 24, y + 1);
+      b.ground(13, 2, 18, 30, 'd').ground(10, 2, 21, 5, 'd');
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'ratio', roomY: 21 },

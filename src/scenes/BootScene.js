@@ -1,6 +1,6 @@
 // 그림·소리를 모두 불러오고, 캐릭터·효과 애니메이션을 만들어요.
 
-import { ASSET_ROOT, SHEETS, IMAGES, CHARACTERS, OBJECTS, BGM, AUDIO, MONSTER_SHEETS, BOSS_SHEETS } from '../data/assets.js';
+import { ASSET_ROOT, SHEETS, IMAGES, CHARACTERS, OBJECTS, BGM, AUDIO, MONSTER_SHEETS, BOSS_SHEETS, GIANTS, GIANT_RATE, GIANT_LOOP } from '../data/assets.js';
 import { FONT } from '../ui/style.js';
 
 export const DIRS = ['down', 'up', 'left', 'right'];
@@ -34,6 +34,9 @@ export class BootScene extends Phaser.Scene {
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon/${m}`, `na/mon/${m}.png`, { frameWidth: 16, frameHeight: 16 });
     for (const [key, [path, fw]] of Object.entries(BOSS_SHEETS)) this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fw });
     this.load.image('face/troll', 'na/boss/troll/face.png');
+    for (const [g, anims] of Object.entries(GIANTS)) {
+      for (const [a, [path, fw, fh = fw]] of Object.entries(anims)) this.load.spritesheet(`boss/${g}_${a}`, path, { frameWidth: fw, frameHeight: fh });
+    }
     this.load.audio('bgm_title', BGM.bgm_title);
     for (const [key, path] of Object.entries(AUDIO)) this.load.audio(key, path);
   }
@@ -84,6 +87,9 @@ export class BootScene extends Phaser.Scene {
     a('troll_charge', 'boss/troll_charge', 8);
     a('spirit_idle', 'boss/spirit_idle', 7);
     a('spirit_hit', 'boss/spirit_hit', 10, 0);
+    for (const [g, anims] of Object.entries(GIANTS)) {
+      for (const k of Object.keys(anims)) a(`${g}_${k}`, `boss/${g}_${k}`, GIANT_RATE[k], GIANT_LOOP[k] ? -1 : 0);
+    }
   }
 
   makeFxAnims() {

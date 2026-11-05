@@ -1,6 +1,6 @@
 // 3번 지역: 소수점 항구 데시마르 (여러 지도가 이어진 구조)
 //
-//                       [소용돌이 만 dh_cove] ──동굴 입구──▶ [해저 동굴 1층] ──▶ [2층 데시크라켄]
+//                       [소용돌이 만 dh_cove] ──동굴 입구──▶ [해저 동굴 1층] ──▶ [2층 데시토드]
 //                        ▲ (0.1·0.01·0.001 룬)  ▲
 //   [조개 모래톱 dh_beach] ─┘                    │
 //          │                       [등대 방파제 dh_pier] ──▶ 프로포르 (마을을 구한 뒤)
@@ -254,15 +254,15 @@ export const MAPS = {
     ],
   },
 
-  // ── 소용돌이 해저 동굴 2층 (데시크라켄의 방) ─────────
+  // ── 소용돌이 해저 동굴 2층 (데시토드의 방) ─────────
   dh_cave2: {
-    name: '해저 동굴 2층', subtitle: '데시크라켄의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 3.6, cave: true, tint: 0x8fb0cc, node: [515, 30],
+    name: '해저 동굴 2층', subtitle: '데시토드의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 3.6, cave: true, tint: 0x7fb0d8, node: [515, 30],
     build() {
+      // 물에 잠긴 동굴: 양옆은 깊은 물길, 가운데 둥근 모래섬에서 싸워요
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.wall(1, 2, 5, 5).wall(26, 2, 30, 5).wall(1, 25, 6, 30).wall(25, 25, 30, 30);
-      b.circle(3.5, 15, 2, 'w').circle(28, 15, 2, 'w');
-      b.circle(15.5, 13, 9, 'd');
+      b.ground(1, 2, 6, 30, 'w').ground(25, 2, 30, 30, 'w').circle(8, 4, 2.5, 'w').circle(23, 4, 2.5, 'w').circle(8, 27, 2.6, 'w').circle(23, 27, 2.6, 'w');
+      b.circle(15.5, 13, 8.5, 'd');
       b.path([[15, 31], [15, 20]], 2);
       return b;
     },

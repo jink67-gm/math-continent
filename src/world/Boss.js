@@ -16,6 +16,7 @@ const WARN = ['', 'swipe', 'slam', 'charge'];
 
 export class Boss {
   // cfg: 보스 설정 (이름·세기·그림). 그림 종류: troll(인버트롤) · mon(몬스터 그림을 크게) · spirit(거대 정령)
+  //   giant(큰 보스 그림, data/assets.js GIANTS — key·scale·radius·aura 기운 색)
   constructor(scene, combat, x, y, cfg = TROLL) {
     this.scene = scene;
     this.combat = combat;
@@ -23,7 +24,7 @@ export class Boss {
     this.id = cfg.id;
     this.def = cfg;
     this.art = cfg.art || { type: 'troll' };
-    this.radius = this.art.type === 'troll' ? 14 : 16;
+    this.radius = this.art.radius || (this.art.type === 'troll' ? 14 : 16);
     this.home = { x, y };
     this.maxHp = Math.round(cfg.hp * combat.diff.monHp * combat.partyHp);
     this.hp = this.maxHp;
@@ -34,7 +35,12 @@ export class Boss {
     this.slowUntil = 0;
 
     this.shadow = scene.add.ellipse(x, y, 40, 12, 0x000000, 0.35);
-    if (this.art.type === 'mon') {
+    if (this.art.type === 'giant') {
+      this.sprite = scene.add.sprite(x, y, `boss/${this.art.key}_idle`, 0).setOrigin(0.5, this.art.oy || 0.95).setScale(this.art.scale || 1);
+      if (this.art.tint) this.sprite.setTint(this.art.tint);
+      // 강한 보스일수록 둘레에 일렁이는 기운
+      if (this.art.aura) this.auraG = scene.add.graphics().setBlendMode('ADD');
+    } else if (this.art.type === 'mon') {
       this.sprite = scene.add.sprite(x, y, `mon/${this.art.sheet}`, 0).setOrigin(0.5, 1).setScale(this.art.scale || 3.4);
     } else if (this.art.type === 'spirit') {
       this.sprite = scene.add.sprite(x, y, 'boss/spirit_idle', 0).setOrigin(0.5, 0.95).setScale(1.3).setTint(this.art.tint || 0xd0b8ff);
@@ -44,7 +50,7 @@ export class Boss {
     this.baseScale = this.sprite.scaleX;
     this.dir = 'down';
     this.anim('idle');
-    this.feet = scene.add.zone(x, y, 28, 12);
+    this.feet = scene.add.zone(x, y, Math.max(28, this.radius * 1.8), 12);
     scene.physics.add.existing(this.feet);
     this.feet.body.setCollideWorldBounds(true);
     scene.physics.add.collider(this.feet, scene.solids);
@@ -56,6 +62,11 @@ export class Boss {
   anim(kind) {
     const s = this.sprite;
     if (this.art.type === 'troll') { s.play(`troll_${kind}`, true); return; }
+    if (this.art.type === 'giant') {
+      const key = `${this.art.key}_${kind}`;
+      s.play(this.scene.anims.exists(key) ? key : `${this.art.key}_idle`, true);
+      return;
+    }
     if (this.art.type === 'spirit') { s.play('spirit_idle', true); s.anims.timeScale = kind === 'charge' ? 2 : 1; return; }
     s.play(`mon_${this.art.sheet}_${this.dir}`, true);
     s.anims.timeScale = kind === 'charge' ? 2.5 : kind === 'attack' ? 2 : 1;
@@ -82,7 +93,7 @@ export class Boss {
       return true;
     }
     this.sprite.setTintFill(0xffffff);
-    this.scene.time.delayedCall(60, () => this.alive && this.sprite.clearTint());
+    this.scene.time.delayedCall(60, () => { if (!this.alive) return; if (this.art.tint) this.sprite.setTint(this.art.tint); else this.sprite.clearTint(); });
     if (this.remote) return true;
     // 기절한 동안은 1.5배로 아파요
     this.hp -= this.state === 'stun' ? Math.round(dmg * 1.5) : dmg;
@@ -154,6 +165,7 @@ export class Boss {
     this.sprite.setTintFill(0xffffff);
     s.tweens.add({ targets: this.sprite, scaleX: this.baseScale * 1.6, scaleY: this.baseScale * 0.1, alpha: 0, duration: 900, ease: 'Quad.in' });
     this.shadow.setVisible(false);
+    if (this.auraG) s.tweens.add({ targets: this.auraG, alpha: 0, duration: 700, onComplete: () => this.auraG?.destroy() });
     for (let i = 0; i < 5; i++) {
       s.time.delayedCall(i * 150, () => s.fx('fx_smoke', 'na/smoke', this.x + (Math.random() - 0.5) * 40, this.y - 10 - Math.random() * 30, { scale: 1.3, depth: this.y + 20 }));
     }
@@ -385,11 +397,23 @@ export class Boss {
     this.shadow.setPosition(sx, sy - 1).setDepth(sy - 1).setScale(1 - (this.lift || 0) / 70);
     if (this.state === 'stun') this.sprite.setAngle(Math.sin(time / 90) * 6);
     if (time < this.slowUntil) this.sprite.setTint(0x9fd8ff);
+    if (this.auraG) {
+      const h = this.sprite.displayHeight;
+      const w = this.sprite.displayWidth;
+      const pulse = 0.5 + 0.5 * Math.sin(time / 260);
+      this.auraG.clear().setDepth(sy - 2)
+        .fillStyle(this.art.aura, 0.16 + 0.1 * pulse).fillEllipse(sx, sy - h * 0.42, w * (0.75 + 0.08 * pulse), h * (0.8 + 0.08 * pulse))
+        .fillStyle(this.art.aura, 0.22).fillEllipse(sx, sy - 2, w * 0.7, 14);
+    }
     if (this.shield) {
+      // 보호막 크기는 보스 그림 크기에 맞춰요
+      const h = Math.max(48, this.sprite.displayHeight * 0.9);
+      const w = Math.max(64, this.sprite.displayWidth * 0.85);
+      const cy = sy - h * 0.45;
       this.shield.clear().setDepth(sy + 2)
-        .fillStyle(0xb48cff, 0.22).fillEllipse(sx, sy - 24, 64, 60)
-        .lineStyle(2, 0xd8c0ff, 0.9).strokeEllipse(sx, sy - 24, 64, 60)
-        .lineStyle(1, 0xffffff, 0.6).strokeEllipse(sx - 10, sy - 38, 14, 8);
+        .fillStyle(0xb48cff, 0.22).fillEllipse(sx, cy, w, h)
+        .lineStyle(2, 0xd8c0ff, 0.9).strokeEllipse(sx, cy, w, h)
+        .lineStyle(1, 0xffffff, 0.6).strokeEllipse(sx - w * 0.16, cy - h * 0.23, 14, 8);
     }
   }
 }

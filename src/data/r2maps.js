@@ -266,13 +266,15 @@ export const MAPS = {
 
   // ── 세 방향 미궁 2층 (큐블록스의 방) ─────────────
   cb_maze2: {
-    name: '세 방향 미궁 2층', subtitle: '큐블록스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 2.7, cave: true, tint: 0xb8a898, node: [515, 30],
+    name: '세 방향 미궁 2층', subtitle: '큐블록스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 2.7, cave: true, tint: 0xd8b890, node: [515, 30],
     build() {
+      // 네모난 블록 방: 테두리에 2×2 정육면체 기둥, 구석에는 블록 더미 (쌓기나무처럼)
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.wall(1, 2, 4, 5).wall(27, 2, 30, 5).wall(1, 25, 5, 30).wall(26, 25, 30, 30).wall(1, 13, 2, 16).wall(29, 13, 30, 16);
-      b.circle(15.5, 13, 9, 'd');
-      b.path([[15, 31], [15, 20]], 2);
+      b.wall(1, 2, 4, 6).wall(27, 2, 30, 6).wall(1, 24, 4, 30).wall(27, 24, 30, 30).wall(5, 2, 6, 3).wall(25, 2, 26, 3);
+      b.ground(6, 4, 25, 22, 'd');
+      for (const [x, y] of [[6, 5], [24, 5], [6, 12], [24, 12], [6, 19], [24, 19], [11, 4], [19, 4]]) b.wall(x, y, x + 1, y + 1);
+      b.path([[15, 31], [15, 22]], 2);
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'cublox', roomY: 21 },

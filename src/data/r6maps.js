@@ -1,6 +1,6 @@
 // 6번 지역: 회전체 산맥 볼테라 (여러 지도가 이어진 구조) — 눈 덮인 산
 //
-//   [눈꽃 비탈 sp_slope] ──▶ [구름 능선 sp_ridge] ──탑 입구──▶ [수정 회전탑 1층] ──▶ [꼭대기 세 수호자]
+//   [눈꽃 비탈 sp_slope] ──▶ [구름 능선 sp_ridge] ──탑 입구──▶ [수정 회전탑 1층] ──▶ [꼭대기 볼텍스]
 //          │                    ▲ (원기둥 · 원뿔 · 구 룬)
 //   [산골 마을 sp_town] ──▶ 혼돈의 첨탑 (마을을 구한 뒤, 동쪽 길)
 //   ◀ 키르쿠스 호수 │
@@ -252,15 +252,20 @@ export const MAPS = {
     ],
   },
 
-  // ── 수정 회전탑 꼭대기 (세 수호자의 방) ─────────────
+  // ── 수정 회전탑 꼭대기 (볼텍스의 방) ─────────────
   sp_tower2: {
-    name: '회전탑 꼭대기', subtitle: '세 수호자의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 6.4, cave: true, tint: 0xa8b8d8, node: [515, 30],
+    name: '회전탑 꼭대기', subtitle: '볼텍스의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 6.4, cave: true, tint: 0xb0c8f0, node: [515, 30],
     build() {
+      // 탑 꼭대기 팔각 홀: 네 모서리를 계단처럼 깎아 팔각형, 양옆에 얼음 웅덩이
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);
-      b.wall(1, 2, 5, 5).wall(26, 2, 30, 5).wall(1, 25, 6, 30).wall(25, 25, 30, 30).wall(1, 12, 2, 17).wall(29, 12, 30, 17);
-      b.circle(15.5, 13, 9, 'd');
-      b.path([[15, 31], [15, 20]], 2);
+      for (let k = 0; k < 7; k++) {
+        b.wall(1, 2 + k, 7 - k, 2 + k).wall(24 + k, 2 + k, 30, 2 + k);
+        b.wall(1, 30 - k, 7 - k, 30 - k).wall(24 + k, 30 - k, 30, 30 - k);
+      }
+      b.ground(3, 13, 4, 16, 'w').ground(27, 13, 28, 16, 'w');
+      b.circle(15.5, 14, 9.5, 'd');
+      b.path([[15, 31], [15, 22]], 2);
       return b;
     },
     boss: { x: 15.5, y: 10, step: 'guardians', roomY: 21 },

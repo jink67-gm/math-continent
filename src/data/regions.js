@@ -17,9 +17,9 @@ export const REGIONS = {
     chief: { sprite: 'Knight', name: '성채 대장 큐브' },
     hint: ['쌓기나무는 위·앞·옆에서 본 모양으로 개수를 셀 수 있어.', '보이지 않는 뒤쪽에도 쌓기나무가 숨어 있을 수 있지!'],
     gate: '성채 문의 룬',
-    boss: { id: 'cublox', name: '블록 골렘 큐블록스', art: { type: 'mon', sheet: 'Bamboo', scale: 3.4 }, hp: 1500, atk: 26, def: 6, exp: 90, gold: [130, 160],
-      line: '내 블록을 몇 개나 셀 수 있을까?' },
-    story: '블록 골렘 큐블록스가 성채의 「입체의 결정」을 미궁에 숨겨 버렸다네. 성채 북쪽 문의 룬을 풀면 블록 언덕으로 나갈 수 있어.',
+    boss: { id: 'cublox', name: '블록 두꺼비 큐블록스', art: { type: 'giant', key: 'frog', scale: 1.7, radius: 17 }, hp: 1500, atk: 26, def: 6, exp: 90, gold: [130, 160],
+      line: '개굴! 내 등에 쌓인 블록을 몇 개나 셀 수 있을까?' },
+    story: '블록 두꺼비 큐블록스가 성채의 「입체의 결정」을 미궁에 숨겨 버렸다네. 성채 북쪽 문의 룬을 풀면 블록 언덕으로 나갈 수 있어.',
   },
   decimalHarbor: {
     n: 3, name: '소수점 항구 데시마르', subtitle: '소수의 나눗셈', unit: 'decimalDivision',
@@ -30,9 +30,9 @@ export const REGIONS = {
     chief: { sprite: 'OldMan3', name: '항구 선장 데시' },
     hint: ['소수로 나눌 때는 나누는 수를 자연수로 만들어 봐.', '두 수의 소수점을 똑같이 옮기면 몫은 그대로란다!'],
     gate: '항구 수문의 룬',
-    boss: { id: 'decikraken', name: '소수점 문어왕 데시크라켄', art: { type: 'mon', sheet: 'Octopus2', scale: 3.6 }, hp: 2200, atk: 34, def: 9, exp: 200, gold: [180, 220],
-      line: '소수점이 어디로 갔는지 맞혀 봐라!' },
-    story: '문어왕 데시크라켄이 등대의 「소수의 결정」을 빼앗아 해저 동굴로 숨었네. 항구 북쪽 수문의 룬을 풀면 모래톱으로 나갈 수 있어.',
+    boss: { id: 'decikraken', name: '소수점 바다두꺼비 데시토드', art: { type: 'giant', key: 'frog2', scale: 1.95, radius: 19 }, hp: 2200, atk: 34, def: 9, exp: 200, gold: [180, 220],
+      line: '개굴개굴! 소수점이 어디로 튀었는지 맞혀 봐라!' },
+    story: '바다두꺼비 데시토드가 등대의 「소수의 결정」을 빼앗아 해저 동굴로 숨었네. 항구 북쪽 수문의 룬을 풀면 모래톱으로 나갈 수 있어.',
   },
   ratioKingdom: {
     n: 4, name: '천칭 왕국 프로포르', subtitle: '비례식과 비례배분', unit: 'proportion',
@@ -43,7 +43,7 @@ export const REGIONS = {
     chief: { sprite: 'KnightGold', name: '왕국 재상 포르' },
     hint: ['비례식에서 바깥쪽 두 수의 곱과 안쪽 두 수의 곱은 같아.', '비례배분은 전체를 비의 합으로 나누는 것부터 시작하지!'],
     gate: '왕국 성문의 룬',
-    boss: { id: 'ratio', name: '비율의 기사왕 레이시오', art: { type: 'mon', sheet: 'Reptile', scale: 3.4 }, hp: 3000, atk: 42, def: 12, exp: 440, gold: [240, 280],
+    boss: { id: 'ratio', name: '비율의 기사왕 레이시오', art: { type: 'giant', key: 'samuraiBlue', scale: 1.15, radius: 18, oy: 0.98 }, hp: 3000, atk: 42, def: 12, exp: 440, gold: [240, 280],
       line: '내 저울은 언제나 같은 비율이다!' },
     story: '기사왕 레이시오가 왕국의 「비율의 결정」을 지하 저울방에 가둬 버렸소. 성문의 룬을 풀면 저울 평원으로 나갈 수 있소.',
   },
@@ -56,9 +56,9 @@ export const REGIONS = {
     chief: { sprite: 'Monk', name: '숲지기 키르' },
     hint: ['원의 넓이는 반지름 × 반지름 × 원주율이야.', '원을 잘게 잘라 붙이면 직사각형에 가까워진단다.'],
     gate: '숲 고리문의 룬',
-    boss: { id: 'piant', name: '원주의 고대수 파이엔트', art: { type: 'mon', sheet: 'Owl', scale: 3.6 }, hp: 3900, atk: 50, def: 15, exp: 975, gold: [300, 360],
+    boss: { id: 'piant', name: '원주의 숲수호자 파이엔트', art: { type: 'giant', key: 'tenguBlue', scale: 1.5, radius: 19, aura: 0x6fd0ff }, hp: 3900, atk: 50, def: 15, exp: 975, gold: [300, 360],
       line: '내 둘레를 재 보거라. 끝이 없지!' },
-    story: '고대수 파이엔트가 숲의 「원의 결정」을 유적 깊이 감춰 버렸단다. 고리문의 룬을 풀면 둥근 나무 숲으로 갈 수 있어.',
+    story: '숲수호자 파이엔트가 숲의 「원의 결정」을 유적 깊이 감춰 버렸단다. 고리문의 룬을 풀면 둥근 나무 숲으로 갈 수 있어.',
   },
   solidPeaks: {
     n: 6, name: '회전체 산맥 볼테라', subtitle: '원기둥, 원뿔, 구', unit: 'solids',
@@ -69,9 +69,9 @@ export const REGIONS = {
     chief: { sprite: 'OldWoman', name: '산지기 할머니 볼타' },
     hint: ['직사각형을 한 바퀴 돌리면 원기둥, 직각삼각형을 돌리면 원뿔이 돼.', '반원을 돌리면 구가 된단다.'],
     gate: '산길 관문의 룬',
-    boss: { id: 'guardians', name: '세 수호자 실린·코누스·스피라', art: { type: 'mon', sheet: 'Dragon', scale: 3.6 }, hp: 4800, atk: 58, def: 18, exp: 2160, gold: [380, 440],
-      line: '원기둥, 원뿔, 구… 우리 셋을 모두 이겨야 한다!' },
-    story: '세 수호자가 산의 「회전의 결정」을 탑 꼭대기에 봉인했단다. 관문의 룬을 풀면 눈꽃 비탈로 갈 수 있지.',
+    boss: { id: 'guardians', name: '회전의 대장군 볼텍스', art: { type: 'giant', key: 'samuraiRed', scale: 1.4, radius: 21, oy: 0.98, aura: 0xff6a3a }, hp: 4800, atk: 58, def: 18, exp: 2160, gold: [380, 440],
+      line: '원기둥, 원뿔, 구… 돌려 만든 모양을 모두 알아야 나를 이길 수 있다!' },
+    story: '대장군 볼텍스가 산의 「회전의 결정」을 탑 꼭대기에 봉인했단다. 관문의 룬을 풀면 눈꽃 비탈로 갈 수 있지.',
   },
 };
 
@@ -79,7 +79,7 @@ export const REGIONS = {
 export const SPIRE = {
   id: 'chaosSpire', name: '혼돈의 첨탑 카오스피어', unit: 'mixed', power: 6.5, dungeonTint: 0xb0a0c8,
   monsters: ['DragonYellow', 'Octopus', 'Spirit2', 'Reptile2', 'Owl', 'Mole2'],
-  boss: { id: 'zero', name: '혼돈의 군주 제로', art: { type: 'spirit' }, hp: 6000, atk: 66, def: 20, exp: 4000, gold: [600, 700],
+  boss: { id: 'zero', name: '혼돈의 군주 제로', art: { type: 'giant', key: 'tenguRed', scale: 1.55, radius: 22, aura: 0xb46cff }, hp: 6000, atk: 66, def: 20, exp: 4000, gold: [600, 700],
     line: '모든 수를 0으로 만들어 주마!' },
 };
 

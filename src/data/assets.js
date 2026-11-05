@@ -46,6 +46,21 @@ export const BOSS_SHEETS = {
   'boss/spirit_hit': ['na/boss/spirit/hit.png', 50],
 };
 
+// 큰 보스 그림 (Ninja Adventure Actor/Boss, CC0): 움직임마다 [그림, 칸 가로, 칸 세로]
+// 움직임: idle(서 있기) · attack(할퀴기) · charge(돌진) · jump(뛰어 찍기) · hit(맞음). 없는 건 idle로 대신해요.
+// 지역이 뒤로 갈수록 더 크고 강해 보이는 보스를 써요 (data/regions.js 의 boss.art).
+export const GIANTS = {
+  frog: { idle: ['na/boss/frog/idle.png', 40], attack: ['na/boss/frog/attack.png', 40], charge: ['na/boss/frog/charge.png', 40], jump: ['na/boss/frog/jump.png', 40], hit: ['na/boss/frog/hit.png', 40] },
+  frog2: { idle: ['na/boss/frog2/idle.png', 40], attack: ['na/boss/frog2/attack.png', 40], charge: ['na/boss/frog2/charge.png', 40], jump: ['na/boss/frog2/jump.png', 40], hit: ['na/boss/frog2/hit.png', 40] },
+  samuraiBlue: { idle: ['na/boss/samurai_blue/idle.png', 96, 48], attack: ['na/boss/samurai_blue/attack.png', 96], charge: ['na/boss/samurai_blue/charge.png', 96], jump: ['na/boss/samurai_blue/walk.png', 96, 48], hit: ['na/boss/samurai_blue/hit.png', 96, 48] },
+  samuraiRed: { idle: ['na/boss/samurai_red/idle.png', 96, 48], attack: ['na/boss/samurai_red/attack.png', 96], charge: ['na/boss/samurai_red/charge.png', 96], jump: ['na/boss/samurai_red/walk.png', 96, 48], hit: ['na/boss/samurai_red/hit.png', 96, 48] },
+  tenguBlue: { idle: ['na/boss/tengu_blue/idle.png', 68], attack: ['na/boss/tengu_blue/attack.png', 82], charge: ['na/boss/tengu_blue/walk.png', 82], jump: ['na/boss/tengu_blue/trans.png', 68], hit: ['na/boss/tengu_blue/hit.png', 68] },
+  tenguRed: { idle: ['na/boss/tengu_red/idle.png', 82], attack: ['na/boss/tengu_red/attack.png', 82], charge: ['na/boss/tengu_red/walk.png', 82], jump: ['na/boss/tengu_red/trans.png', 82], hit: ['na/boss/tengu_red/hit.png', 82] },
+};
+const GIANT_RATE = { idle: 7, attack: 16, charge: 12, jump: 12, hit: 12 };
+export const GIANT_LOOP = { idle: true, charge: true };
+export { GIANT_RATE };
+
 export { MONSTER_KEYS as MONSTER_SHEETS } from './monsters.js';
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)

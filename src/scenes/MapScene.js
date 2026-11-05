@@ -376,7 +376,7 @@ export class MapScene extends WorldScene {
     super.update(time, delta);
     // NPC 머리 위 퀘스트 표시: ! 받을 부탁 · ? 다 했어요
     for (const n of this.npcs) n.setMark?.(this.game.quests.marker(n.id));
-    if (this.dark) this.dark.setPosition(this.player.x, this.player.y - 6);
+    if (this.dark && this.player) this.dark.setPosition(this.player.x, this.player.y - 6);
   }
 
   // 동굴 조명: 주인공 둘레만 밝고 바깥은 어두워요 (화면보다 넉넉히 큰 그림을 주인공에 붙여 둬요)
@@ -395,6 +395,7 @@ export class MapScene extends WorldScene {
       ctx.fillRect(0, 0, w, h);
       tex.refresh();
     }
-    this.dark = this.add.image(this.player.x, this.player.y, key).setDepth(90000);
+    // 주인공은 아직 없을 수 있어요 (동굴에서 이어하기) — 자리는 update에서 맞춰요
+    this.dark = this.add.image(0, 0, key).setDepth(90000);
   }
 }

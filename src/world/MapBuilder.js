@@ -304,7 +304,7 @@ const ZL_COLS = 4;
 export function drawRelief(scene, b, { cave = false, theme = 'meadow' } = {}) {
   const g = scene.add.graphics().setDepth(-880);
   const R = (cx, cy) => cy * RELIEF_COLS + cx;
-  const zl = cave ? null : `zl/cliff_${['forest', 'pink'].includes(theme) ? theme : 'meadow'}`;
+  const zl = cave ? null : `zl/cliff_${['forest', 'pink', 'sand'].includes(theme) ? theme : 'meadow'}`;
   const Z = (cx, cy) => cy * ZL_COLS + cx;
   for (let y = 0; y < b.rows; y++) {
     for (let x = 0; x < b.cols; x++) {

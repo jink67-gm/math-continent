@@ -196,8 +196,9 @@ export class TitleScene extends Phaser.Scene {
     // 예전 1번 마을 장면(Village·Field·RockForest·Cave)으로 저장된 기록은 새 프락시아 마을에서 시작해요
     let scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
     let map = stats.scene === 'Map' ? stats.map : 'village';
-    // 큐베른은 여러 지도 구조로 바뀌었어요: 예전 큐베른 마을·들판·던전에 있었다면 성채 마을로
-    if (scene !== 'Map' && stats.region === 'cubeCity') { scene = 'Map'; map = 'cb_town'; }
+    // 큐베른·데시마르는 여러 지도 구조로 바뀌었어요: 예전 마을·들판·던전에 있었다면 그 지역 마을 지도로
+    const moved = { cubeCity: 'cb_town', decimalHarbor: 'dh_town' }[stats.region];
+    if (scene !== 'Map' && moved) { scene = 'Map'; map = moved; }
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(scene, { region: stats.region, map }));
   }
 }

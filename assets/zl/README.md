@@ -11,6 +11,7 @@
 - `cliff_meadow.png` 들판 풀색
 - `cliff_forest.png` 숲 풀색
 - `cliff_pink.png` 분홍 꽃잎 땅 (큐베른 마을)
+- `cliff_sand.png` 모래 (데시마르)
 - `props.png` 바위·자갈·큰 바위·나무 계단
 - `town.png` 시장 천막·긴 의자·나무 상자·과일 상자·화분·그루터기
 - `fountain.png` 광장 분수 (3장면 움직임)

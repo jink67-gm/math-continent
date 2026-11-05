@@ -4,8 +4,10 @@
 
 import { MAPS as M1 } from './r1maps.js';
 import { MAPS as M2 } from './r2maps.js';
+import { MAPS as M3 } from './r3maps.js';
 import { R1_MAIN, R1_SIDE } from './r1quests.js';
 import { R2_MAIN, R2_SIDE } from './r2quests.js';
+import { R3_MAIN, R3_SIDE } from './r3quests.js';
 import { REGIONS } from './regions.js';
 import { TROLL } from '../world/Boss.js';
 
@@ -19,6 +21,11 @@ export const MAP_REGIONS = {
     name: REGIONS.cubeCity.name, maps: M2, town: 'cb_town', cave: 'cb_maze1', unit: 'spatial',
     main: R2_MAIN, side: R2_SIDE, save: 'cubeCity', boss: REGIONS.cubeCity.boss, prefix: 'cubeCity',
     chiefIdle: '성채가 이렇게 튼튼한 건 다 자네 덕분일세!',
+  },
+  decimalHarbor: {
+    name: REGIONS.decimalHarbor.name, maps: M3, town: 'dh_town', cave: 'dh_cave1', unit: 'decimalDivision',
+    main: R3_MAIN, side: R3_SIDE, save: 'decimalHarbor', boss: REGIONS.decimalHarbor.boss, prefix: 'decimalHarbor',
+    chiefIdle: '등대 불빛이 오늘도 반짝이는구먼. 고맙네!',
   },
 };
 

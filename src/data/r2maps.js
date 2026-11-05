@@ -42,7 +42,7 @@ export const MAPS = {
       b.path([[0, 18], [18, 18]], 2).path([[26, 18], [43, 18]], 2);
       b.path([[21, 23], [21, 33]], 2);
       b.path([[12, 19], [12, 24]], 1).path([[32, 19], [32, 24]], 1);
-      b.circle(16, 23.6, 1.3, 'w');
+      b.ground(15, 23, 16, 24, 'w');
       // 건물
       b.obj('house_big', 14, 8.6, { solid: 'building', label: '대장의 집' });
       b.obj('house_round', 29, 8.6, { solid: 'building', label: '룬의 집' });
@@ -154,7 +154,7 @@ export const MAPS = {
     exits: [
       { side: 'west', from: 17, to: 20, map: 'cb_town', entry: 'east' },
       { side: 'north', from: 30, to: 33, map: 'cb_ridge', entry: 'south' },
-      { side: 'east', from: 21, to: 25, scene: 'Town', region: 'decimalHarbor', entry: 'west', to_name: '소수점 항구 데시마르', requires: 'report', lockedMsg: '큐베른의 결정을 먼저 되찾아요' },
+      { side: 'east', from: 21, to: 25, map: 'dh_town', entry: 'west', to_name: '소수점 항구 데시마르', requires: 'report', lockedMsg: '큐베른의 결정을 먼저 되찾아요' },
     ],
     spots: [
       runeSpot('runeFront', '앞의 룬 돌', 35.5, 25, '쌓기나무 채석장'),

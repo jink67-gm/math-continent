@@ -4,7 +4,7 @@
 // 그림: Ninja Adventure Items (CC0)
 
 export const WEAPONS = {
-  wood_sword: { name: '연습용 검', atk: 0, price: 0, icon: 'na/items/Sword.png', hand: 'na/sword', desc: '처음 받은 연습용 검' },
+  wood_sword: { name: '수련용 환도', atk: 0, price: 0, icon: 'na/items/Hwando.png', hand: 'hand/Hwando', desc: '조선의 칼 「환도」를 본뜬 수련용 검' },
   iron_sword: { name: '든든한 대검', atk: 5, price: 120, icon: 'na/items/BigSword.png', hand: 'hand/BigSword', desc: '묵직하고 튼튼한 검' },
   katana: { name: '바람 검', atk: 10, price: 320, icon: 'na/items/Katana.png', hand: 'hand/Katana', desc: '바람처럼 가벼운 검' },
   magic_wand: { name: '별빛 지팡이', atk: 9, sp: 15, price: 300, icon: 'na/items/MagicWand.png', hand: 'hand/MagicWand', desc: '최대 SP도 올려 주는 지팡이' },

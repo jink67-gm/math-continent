@@ -53,6 +53,7 @@ export const IMAGES = {
   'na/element': 'na/tiles/TilesetElement.png',
   'na/sword': 'na/fx/sword.png',
   'na/coin': 'na/fx/coin.png',
+  'hand/Hwando': 'na/items/Hwando_hand.png',
   'hand/BigSword': 'na/items/BigSword_hand.png',
   'hand/Katana': 'na/items/Katana_hand.png',
   'hand/MagicWand': 'na/items/MagicWand_hand.png',

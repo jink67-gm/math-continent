@@ -8,7 +8,8 @@ const DODGE_MS = 230;
 const DODGE_INV_MS = 300; // 구르기 무적 시간
 
 const VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-const SWING_BASE = { up: 0, right: 90, down: 180, left: 270 };
+// 칼 그림은 손잡이가 위, 칼날이 아래를 향해요. 보는 쪽으로 칼날이 향하게 돌리는 각도
+const BLADE = { down: 0, left: 90, up: 180, right: -90 };
 
 export class Player {
   constructor(scene, x, y, sprite) {
@@ -25,14 +26,15 @@ export class Player {
     scene.physics.add.existing(this.feet);
     this.feet.body.setCollideWorldBounds(true);
     this.sprite = scene.add.sprite(x, y, `ch/${sprite}`, 0).setOrigin(0.5, 1);
-    this.sword = scene.add.image(x, y, 'na/sword').setVisible(false);
+    this.sword = scene.add.image(x, y, 'na/sword').setFlipY(true).setVisible(false);
     this.lift = 0; // 점프할 때 몸만 위로
     this.play('idle_down');
   }
 
   // 끼운 무기 그림으로 바꿔요
+  // 기본 칼(na/sword)만 손잡이가 아래라서 뒤집어 다른 칼처럼 손잡이를 위로 맞춰요
   setWeapon(key) {
-    if (key && this.scene.textures.exists(key)) this.sword.setTexture(key);
+    if (key && this.scene.textures.exists(key)) this.sword.setTexture(key).setFlipY(key === 'na/sword');
   }
 
   get x() { return this.feet.x; }
@@ -70,31 +72,41 @@ export class Player {
     });
   }
 
-  // 공격 한 번: 앞으로 살짝 내딛고 칼을 휘둘러요 (3타는 크게)
+  // 공격 한 번: 앞으로 내딛으며 손잡이를 쥔 칼을 앞쪽으로 빠르게 베어요 (2타는 반대로, 3타는 크게)
+  // 칼날 자국(초승달)은 Combat.js가 그려요.
   swing(combo, ms, onEnd) {
     const [vx, vy] = this.facingVector();
-    const step = combo === 3 ? 110 : 45;
+    const step = combo === 3 ? 120 : 55;
     this.feet.body.setVelocity(vx * step, vy * step);
     this.scene.time.delayedCall(combo === 3 ? 120 : 80, () => {
       if (this.state === 'atk') this.feet.body.setVelocity(0, 0);
     });
     this.sprite.play(`${this.key}_atk_${this.dir}`, true);
-    const base = SWING_BASE[this.dir];
+    const base = BLADE[this.dir];
     const flip = combo === 2 ? -1 : 1;
-    const arc = combo === 3 ? 100 : 70;
+    const arc = combo === 3 ? 80 : 60;
     this.scene.tweens.killTweensOf(this.sword);
-    this.sword.setVisible(true).setOrigin(0.5, 1).setScale(combo === 3 ? 1.25 : 1).setAngle(base - arc * flip);
-    this.scene.tweens.add({ targets: this.sword, angle: base + arc * flip, duration: combo === 3 ? 170 : 120, ease: 'Quad.out' });
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(combo === 3 ? 1.35 : 1.15).setAngle(base - arc * flip);
+    this.scene.tweens.add({ targets: this.sword, angle: base + arc * flip, duration: combo === 3 ? 110 : 75, ease: 'Cubic.out' });
+    this.lean(combo === 3 ? 1.25 : 1.15);
     this.lock('atk', ms, onEnd);
+  }
+
+  // 휘두르는 쪽으로 몸을 쭉 뻗었다가 돌아와요
+  lean(k) {
+    const side = this.dir === 'left' || this.dir === 'right';
+    this.scene.tweens.killTweensOf(this.sprite);
+    this.sprite.setScale(1).setAngle(0);
+    this.scene.tweens.add({ targets: this.sprite, scaleX: side ? k : 2 - k, scaleY: side ? 2 - k : k, duration: 60, yoyo: true, ease: 'Quad.out' });
   }
 
   // 칼을 한 바퀴 돌려요 (회전 베기)
   spin(ms) {
     this.sprite.play(`${this.key}_atk_${this.dir}`, true);
     this.scene.tweens.killTweensOf(this.sword);
-    const base = SWING_BASE[this.dir];
-    this.sword.setVisible(true).setOrigin(0.5, 1).setScale(1.3).setAngle(base);
-    this.scene.tweens.add({ targets: this.sword, angle: base + 360, duration: ms * 0.8, ease: 'Sine.inOut' });
+    const base = BLADE[this.dir];
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.4).setAngle(base);
+    this.scene.tweens.add({ targets: this.sword, angle: base + 360, duration: ms * 0.6, ease: 'Cubic.out' });
     this.feet.body.setVelocity(0, 0);
     this.lock('cast', ms);
   }

@@ -19,6 +19,9 @@ export const SHEETS = {
   'zl/town': 'zl/town.png',                          // 시장 천막·의자·상자·화분 (가로 8칸)
   'zl/fountain': ['zl/fountain.png', 48],            // 광장 분수 3장면
   'na/slash': ['na/fx/slash.png', 32],
+  'na/slashc': ['na/fx/slash_curved.png', 32],          // 초승달 베기 (1·2타)
+  'na/slashdc': ['na/fx/slash_double_curved.png', 32],  // 겹 초승달 베기 (3타)
+  'na/slashcirc': ['na/fx/slash_circular.png', 32],     // 둥근 베기 (회전 베기)
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
   'na/spark': ['na/fx/particle_spark.png', 10, 8],

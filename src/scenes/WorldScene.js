@@ -176,8 +176,8 @@ export class WorldScene extends Phaser.Scene {
     return g;
   }
 
-  fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false } = {}) {
-    const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth);
+  fx(anim, sheet, x, y, { angle = 0, scale = 1, depth = 0, add = false, flipY = false } = {}) {
+    const s = this.add.sprite(x, y, sheet, 0).setAngle(angle).setScale(scale).setDepth(depth).setFlipY(flipY);
     if (add) s.setBlendMode('ADD');
     s.play(anim);
     s.once('animationcomplete', () => s.destroy());

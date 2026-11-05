@@ -126,7 +126,10 @@ export class Combat {
       const hx = p.x + fx * c.reach;
       const hy = p.y - 3 + fy * c.reach * 0.8;
       const angle = { right: 0, down: 90, left: 180, up: 270 }[p.dir];
-      this.scene.fx('fx_slash', 'na/slash', hx, hy - 3, { angle, scale: combo === 3 ? 1.25 : 0.9, depth: p.y + 20 });
+      // 초승달 모양 칼날 자국 (2타는 반대 방향, 3타는 겹 초승달)
+      const big = combo === 3;
+      this.scene.fx(big ? 'fx_slashdc' : 'fx_slashc', big ? 'na/slashdc' : 'na/slashc', p.x + fx * 9, p.y - 6 + fy * 7,
+        { angle, scale: big ? 1.2 : 0.95, depth: p.y + 20, flipY: combo === 2 });
       const n = this.hitArea(hx, hy, c.r, c.mult, c.knock);
       if (n) this.hitstop(c.stop);
       if (combo === 3 && n) {
@@ -232,13 +235,8 @@ export class Combat {
   skill_spin(sk) {
     const p = this.player;
     p.spin(380);
-    for (let k = 0; k < 4; k++) {
-      this.scene.time.delayedCall(k * 70, () => {
-        const a = k * 90 + { right: 0, down: 90, left: 180, up: 270 }[p.dir];
-        const rad = Phaser.Math.DegToRad(a);
-        this.scene.fx('fx_slash', 'na/slash', p.x + Math.cos(rad) * 16, p.y - 4 + Math.sin(rad) * 12, { angle: a, scale: 1.1, depth: p.y + 20 });
-      });
-    }
+    this.scene.fx('fx_slashcirc', 'na/slashcirc', p.x, p.y - 6, { scale: 1.5, depth: p.y + 20 });
+    this.scene.time.delayedCall(120, () => this.scene.fx('fx_slashcirc', 'na/slashcirc', p.x, p.y - 6, { scale: 1.9, depth: p.y + 20, angle: 90 }));
     this.scene.time.delayedCall(140, () => {
       this.scene.burst(p.x, p.y - 4, { len: sk.r + 10, rays: 16, color: 0xfff0a0, depth: p.y + 25 });
       if (this.hitArea(p.x, p.y - 2, sk.r, sk.mult, sk.knock)) this.hitstop(70);

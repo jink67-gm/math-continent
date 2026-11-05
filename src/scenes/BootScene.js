@@ -95,6 +95,9 @@ export class BootScene extends Phaser.Scene {
     this.anims.create({ key: 'fx_star', frames: this.anims.generateFrameNumbers('na/star'), frameRate: 14 });
     this.anims.create({ key: 'fx_ring', frames: this.anims.generateFrameNumbers('na/ring'), frameRate: 14 });
     this.anims.create({ key: 'fx_slash', frames: this.anims.generateFrameNumbers('na/slash'), frameRate: 20 });
+    this.anims.create({ key: 'fx_slashc', frames: this.anims.generateFrameNumbers('na/slashc'), frameRate: 24 });
+    this.anims.create({ key: 'fx_slashdc', frames: this.anims.generateFrameNumbers('na/slashdc'), frameRate: 20 });
+    this.anims.create({ key: 'fx_slashcirc', frames: this.anims.generateFrameNumbers('na/slashcirc'), frameRate: 18 });
     this.anims.create({ key: 'fx_smoke', frames: this.anims.generateFrameNumbers('na/smoke'), frameRate: 16 });
     this.anims.create({ key: 'fx_sparkc', frames: this.anims.generateFrameNumbers('na/sparkc'), frameRate: 14 });
     this.anims.create({ key: 'fx_spark', frames: this.anims.generateFrameNumbers('na/spark'), frameRate: 10, repeat: -1 });

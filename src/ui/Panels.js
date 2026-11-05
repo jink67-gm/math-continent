@@ -170,49 +170,51 @@ export function openForge(game, scene) {
 }
 
 // ── 지도 (M) ─────────────────────────────────────
-// 양피지 지도: 1번 지역의 지도들을 길로 이어 그리고, 가 본 곳 · 지금 있는 곳 · 퀘스트 목표를 보여 줘요.
+// 양피지 지도: 지금 지역의 지도들을 길로 이어 그리고, 가 본 곳 · 지금 있는 곳 · 퀘스트 목표를 보여 줘요.
+// 지도마다 자리(node)는 data/r1maps.js · r2maps.js 에 적혀 있어요.
 // 아래에는 수학 대륙의 여섯 마을과 혼돈의 첨탑이 이어진 길과 구한 마을을 보여 줘요.
-const R1_NODES = {
-  village: [270, 190], east_field: [410, 190], stream: [270, 290], forest: [120, 220],
-  hill: [230, 100], pass: [230, 30], cave1: [340, 30], cave2: [440, 30],
-};
 const CONTINENT = [
   ['fractionValley', '프락시아'], ['cubeCity', '큐베른'], ['decimalHarbor', '데시마르'], ['ratioKingdom', '프로포르'],
   ['circleForest', '키르쿠스'], ['solidPeaks', '볼테라'], ['chaosSpire', '카오스피어'],
 ];
 
 export async function openWorldMap(game, scene) {
-  const { MAPS } = await import('../data/r1maps.js');
+  const { MAP_REGIONS } = await import('../data/mapRegions.js');
   const s = game.registry.get('player');
   const q = game.quests;
   const here = scene.mapId;
+  const rid = scene.def?.region || 'fractionValley';
+  const rc = MAP_REGIONS[rid];
+  const MAPS = rc.maps;
+  const N = (id) => MAPS[id]?.node;
   const visited = new Set([...(s.visited || []), here].filter(Boolean));
-  const target = here ? q.r1Target(here)?.map : null;
+  const target = here && q.rc ? q.mapTarget(here)?.map : null;
   return openPanel(game, '지도', (body) => {
     const edges = new Set();
     let lines = '';
     for (const [id, d] of Object.entries(MAPS)) {
       for (const e of d.exits || []) {
-        if (!e.map || !R1_NODES[e.map]) continue;
+        if (!e.map || !N(e.map)) continue;
         const k = [id, e.map].sort().join('-');
         if (edges.has(k)) continue;
         edges.add(k);
-        const [x1, y1] = R1_NODES[id];
-        const [x2, y2] = R1_NODES[e.map];
+        const [x1, y1] = N(id);
+        const [x2, y2] = N(e.map);
         const seen = visited.has(id) || visited.has(e.map);
         lines += `<path d="M${x1} ${y1} Q${(x1 + x2) / 2 + 12} ${(y1 + y2) / 2 - 10} ${x2} ${y2}" stroke="${seen ? '#7a4a1e' : '#b89a62'}" stroke-width="3" stroke-dasharray="${seen ? '0' : '6 6'}" fill="none"/>`;
       }
     }
     let nodes = '';
-    for (const [id, [x, y]] of Object.entries(R1_NODES)) {
-      const d = MAPS[id];
+    for (const [id, d] of Object.entries(MAPS)) {
+      const [x, y] = d.node;
+      const town = id === rc.town;
       const v = visited.has(id);
       const cave = d.cave;
-      const fill = !v ? '#c9ab6c' : id === 'village' ? '#c0392b' : cave ? '#5a4a6a' : '#8a5a2a';
-      nodes += `<circle cx="${x}" cy="${y}" r="${id === 'village' ? 13 : 10}" fill="${fill}" stroke="#3b2410" stroke-width="2"/>`;
+      const fill = !v ? '#c9ab6c' : town ? '#c0392b' : cave ? '#5a4a6a' : '#8a5a2a';
+      nodes += `<circle cx="${x}" cy="${y}" r="${town ? 13 : 10}" fill="${fill}" stroke="#3b2410" stroke-width="2"/>`;
       nodes += `<text x="${x}" y="${y + 26}" text-anchor="middle" font-size="13" fill="${v ? '#2b1a0a' : '#8a7448'}">${v ? escapeHtml(d.name) : '???'}</text>`;
       if (v && d.subtitle?.startsWith('권장')) nodes += `<text x="${x}" y="${y + 40}" text-anchor="middle" font-size="10" fill="#6b4a22">${escapeHtml(d.subtitle.replace('권장 ', ''))}</text>`;
-      if (id === target) nodes += `<text x="${x + 13}" y="${y - 10}" font-size="20" fill="#e0a000" stroke="#3b2410" stroke-width="1">!</text>`;
+      if (id === target) nodes += `<text x="${x + 15}" y="${y + 7}" font-size="20" fill="#e0a000" stroke="#3b2410" stroke-width="1">!</text>`;
       if (id === here) nodes += `<g><circle cx="${x}" cy="${y}" r="18" fill="none" stroke="#ffef7a" stroke-width="3"><animate attributeName="r" values="14;20;14" dur="1.2s" repeatCount="indefinite"/></circle><text x="${x}" y="${y - 16}" text-anchor="middle" font-size="12" fill="#c0392b">▼ 나</text></g>`;
     }
     // 수학 대륙: 마을을 구했는지
@@ -221,7 +223,7 @@ export async function openWorldMap(game, scene) {
     CONTINENT.forEach(([vid, name], i) => {
       const x = 40 + i * 76;
       const done = vid === 'chaosSpire' ? q.passed('zero', 'solidPeaks') : cleared(vid);
-      const cur = scene.info.village === vid || (vid === 'fractionValley' && here);
+      const cur = scene.info.village === vid;
       if (i) chain += `<line x1="${x - 76 + 12}" y1="20" x2="${x - 12}" y2="20" stroke="#7a4a1e" stroke-width="3"/>`;
       chain += `<circle cx="${x}" cy="20" r="11" fill="${done ? '#e0b030' : '#c9ab6c'}" stroke="${cur ? '#c0392b' : '#3b2410'}" stroke-width="${cur ? 4 : 2}"/>`;
       chain += `<text x="${x}" y="46" text-anchor="middle" font-size="11" fill="#2b1a0a">${name}</text>`;
@@ -229,8 +231,8 @@ export async function openWorldMap(game, scene) {
     });
     body.innerHTML = `
       <div class="map-parchment">
-        <div class="map-title">나눔의 계곡 프락시아</div>
-        <svg viewBox="0 0 540 330" class="map-svg r1" role="img" aria-label="1번 지역 지도">${lines}${nodes}</svg>
+        <div class="map-title">${escapeHtml(rc.name)}</div>
+        <svg viewBox="0 0 540 330" class="map-svg r1" role="img" aria-label="${escapeHtml(rc.name)} 지도">${lines}${nodes}</svg>
         <div class="map-title small">수학 대륙</div>
         <svg viewBox="0 0 540 56" class="map-svg chain" role="img" aria-label="수학 대륙 마을들">${chain}</svg>
         <div class="map-legend">● 가 본 곳 · ??? 아직 안 가 본 곳 · <b>!</b> 지금 퀘스트 목표 · ★ 구한 마을</div>

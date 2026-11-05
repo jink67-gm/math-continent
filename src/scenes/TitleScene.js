@@ -194,8 +194,10 @@ export class TitleScene extends Phaser.Scene {
     this.sound.play('sfx_confirm', { volume: 0.5 });
     this.cameras.main.fadeOut(400, 0, 0, 0);
     // 예전 1번 마을 장면(Village·Field·RockForest·Cave)으로 저장된 기록은 새 프락시아 마을에서 시작해요
-    const scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
-    const map = stats.scene === 'Map' ? stats.map : 'village';
+    let scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
+    let map = stats.scene === 'Map' ? stats.map : 'village';
+    // 큐베른은 여러 지도 구조로 바뀌었어요: 예전 큐베른 마을·들판·던전에 있었다면 성채 마을로
+    if (scene !== 'Map' && stats.region === 'cubeCity') { scene = 'Map'; map = 'cb_town'; }
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(scene, { region: stats.region, map }));
   }
 }

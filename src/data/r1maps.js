@@ -21,7 +21,7 @@ const TREES = {
 };
 
 // 풀숲·꽃·덤불 흩뿌리기 (길·물·언덕 가장자리·물건 근처는 피해요)
-function scatter(b, rnd, n, { keep = [], kinds } = {}) {
+export function scatter(b, rnd, n, { keep = [], kinds } = {}) {
   const deco = kinds || [['flower_a'], ['flower_b'], ['grass_a'], ['grass_b'], ['grass_a'], ['bush_a', [10, 5]], ['bush_b', [10, 5]]];
   for (let i = 0; i < n; i++) {
     const x = 1 + Math.floor(rnd() * (b.cols - 2));
@@ -36,13 +36,13 @@ function scatter(b, rnd, n, { keep = [], kinds } = {}) {
 }
 
 // 몬스터 자리 만들기: [종류, x, y]
-const S = (list) => list.map(([kind, x, y]) => ({ kind, x: x * 16, y: y * 16 }));
+export const S = (list) => list.map(([kind, x, y]) => ({ kind, x: x * 16, y: y * 16 }));
 
 export const MAPS = {
   // ── 프락시아 마을 ─────────────────────────────
   // 위쪽 언덕(촌장 집·룬의 집) · 가운데 광장 · 서쪽 시내와 다리 · 동남쪽 분수 밭. 가장자리는 절벽 숲.
   village: {
-    name: '프락시아 마을', subtitle: '나눔의 계곡', bgm: 'bgm_town', theme: 'meadow', cols: 44, rows: 34, safe: true,
+    name: '프락시아 마을', subtitle: '나눔의 계곡', bgm: 'bgm_town', theme: 'meadow', cols: 44, rows: 34, safe: true, node: [270, 190],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(101);
@@ -117,7 +117,7 @@ export const MAPS = {
   // ── 바람개비 들판 (Lv1~3) ──────────────────────
   // 서쪽 입구에서 동쪽 출구로 이어지는 골짜기. 북쪽·남쪽으로 작은 풀밭이 숨어 있고, 동북쪽 언덕 위에 룬 돌.
   east_field: {
-    name: '바람개비 들판', subtitle: '권장 Lv1~3', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1,
+    name: '바람개비 들판', subtitle: '권장 Lv1~3', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1, node: [410, 190],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(202);
@@ -141,7 +141,7 @@ export const MAPS = {
     chests: [{ id: 'r1_ef', x: 39, y: 6.4, gold: 40, potions: 1 }],
     exits: [
       { side: 'west', from: 18, to: 20, map: 'village', entry: 'east' },
-      { side: 'east', from: 17, to: 22, scene: 'Town', region: 'cubeCity', entry: 'west', to_name: '쌓기나무 성채 큐베른', requires: 'report', lockedMsg: '프락시아의 결정을 먼저 되찾아요' },
+      { side: 'east', from: 17, to: 22, map: 'cb_town', entry: 'west', to_name: '쌓기나무 성채 큐베른', requires: 'report', lockedMsg: '프락시아의 결정을 먼저 되찾아요' },
     ],
     spots: [
       { id: 'runeA', kind: 'rune', name: '바람의 룬 돌', x: 34.5, y: 8, r: 24, label: '룬 돌 살펴보기', stone: true,
@@ -153,7 +153,7 @@ export const MAPS = {
   // ── 졸졸 시냇가 (Lv2~4) ────────────────────────
   // 북쪽 좁은 골목 → 시냇물과 다리 → 남서쪽 버섯 골짜기 / 남동쪽 언덕 위 룬 돌
   stream: {
-    name: '졸졸 시냇가', subtitle: '권장 Lv2~4', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1.2,
+    name: '졸졸 시냇가', subtitle: '권장 Lv2~4', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1.2, node: [270, 290],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(303);
@@ -187,7 +187,7 @@ export const MAPS = {
   // ── 나무꾼 숲 (Lv3~5) ──────────────────────────
   // 빽빽한 숲 사이로 난 길: 동쪽 입구 → 가운데 갈림길 → 북쪽 언덕길 / 서쪽 숲길(룬 돌) / 남서쪽 깊은 숲
   forest: {
-    name: '나무꾼 숲', subtitle: '권장 Lv3~5', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 1.35,
+    name: '나무꾼 숲', subtitle: '권장 Lv3~5', bgm: 'bgm_field', theme: 'forest', cols: 44, rows: 34, power: 1.35, node: [120, 220],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(404);
@@ -223,7 +223,7 @@ export const MAPS = {
   // ── 바람의 언덕 (Lv4~6) ────────────────────────
   // 아래 풀밭 → 계단 하나로만 오르는 큰 언덕 → 북쪽 고개(봉인). 동쪽 좁은 틈 너머에 숨은 풀숲.
   hill: {
-    name: '바람의 언덕', subtitle: '권장 Lv4~6', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1.5,
+    name: '바람의 언덕', subtitle: '권장 Lv4~6', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 34, power: 1.5, node: [230, 100],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(505);
@@ -263,7 +263,7 @@ export const MAPS = {
   // ── 돌다리 고개 (Lv5~7) ────────────────────────
   // 남쪽 좁은 길 → 바위 사이 풀밭 → 돌다리 → 북쪽 큰 절벽의 동굴 입구
   pass: {
-    name: '돌다리 고개', subtitle: '권장 Lv5~7', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 38, power: 1.7,
+    name: '돌다리 고개', subtitle: '권장 Lv5~7', bgm: 'bgm_field', theme: 'meadow', cols: 44, rows: 38, power: 1.7, node: [230, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       const rnd = seeded(606);
@@ -294,7 +294,7 @@ export const MAPS = {
   },
   // ── 뒤집힌 동굴 1층 ───────────────────────────
   cave1: {
-    name: '뒤집힌 동굴 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 1.8, cave: true, tint: 0xb8aec8,
+    name: '뒤집힌 동굴 1층', subtitle: '룬 기둥과 봉인된 문', bgm: 'bgm_dungeon', theme: 'cave', cols: 36, rows: 38, power: 1.8, cave: true, tint: 0xb8aec8, node: [340, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 35, 1).wall(0, 0, 0, 37).wall(35, 0, 35, 37).wall(0, 37, 15, 37).wall(20, 37, 35, 37);
@@ -325,7 +325,7 @@ export const MAPS = {
 
   // ── 뒤집힌 동굴 2층 (인버트롤의 방) ───────────────
   cave2: {
-    name: '뒤집힌 동굴 2층', subtitle: '인버트롤의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 1.8, cave: true, tint: 0xa898b8,
+    name: '뒤집힌 동굴 2층', subtitle: '인버트롤의 방', bgm: 'bgm_dungeon', theme: 'cave', cols: 32, rows: 32, power: 1.8, cave: true, tint: 0xa898b8, node: [440, 30],
     build() {
       const b = new MapBuilder(this.cols, this.rows);
       b.wall(0, 0, 31, 1).wall(0, 0, 0, 31).wall(31, 0, 31, 31).wall(0, 31, 13, 31).wall(18, 31, 31, 31);

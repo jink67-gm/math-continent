@@ -51,7 +51,8 @@ export function makeTown(id) {
       sleepLines: ['길이 보라색 봉인으로 막혀 있어요.', '대장님께 먼저 이야기를 들어 봐요.'], litLines: ['룬이 환하게 빛나요. 길이 열려 있어요.'] },
   ];
   const i = REGION_ORDER.indexOf(id);
-  const prev = i === 0 ? { scene: 'Map', map: 'east_field', entry: 'east', to: '바람개비 들판' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
+  // 큐베른은 여러 지도 구조(data/r2maps.js)라서, 데시마르의 서쪽 길은 큐베른 채석장으로 이어져요
+  const prev = i <= 1 ? { scene: 'Map', map: 'cb_quarry', entry: 'east', to: '쌓기나무 채석장' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
   const next = i < REGION_ORDER.length - 1
     ? { scene: 'Town', region: REGION_ORDER[i + 1], entry: 'west', to: REGIONS[REGION_ORDER[i + 1]].name }
     : { scene: 'Dungeon', region: 'chaosSpire', entry: 'south', to: SPIRE.name };

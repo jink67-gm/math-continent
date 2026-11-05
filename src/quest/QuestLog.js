@@ -1,25 +1,26 @@
 // 퀘스트 진행
-//   1번 지역(나눔의 계곡): 메인 이야기 + 마을 사람들의 곁 퀘스트 여러 개 (data/r1quests.js)
-//     저장: stats.r1 = { main: 단계 번호, runes: {룬id: true}, side: { 퀘스트id: { state: 'active'|'ready'|'done', n } } }
-//   2~6번 마을: 메인 이야기만 (data/quests.js regionQuests) — stats.vq[마을]
+//   여러 지도가 이어진 지역(1번 프락시아 · 2번 큐베른, data/mapRegions.js):
+//     메인 이야기 + 마을 사람들의 곁 퀘스트 여러 개 (data/rNquests.js)
+//     저장: 1번은 stats.r1, 그 뒤 지역은 stats.rg[지역]
+//       = { main: 단계 번호, runes: {룬id: true}, side: { 퀘스트id: { state: 'active'|'ready'|'done', n } } }
+//   나머지 마을(예전 구조): 메인 이야기만 (data/quests.js regionQuests) — stats.vq[마을]
 // 화면 쪽(장면·HUD)은 이 파일에 "무슨 일이 있었는지"만 알려 주면 돼요.
 
 import { regionQuests } from '../data/quests.js';
-import { R1_MAIN, R1_SIDE } from '../data/r1quests.js';
-import { MAPS } from '../data/r1maps.js';
+import { MAP_REGIONS, ALL_MAPS } from '../data/mapRegions.js';
 import { WEAPONS, ARMORS } from '../data/items.js';
 import { skillsFor } from '../data/skills.js';
 
 const R1 = 'fractionValley';
 
-// 1번 지역 지도 연결 (출구 → 다음 지도) — 화살표가 다른 지도로 길을 안내할 때 써요
+// 지도 연결 (출구 → 다음 지도) — 화살표가 다른 지도로 길을 안내할 때 써요
 function nextHop(from, to) {
   if (from === to) return null;
   const prev = { [from]: null };
   const queue = [from];
   while (queue.length) {
     const cur = queue.shift();
-    for (const e of MAPS[cur]?.exits || []) {
+    for (const e of ALL_MAPS[cur]?.exits || []) {
       if (!e.map || e.map in prev) continue;
       prev[e.map] = { from: cur, exit: e };
       if (e.map === to) {
@@ -42,16 +43,29 @@ export class QuestLog {
 
   // 지금 있는 곳이 어느 마을 이야기인지 (첨탑은 6번 마을 이야기에 붙어 있어요)
   get vid() { return this.scene?.info?.village || this.scene?.info?.id || R1; }
-  list(vid = this.vid) { return vid === R1 ? R1_MAIN : regionQuests(vid); }
+  // 여러 지도가 이어진 지역이면 그 설정 (아니면 null)
+  get rc() { return MAP_REGIONS[this.vid] || null; }
+  list(vid = this.vid) { return MAP_REGIONS[vid]?.main || regionQuests(vid); }
 
   state(vid = this.vid) {
     const s = this.stats;
-    if (vid === R1) {
-      s.r1 ??= {};
-      s.r1.main ??= 0;
-      s.r1.runes ??= {};
-      s.r1.side ??= {};
-      return s.r1;
+    const rc = MAP_REGIONS[vid];
+    if (rc) {
+      let st;
+      if (rc.save === 'r1') st = (s.r1 ??= {});
+      else {
+        s.rg ??= {};
+        if (!s.rg[rc.save]) {
+          // 예전 구조에서 이 마을을 이미 구했으면 그대로 구한 걸로 옮겨요
+          const old = s.vq?.[vid];
+          s.rg[rc.save] = { main: old && old.main >= 6 ? rc.main.length : 0 };
+        }
+        st = s.rg[rc.save];
+      }
+      st.main ??= 0;
+      st.runes ??= {};
+      st.side ??= {};
+      return st;
     }
     s.vq ??= {};
     s.vq[vid] ??= { main: 0, runes: {} };
@@ -74,21 +88,22 @@ export class QuestLog {
     return lines.map((l) => l.replaceAll('{name}', name));
   }
 
-  // ── 곁 퀘스트 (1번 지역) ────────────────────────
-  sideState(id) { return this.state(R1).side[id]; }
+  // ── 곁 퀘스트 (여러 지도 지역) ────────────────────
+  get sides() { return this.rc?.side || {}; }
+  sideState(id) { return this.state().side[id]; }
 
   sideAvailable(id) {
-    const d = R1_SIDE[id];
-    return !this.sideState(id) && this.state(R1).main >= (d.after || 0);
+    const d = this.sides[id];
+    return !this.sideState(id) && this.state().main >= (d.after || 0);
   }
 
   // NPC 머리 위 표시: '?' 보고할 것 있음 · '!' 새 부탁 있음
   marker(npcId) {
-    if (this.vid !== R1) return null;
+    if (!this.rc) return null;
     const st = this.step;
     if (st?.type === 'talk' && st.target === npcId) return '?';
     let mark = null;
-    for (const [id, d] of Object.entries(R1_SIDE)) {
+    for (const [id, d] of Object.entries(this.sides)) {
       if (d.giver !== npcId) continue;
       if (this.sideState(id)?.state === 'ready') return '?';
       if (this.sideAvailable(id)) mark = '!';
@@ -103,14 +118,14 @@ export class QuestLog {
     if (st?.type === 'talk' && st.target === npcId) {
       return { lines: this.fill(st.lines), after: () => this.advance() };
     }
-    if (this.vid === R1) {
-      for (const [id, d] of Object.entries(R1_SIDE)) {
+    if (this.rc) {
+      for (const [id, d] of Object.entries(this.sides)) {
         if (d.giver !== npcId) continue;
         const ss = this.sideState(id);
         if (ss?.state === 'ready') return { lines: d.ready, after: () => { ss.state = 'done'; this.reward(d.reward, d.title); this.scene?.saveGame({ now: true }); } };
         if (this.sideAvailable(id)) {
           return { lines: d.start, after: () => {
-            this.state(R1).side[id] = { state: 'active', n: 0 };
+            this.state().side[id] = { state: 'active', n: 0 };
             this.scene?.sound.play('sfx_unlock', { volume: 0.4 });
             this.scene?.hud?.showBanner('새 퀘스트!', `${d.title} — ${d.desc}`);
             this.scene?.saveGame();
@@ -129,7 +144,7 @@ export class QuestLog {
     }
     // 촌장님은 지금 할 일을 다시 알려 줘요
     if (npcId === 'chief' && st && st.type !== 'talk') return { lines: [`지금 할 일은 「${st.title}」일세.`, st.desc] };
-    if (npcId === 'chief' && this.villageCleared) return { lines: ['풍차 소리가 참 듣기 좋구먼. 고맙네, 영웅!'] };
+    if (npcId === 'chief' && this.villageCleared) return { lines: [this.rc?.chiefIdle || '고맙네, 영웅!'] };
     return null;
   }
 
@@ -163,9 +178,9 @@ export class QuestLog {
 
   // 몬스터를 물리쳤을 때: 물리치기·모으기 퀘스트
   onPurify(placeKey, kind) {
-    if (this.vid !== R1) return;
+    if (!this.rc) return;
     const map = String(placeKey).replace('Map:', '');
-    for (const [id, d] of Object.entries(R1_SIDE)) {
+    for (const [id, d] of Object.entries(this.sides)) {
       const ss = this.sideState(id);
       if (ss?.state !== 'active' || d.map !== map || d.kind !== kind) continue;
       if (d.type === 'collect' && Math.random() > d.chance) continue;
@@ -177,8 +192,8 @@ export class QuestLog {
 
   // 숨은 물건 찾기 → 찾았으면 true
   onFind(spotId) {
-    if (this.vid !== R1) return false;
-    for (const [id, d] of Object.entries(R1_SIDE)) {
+    if (!this.rc) return false;
+    for (const [id, d] of Object.entries(this.sides)) {
       const ss = this.sideState(id);
       if (d.type !== 'find' || d.target !== spotId || ss?.state !== 'active') continue;
       ss.n = d.need;
@@ -191,7 +206,7 @@ export class QuestLog {
 
   sideReady(id, d) {
     this.sideState(id).state = 'ready';
-    const giver = MAPS.village.npcs.find((n) => n.id === d.giver)?.name || '부탁한 사람';
+    const giver = this.rc.maps[this.rc.town].npcs.find((n) => n.id === d.giver)?.name || '부탁한 사람';
     this.scene?.hud?.showBanner(`${d.title} 완료!`, `마을의 ${giver}에게 알려 줘요`);
     this.scene?.saveGame();
   }
@@ -234,17 +249,17 @@ export class QuestLog {
     } else {
       lines.push(this.vid === 'solidPeaks' ? '★ 수학 대륙을 모두 구했어요! 축하해요!' : `★ ${this.scene?.info?.townName || '이 마을'}을(를) 구했어요! 다음 마을로 가요`);
     }
-    if (this.vid !== R1) return lines.join('\n');
-    for (const [id, d] of Object.entries(R1_SIDE)) {
+    if (!this.rc) return lines.join('\n');
+    for (const [id, d] of Object.entries(this.sides)) {
       const ss = this.sideState(id);
-      if (ss?.state === 'active') lines.push(`· ${d.title} ${ss.n}/${d.need} (${MAPS[d.map].name})`);
+      if (ss?.state === 'active') lines.push(`· ${d.title} ${ss.n}/${d.need} (${ALL_MAPS[d.map].name})`);
       if (ss?.state === 'ready') lines.push(`· ${d.title} 완료 — 마을에 알리기`);
     }
     return lines.join('\n');
   }
 
-  // 1번 지역: 지금 메인 단계가 향하는 곳 { map, x, y }
-  r1Target(curMap) {
+  // 여러 지도 지역: 지금 메인 단계가 향하는 곳 { map, x, y }
+  mapTarget(curMap) {
     const st = this.step;
     if (!st?.at) return null;
     if (st.type !== 'rune') return st.at;
@@ -259,9 +274,9 @@ export class QuestLog {
 
   // 이 장면에서 화살표가 가리킬 곳 (픽셀)
   goal(placeKey) {
-    if (this.vid === R1 && String(placeKey).startsWith('Map:')) {
+    if (this.rc && String(placeKey).startsWith('Map:')) {
       const cur = placeKey.slice(4);
-      const t = this.r1Target(cur);
+      const t = this.mapTarget(cur);
       if (!t) return null;
       if (t.map === cur) return { x: t.x * 16, y: t.y * 16 };
       const e = nextHop(cur, t.map);
@@ -273,7 +288,7 @@ export class QuestLog {
   }
 
   exitCenter(mapId, e) {
-    const m = MAPS[mapId];
+    const m = ALL_MAPS[mapId];
     const mid = ((e.from + e.to + 1) / 2) * 16;
     if (e.side === 'north') return { x: mid, y: 4 };
     if (e.side === 'south') return { x: mid, y: m.rows * 16 - 4 };

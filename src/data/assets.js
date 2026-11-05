@@ -14,6 +14,7 @@ export const SHEETS = {
   'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
   'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
   'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
+  'zl/cliff_pink': 'zl/cliff_pink.png',              // 흙절벽 — 분홍 꽃잎 땅
   'zl/props': 'zl/props.png',                        // 바위·자갈·큰 바위·나무 계단 (가로 4칸)
   'zl/town': 'zl/town.png',                          // 시장 천막·의자·상자·화분 (가로 8칸)
   'zl/fountain': ['zl/fountain.png', 48],            // 광장 분수 3장면

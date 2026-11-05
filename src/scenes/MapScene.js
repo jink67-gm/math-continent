@@ -1,11 +1,13 @@
-// 1번 지역(나눔의 계곡 프락시아)의 지도 장면 — 지도 하나 = 같은 장면에 다른 map id
-// 땅·절벽·계단·다리·물건·사람·몬스터·룬 돌·봉인된 문·보스를 data/r1maps.js 설정대로 놓아요.
+// 여러 지도가 이어진 지역(1번 프락시아 · 2번 큐베른 …)의 지도 장면 — 지도 하나 = 같은 장면에 다른 map id
+// 땅·절벽·계단·다리·물건·사람·몬스터·룬 돌·봉인된 문·보스를 data/rNmaps.js 설정대로 놓아요.
+// 지역 설정(마을 지도·단원·보스)은 data/mapRegions.js 에 있어요.
 
 import { seeded, T } from '../world/terrain.js';
 import { Npc } from '../world/Npc.js';
-import { Boss, TROLL } from '../world/Boss.js';
+import { Boss } from '../world/Boss.js';
 import { drawRelief } from '../world/MapBuilder.js';
-import { MAPS, START_MAP } from '../data/r1maps.js';
+import { START_MAP } from '../data/r1maps.js';
+import { ALL_MAPS as MAPS, MAP_REGIONS } from '../data/mapRegions.js';
 import { ASSET_ROOT, BGM } from '../data/assets.js';
 import { textStyle, crisp } from '../ui/style.js';
 import { WorldScene, ZOOM } from './WorldScene.js';
@@ -15,16 +17,21 @@ export class MapScene extends WorldScene {
 
   init(data) {
     super.init(data);
+    this.region = null; // 지역은 지도에서 알아내요 (def.region)
     if (data?.map) this.mapId = data.map;
     if (!MAPS[this.mapId]) this.mapId = START_MAP;
   }
 
   get def() { return MAPS[this.mapId] || MAPS[START_MAP]; }
+  get rid() { return this.def.region || 'fractionValley'; }
+  get rc() { return MAP_REGIONS[this.rid]; }
   get info() {
     const d = this.def;
-    return { id: `r1_${this.mapId}`, village: 'fractionValley', townName: '나눔의 계곡 프락시아', name: d.name, subtitle: d.subtitle, bgm: d.bgm, unit: 'fractionDivision', mapV: 2 };
+    const rc = this.rc;
+    return { id: `${rc.prefix}_${this.mapId}`, village: this.rid, townName: rc.name, name: d.name, subtitle: d.subtitle, bgm: d.bgm, unit: rc.unit, mapV: 2 };
   }
   get placeKey() { return `Map:${this.mapId}`; }
+  get syncKey() { return `Map:${this.mapId}`; }
 
   preload() {
     super.preload();
@@ -35,7 +42,8 @@ export class MapScene extends WorldScene {
     const d = this.def;
     const q = this.game.quests;
     // 가 본 곳 기억 (지도에 표시)
-    this.dark = null;
+    // 장면을 다시 쓰기 때문에 지난 지도의 봉인 바위·문 기억을 지워요
+    this.dark = this.barrier = this.barrierSolid = this.door = this.doorSolid = null;
     const st = this.registry.get('player');
     st.visited ??= [];
     if (!st.visited.includes(this.mapId)) st.visited.push(this.mapId);
@@ -57,7 +65,7 @@ export class MapScene extends WorldScene {
 
     this.spots = [...(d.spots || [])].map((s) => ({ ...s, x: s.x * T, y: s.y * T }));
     if (d.plots) this.placePlots(d.plots);
-    if (this.mapId === 'village') this.springSparkles();
+    if (this.spots.some((p) => p.kind === 'heal')) this.springSparkles();
     for (const s of this.spots) {
       if (s.stone) this.placeRuneStone(s, q.runeLit(s.id) || q.passed('runes'));
       if (s.pillar) this.placePillar(s, q.runeLit(s.id) || q.passed('seal'));
@@ -71,7 +79,7 @@ export class MapScene extends WorldScene {
     for (const s of d.spawns || []) this.combat.spawnMonster(s.kind, s.x, s.y, d.power || 1);
     if (d.boss && !q.passed(d.boss.step)) {
       this.bossRoomY = d.boss.roomY * T;
-      this.boss = new Boss(this, this.combat, d.boss.x * T, d.boss.y * T, TROLL);
+      this.boss = new Boss(this, this.combat, d.boss.x * T, d.boss.y * T, this.rc.boss);
       this.combat.monsters.push(this.boss);
     } else if (d.boss) {
       this.glow(d.boss.x * T, d.boss.y * T - 20, 0xffe066);
@@ -104,12 +112,12 @@ export class MapScene extends WorldScene {
       if (entry === 'west') return { x: 2 * T, y: mid };
       if (entry === 'east') return { x: this.mapW - 2 * T, y: mid };
     }
-    const p = MAPS.village.entries.plaza;
+    const p = MAPS[this.rc.town].entries.plaza;
     return { x: p[0] * T, y: p[1] * T };
   }
 
   respawnAt() {
-    return this.def.cave ? ['Map', 'south', null, 'cave1'] : ['Map', 'plaza', null, 'village'];
+    return this.def.cave ? ['Map', 'south', null, this.rc.cave] : ['Map', 'plaza', null, this.rc.town];
   }
 
   // 절벽 덩어리 위: 풀밭 언덕. 나무·바위·덤불을 몇 무더기로 모아 불규칙하게 둬요.
@@ -233,7 +241,7 @@ export class MapScene extends WorldScene {
     this.barrier = this.sealRock(x, y + T, bar.w);
     this.barrierSolid = this.addSolid(x - (bar.w * T) / 2, y - 2, bar.w * T, T + 2);
     this.spots.push({ id: 'barrier', kind: 'read', name: '봉인 바위', x, y: y + T + 6, r: 26, label: '살펴보기',
-      lines: [['커다란 바위에 보라색 봉인이 걸려 있어요.', '들판·시냇가·숲의 룬 돌 세 개를 모두 깨우면 풀린대요.']] });
+      lines: bar.lines || [['커다란 바위에 보라색 봉인이 걸려 있어요.', '들판·시냇가·숲의 룬 돌 세 개를 모두 깨우면 풀린대요.']] });
   }
 
   removeBarrier() {
@@ -324,7 +332,7 @@ export class MapScene extends WorldScene {
     if (step.id === 'seal') this.time.delayedCall(600, () => this.openDoor());
   }
 
-  // ── 보스 (뒤집기 트롤 인버트롤) ──────────────────
+  // ── 보스 (지역마다: 인버트롤 · 큐블록스 …) ─────────
   onBossWake(boss) {
     this.bgm?.stop();
     this.bgm = this.sound.add('bgm_boss', { loop: true, volume: 0.4 });
@@ -358,7 +366,7 @@ export class MapScene extends WorldScene {
     this.bgm?.stop();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
     this.bgm.play();
-    this.time.delayedCall(1200, () => this.game.quests.onBoss('troll'));
+    this.time.delayedCall(1200, () => this.game.quests.onBoss(this.rc.boss.id));
   }
 
   update(time, delta) {

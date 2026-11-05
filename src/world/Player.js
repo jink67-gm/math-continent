@@ -14,7 +14,7 @@ const BLADE = { down: 0, left: 90, up: 180, right: -90 };
 export class Player {
   constructor(scene, x, y, sprite) {
     this.scene = scene;
-    this.key = sprite; // 캐릭터 폴더 이름 (예: NinjaBlue2)
+    this.key = sprite; // 캐릭터 폴더 이름 (예: HanbokBoy)
     this.dir = 'down';
     this.state = 'move';
     this.invUntil = 0;

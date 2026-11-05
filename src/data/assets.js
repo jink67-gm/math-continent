@@ -71,12 +71,13 @@ export const IMAGES = {
 
 // 캐릭터: SpriteSheet.png (16px, 가로 4칸 = 아래·위·왼·오, 세로 0~3줄 걷기, 4줄 공격) + Faceset.png
 export const CHARACTERS = [
-  'NinjaBlue2', 'NinjaYellow', 'KnightGold', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
+  'HanbokBoy', 'HanbokGirl', 'KnightGold', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
   'OldWoman', 'Child', 'Spirit', 'Woman', 'Villager2', 'Monk',
 ];
 
-// 주인공: 닌자 (남: 주황 머리띠 파란 닌자 · 여: 꽃 장식 노란 닌자). KnightGold는 프로포르 재상이 써요.
-export const HEROES = { male: 'NinjaBlue2', female: 'NinjaYellow' };
+// 주인공: 한복 (Ninja Adventure의 Boy·Princess 옷 색을 바꿈 — tools/build_hanbok.py). KnightGold는 프로포르 재상이 써요.
+//   남: 흰 저고리 · 빨간 고름 · 남색 바지 · 검은 머리   여: 노랑 저고리 · 다홍 치마
+export const HEROES = { male: 'HanbokBoy', female: 'HanbokGirl' };
 
 // 그림 일부를 잘라 쓰는 물건: [그림, 칸x, 칸y, 가로칸, 세로칸]
 export const OBJECTS = {

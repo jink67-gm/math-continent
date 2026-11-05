@@ -111,43 +111,62 @@ export class MapScene extends WorldScene {
     return this.def.cave ? ['Map', 'south', null, 'cave1'] : ['Map', 'plaza', null, 'village'];
   }
 
-  // 절벽 덩어리 위: 띄엄띄엄 나무 몇 그루와 덤불·꽃 (풀밭 언덕이 보이게)
-  // 나무끼리 일정 거리 이상 떨어뜨려 빽빽하지 않게 해요. 가장자리(절벽 끝)에는 조금 더 자주.
+  // 절벽 덩어리 위: 풀밭 언덕. 나무·바위·덤불을 몇 무더기로 모아 불규칙하게 둬요.
   blockTops(b, d) {
     const rnd = seeded(b.cols * 31 + b.rows);
     const forest = d.theme === 'forest';
-    const big = forest ? ['tree_big', 'trio_green', 'tree_pine'] : ['tree_big', 'tree_big_orange', 'tree_big', 'trio_green'];
-    const small = forest ? ['tree_pine', 'tree_green', 'tree_pine'] : ['tree_green', 'tree_round', 'tree_pine', 'tree_lime'];
+    const trees = forest ? ['tree_big', 'trio_green', 'tree_pine', 'tree_pine', 'tree_green'] : ['tree_big', 'tree_green', 'tree_round', 'tree_pine', 'tree_lime', 'tree_big_orange', 'trio_green'];
+    const rocks = ['rock_brown_big', 'rock_brown', 'rock_brown_tall', 'rock_grey_big', 'rock_grey'];
+    const small = ['bush_a', 'bush_b', 'bush_c', 'grass_a', 'grass_b', 'flower_a', 'flower_b', 'rock_brown_s', 'rock_grey_s'];
     const cells = [];
-    for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) if (b.isBlock(x, y)) cells.push([x, y]);
-    // 섞기 (정해진 씨앗이라 늘 같은 모양)
-    for (let i = cells.length - 1; i > 0; i--) { const k = Math.floor(rnd() * (i + 1)); [cells[i], cells[k]] = [cells[k], cells[i]]; }
-    const placed = [];
-    const far = (x, y, r) => placed.every(([px, py, pr]) => (px - x) ** 2 + (py - y) ** 2 >= (r + pr) ** 2);
+    for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) if (b.isBlock(x, y) && b.innerFace(x, y) < 0) cells.push([x, y]);
+    if (!cells.length) return;
     // 언덕 위 풀밭은 살짝 어둡게 (걸어 다니는 땅과 구분)
-    const shade = this.add.graphics().setDepth(-5).fillStyle(0x1d3a12, 0.16);
+    const shade = this.add.graphics().setDepth(-5).fillStyle(0x1d3a12, 0.12);
     for (const [x, y] of cells) shade.fillRect(x * T, y * T, T, T);
-    // 걸을 수 있는 땅과 맞닿은 가장자리 칸 먼저: 나무를 줄지어 둬서 「못 올라가는 곳」이 보이게
-    const open = (x, y) => b.in(x, y) && !b.isBlock(x, y);
-    const edge = ([x, y]) => open(x - 1, y) || open(x + 1, y) || open(x, y - 1) || open(x, y + 1);
-    cells.sort((c1, c2) => edge(c2) - edge(c1));
-    for (const [x, y] of cells) {
-      const isEdge = edge([x, y]);
-      const isBig = !isEdge && rnd() < 0.45;
-      const r = isEdge ? (forest ? 0.66 : 0.76) : (isBig ? 1.15 : 0.9) * (forest ? 1.5 : 1.9);
-      if (!far(x, y, r)) continue;
-      if (rnd() < (isEdge ? 0.88 : forest ? 0.75 : 0.6)) {
-        placed.push([x, y, r]);
-        const list = isBig ? big : small;
-        this.placeObject({ k: list[Math.floor(rnd() * list.length)], x: (x + 0.5) * T, y: (y + 1) * T });
+    const top = (x, y) => b.isBlock(x, y) && b.innerFace(x, y) < 0;
+    const inBlock = (fx, fy) => top(Math.floor(fx), Math.floor(fy - 0.5)) && top(Math.floor(fx), Math.floor(fy - 0.2));
+    // 무더기 자리: 서로 4~6칸 떨어진 곳을 무작위로
+    const centers = [];
+    for (let tries = 0; tries < cells.length * 2; tries++) {
+      const [x, y] = cells[Math.floor(rnd() * cells.length)];
+      const cx = x + rnd();
+      const cy = y + rnd();
+      const gap = (forest ? 3.6 : 4.6) + rnd() * 2;
+      if (centers.some(([ax, ay]) => (ax - cx) ** 2 + (ay - cy) ** 2 < gap * gap)) continue;
+      centers.push([cx, cy]);
+    }
+    const put = [];
+    const free = (fx, fy, r) => put.every(([px, py, pr]) => (px - fx) ** 2 + (py - fy) ** 2 >= (r + pr) ** 2 * 0.8);
+    for (const [cx, cy] of centers) {
+      const roll = rnd();
+      // 무더기 종류: 나무 숲 · 바위 더미 · 섞임 · 덤불만
+      const kind = roll < (forest ? 0.55 : 0.4) ? 'trees' : roll < 0.62 ? 'rocks' : roll < 0.85 ? 'mixed' : 'bush';
+      const n = kind === 'bush' ? 2 + Math.floor(rnd() * 3) : 2 + Math.floor(rnd() * 4);
+      for (let i = 0; i < n; i++) {
+        const a = rnd() * Math.PI * 2;
+        const dist = i === 0 ? 0 : 0.7 + rnd() * 1.6;
+        const fx = cx + Math.cos(a) * dist;
+        const fy = cy + Math.sin(a) * dist * 0.8;
+        let k;
+        if (kind === 'trees') k = rnd() < 0.85 ? trees[Math.floor(rnd() * trees.length)] : small[Math.floor(rnd() * 3)];
+        else if (kind === 'rocks') k = rnd() < 0.7 ? rocks[Math.floor(rnd() * rocks.length)] : small[Math.floor(rnd() * small.length)];
+        else if (kind === 'mixed') k = [trees, rocks, small][Math.floor(rnd() * 3)][0 | (rnd() * 5)] || 'bush_a';
+        else k = small[Math.floor(rnd() * 4)];
+        const r = /tree|trio/.test(k) ? 0.9 : /big|tall/.test(k) ? 0.8 : 0.45;
+        if (!inBlock(fx, fy + 0.5) || !free(fx, fy, r)) continue;
+        put.push([fx, fy, r]);
+        this.placeObject({ k, x: fx * T, y: (fy + 0.5) * T });
       }
     }
-    // 빈 풀밭에 덤불·풀·꽃 조금
-    for (const [x, y] of cells) {
-      if (!far(x, y, 0.6) || rnd() > 0.1) continue;
-      placed.push([x, y, 0.4]);
-      const k = ['bush_a', 'bush_b', 'grass_a', 'grass_b', 'flower_a'][Math.floor(rnd() * 5)];
-      this.placeObject({ k, x: (x + 0.5) * T, y: (y + 1) * T });
+    // 빈 풀밭에 풀·꽃 몇 포기
+    for (let i = 0; i < cells.length * 0.06; i++) {
+      const [x, y] = cells[Math.floor(rnd() * cells.length)];
+      const fx = x + rnd();
+      const fy = y + rnd();
+      if (!free(fx, fy, 0.5)) continue;
+      put.push([fx, fy, 0.3]);
+      this.placeObject({ k: ['grass_a', 'grass_b', 'flower_a', 'flower_b'][Math.floor(rnd() * 4)], x: fx * T, y: (fy + 0.5) * T });
     }
   }
 

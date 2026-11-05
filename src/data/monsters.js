@@ -1,7 +1,7 @@
 import { EXTRA_MONSTERS } from './regions.js';
 
 // 필드 몬스터 (Ninja Adventure, CC0) — 아이들이 보기에 무섭지 않은 것만 골랐어요.
-// 쓰러뜨리면 죽는 게 아니라 연기와 함께 「정화」되어 사라져요.
+// 쓰러뜨리면 연기와 함께 펑 사라져요.
 // move: 'hop' 통통 튀며 다가옴 · 'walk' 걸어옴 · 'flutter' 팔랑팔랑 · 'float' 둥둥 떠서 멀리서 구슬을 던짐
 // reach: 공격을 시작하는 거리 · lunge: 덮치는 거리
 

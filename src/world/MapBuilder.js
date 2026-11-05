@@ -71,6 +71,74 @@ export class MapBuilder {
     return this;
   }
 
+  // 절벽 덩어리 가장자리를 들쭉날쭉하게 깎아요 (네모반듯하지 않게).
+  // 깎기만 하고 덧붙이지는 않아서 길이 막히지 않아요. 두께가 충분한 곳만 깎아 벽에 구멍이 나지 않게 해요.
+  // 계단·동굴 입구 근처는 그대로 둬요.
+  roughen(rnd, { amount = 0.5 } = {}) {
+    const B = this.blockCells.map((r) => [...r]);
+    const isB = (x, y) => this.in(x, y) && B[y][x];
+    const open = (x, y) => this.in(x, y) && !B[y][x];
+    // 칸 하나의 위아래·좌우 두께 (원래 모양 기준)
+    const run = (x, y, dx, dy) => { let n = 0; while (isB(x + dx * (n + 1), y + dy * (n + 1))) n++; return n; };
+    const thickV = (x, y) => run(x, y, 0, -1) + run(x, y, 0, 1) + 1;
+    const thickH = (x, y) => run(x, y, -1, 0) + run(x, y, 1, 0) + 1;
+    const guard = [...this.stairCells, ...this.openCells].map((k) => k.split(',').map(Number));
+    const nearGuard = (x, y) => guard.some(([gx, gy]) => Math.abs(gx - x) <= 2 && gy - y >= -1 && gy - y <= this.faceH + 2);
+    // 가장자리를 따라 2~4칸씩 이어지는 부드러운 무늬
+    const seeds = new Map();
+    const hash = (k) => { if (!seeds.has(k)) seeds.set(k, rnd()); return seeds.get(k); };
+    const noise = (line, t) => {
+      const s = 3;
+      const i = Math.floor(t / s);
+      const f = (t % s) / s;
+      return hash(`${line}:${i}`) * (1 - f) + hash(`${line}:${i + 1}`) * f;
+    };
+    // 위·아래 가장자리만 2칸 이상 이어서 깎아요 (옆 가장자리를 한 칸씩 파면 가는 기둥이 생겨서 안 해요)
+    const cutSet = new Set();
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        if (!B[y][x] || nearGuard(x, y)) continue;
+        const n = open(x, y - 1);
+        const s = open(x, y + 1);
+        if (!(n || s)) continue;
+        const tv = thickV(x, y);
+        if (tv < 4 || noise(`${n ? 'n' : 's'}${y}`, x) <= 1 - amount * 0.9) continue;
+        cutSet.add(this.key(x, y));
+        if (tv >= 7 && noise(`d${n ? 'n' : 's'}${y}`, x) > 0.72) {
+          const dy = n ? 1 : -1;
+          if (!nearGuard(x, y + dy)) cutSet.add(this.key(x, y + dy));
+        }
+      }
+    }
+    // 한 칸짜리 홈·한 칸짜리 기둥 없애기
+    const blockNow = (x, y) => this.in(x, y) && B[y][x] && !cutSet.has(this.key(x, y));
+    for (let pass = 0; pass < 3; pass++) {
+      for (const k of [...cutSet]) {
+        const [x, y] = k.split(',').map(Number);
+        if (blockNow(x - 1, y) && blockNow(x + 1, y)) cutSet.delete(k);
+      }
+      for (let y = 0; y < this.rows; y++) {
+        for (let x = 0; x < this.cols; x++) {
+          if (!blockNow(x, y)) continue;
+          const lo = !blockNow(x - 1, y) && (cutSet.has(this.key(x - 1, y)) || open(x - 1, y));
+          const ro = !blockNow(x + 1, y) && (cutSet.has(this.key(x + 1, y)) || open(x + 1, y));
+          if (lo && ro && (cutSet.has(this.key(x - 1, y)) || cutSet.has(this.key(x + 1, y)))) {
+            cutSet.delete(this.key(x - 1, y));
+            cutSet.delete(this.key(x + 1, y));
+          }
+        }
+      }
+    }
+    const cut = [...cutSet].map((k) => k.split(',').map(Number));
+    for (const [x, y] of cut) this.blockCells[y][x] = false;
+    // 깎인 칸의 높이: 옆에 언덕 위(걸을 수 있는) 칸이 있으면 언덕, 아니면 낮은 땅
+    for (const [x, y] of cut) {
+      const terrace = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => this.hi(x + dx, y + dy) && !this.isBlock(x + dx, y + dy) && !B[y + dy]?.[x + dx]);
+      this.h[y][x] = terrace ? 1 : 0;
+    }
+    return this;
+  }
+
   low(x0, y0, x1, y1) {
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (this.in(x, y)) this.h[y][x] = 0;
     return this;
@@ -121,6 +189,35 @@ export class MapBuilder {
 
   isFace(x, y) {
     return this.faceRow(x, y) >= 0 && !this.isStairs(x, y);
+  }
+
+  // 절벽 덩어리 아랫부분도 바위 벽으로 그려 절벽을 더 높아 보이게 해요 (그림만, 판정은 그대로 막힘).
+  // 덩어리 맨 아래에서 몇 번째 칸인지 (0 = 맨 아래). 위쪽 풀밭이 한 칸은 남아야 해요.
+  innerFace(x, y, rows = 2) {
+    if (!this.isBlock(x, y)) return -1;
+    let below = 0;
+    while (this.isBlock(x, y + below + 1)) below++;
+    if (below >= rows) return -1;
+    const by = y + below + 1;
+    if (!this.in(x, by) || this.faceRow(x, by) !== 0) return -1;
+    let above = 0;
+    while (this.isBlock(x, y - above - 1)) above++;
+    if (above + below + 1 < rows + 1) return -1;
+    return below;
+  }
+
+  // 그릴 때 쓰는 절벽 칸 정보: 위에서부터 몇 번째인지(0 = 맨 위) / 전체 높이
+  cliffCell(x, y) {
+    const inner = 2;
+    const f = this.innerFace(x, y, inner);
+    if (f >= 0) return { i: inner - 1 - f, n: inner + this.faceH };
+    if (this.isFace(x, y) || this.openCells.has(this.key(x, y))) {
+      const fr = this.faceRow(x, y);
+      if (fr < 0) return null;
+      const top = this.innerFace(x, y - fr - 1, inner) === 0;
+      return top ? { i: inner + fr, n: inner + this.faceH } : { i: fr, n: this.faceH };
+    }
+    return null;
   }
 
   // 걸을 수 있는지 (물건은 따로)
@@ -219,17 +316,18 @@ export function drawRelief(scene, b, { cave = false } = {}) {
         scene.add.image(px, py, 'na/relief', R(col, row)).setOrigin(0, 0).setDepth(below ? -870 : py + T);
         continue;
       }
-      if (b.isFace(x, y) || (b.openCells.has(b.key(x, y)))) {
-        const fr = b.faceRow(x, y);
-        const lf = b.isFace(x - 1, y) || b.openCells.has(b.key(x - 1, y));
-        const rf = b.isFace(x + 1, y) || b.openCells.has(b.key(x + 1, y));
+      const cc = b.cliffCell(x, y);
+      if (cc) {
+        const lf = !!b.cliffCell(x - 1, y);
+        const rf = !!b.cliffCell(x + 1, y);
         const col = lf && rf ? 5 : !lf && rf ? 4 : lf && !rf ? 6 : 9;
-        const last = fr === b.faceH - 1;
+        const last = cc.i === cc.n - 1;
+        const first = cc.i === 0;
         const row = cave ? (last ? 2 : 1) : (last ? 7 : 6);
         scene.add.image(px, py, 'na/relief', R(col, row)).setOrigin(0, 0).setDepth(-870);
         // 풀과 절벽 사이에 밝은 테두리, 절벽 아래에는 그림자
-        if (fr === 0) g.fillStyle(0xc7e07a, 0.9).fillRect(px, py - 1, T, 2);
-        if (last) g.fillStyle(0x000000, 0.16).fillRect(px, py + T, T, 4);
+        if (first) g.fillStyle(0xc7e07a, 0.9).fillRect(px, py - 1, T, 2);
+        if (last) g.fillStyle(0x000000, 0.18).fillRect(px, py + T, T, 4);
       }
       if (b.isStairs(x, y)) {
         scene.add.image(px, py, 'na/reliefd', 3 * DETAIL_COLS + 5).setOrigin(0, 0).setDepth(-869);
@@ -239,18 +337,22 @@ export function drawRelief(scene, b, { cave = false } = {}) {
         const img = scene.add.image(px + T / 2, py + T / 2, 'na/reliefd', 6 * DETAIL_COLS).setDepth(-860);
         if (!vertical) img.setAngle(90);
       }
-      // 언덕 옆·위 가장자리: 진한 선과 그림자
-      if (b.hi(x, y)) {
+      // 언덕 옆 가장자리: 절벽 면 그림의 바위 테두리를 잘라 붙여요 / 윗가장자리: 바위 띠
+      if (b.hi(x, y) && !cc) {
+        const rock = cave ? 1 : 6;
         if (b.in(x - 1, y) && !b.hi(x - 1, y) && !b.isWall(x - 1, y) && !b.isFace(x - 1, y)) {
-          g.fillStyle(0x4a3220, 1).fillRect(px, py, 2, T);
-          g.fillStyle(0x000000, 0.18).fillRect(px - 3, py, 3, T);
+          g.fillStyle(0x000000, 0.2).fillRect(px - 3, py, 3, T);
+          scene.add.image(px, py, 'na/relief', R(4, rock)).setOrigin(0, 0).setCrop(0, 0, 5, T).setDepth(-868);
         }
         if (b.in(x + 1, y) && !b.hi(x + 1, y) && !b.isWall(x + 1, y) && !b.isFace(x + 1, y)) {
-          g.fillStyle(0x4a3220, 1).fillRect(px + T - 2, py, 2, T);
-          g.fillStyle(0x000000, 0.18).fillRect(px + T, py, 3, T);
+          g.fillStyle(0x000000, 0.2).fillRect(px + T, py, 3, T);
+          scene.add.image(px, py, 'na/relief', R(6, rock)).setOrigin(0, 0).setCrop(T - 5, 0, 5, T).setDepth(-868);
         }
         if (b.in(x, y - 1) && !b.hi(x, y - 1) && !b.isWall(x, y - 1)) {
-          g.fillStyle(0x4a3220, 1).fillRect(px, py, T, 2);
+          g.fillStyle(0x3b2a1a, 1).fillRect(px, py, T, 1);
+          g.fillStyle(0x8a6a48, 1).fillRect(px, py + 1, T, 2);
+          g.fillStyle(0x5a4030, 1).fillRect(px, py + 3, T, 1);
+          for (let i = (x * 7) % 5; i < T; i += 5) g.fillStyle(0xb08a5e, 1).fillRect(px + i, py + 1, 2, 1);
         }
       }
     }

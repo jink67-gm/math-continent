@@ -1,10 +1,10 @@
 // 1번 지역 퀘스트 — 마을에서 받고, 마을 밖 여러 지도를 돌며 해내요.
 //
 // 메인 이야기 (차례대로):
-//   type  talk(사람) · rune(룬 여러 개, 아무 순서) · enter(지도 도착) · boss(보스 정화)
+//   type  talk(사람) · rune(룬 여러 개, 아무 순서) · enter(지도 도착) · boss(보스 물리치기)
 //   at    화살표가 가리킬 곳 { map, x, y } — 룬은 룬마다 따로
 // 곁 퀘스트 (마을 사람이 줘요, 머리 위 「!」):
-//   type  kill(몬스터 정화) · collect(몬스터가 떨어뜨리는 물건) · find(숨은 물건 찾기)
+//   type  kill(몬스터 물리치기) · collect(몬스터가 떨어뜨리는 물건) · find(숨은 물건 찾기)
 //   need  몇 번 · map 어디서 · kind 어떤 몬스터 · after 메인 단계 몇 번째부터 받을 수 있는지
 // 대사 속 {name}은 주인공 이름으로 바뀌어요.
 
@@ -44,9 +44,9 @@ export const R1_MAIN = [
   },
   {
     id: 'troll', title: '뒤집기 트롤 인버트롤', type: 'boss', target: 'troll',
-    desc: '동굴 2층의 인버트롤을 정화하고 「분수의 결정」을 되찾아요.',
+    desc: '동굴 2층의 인버트롤을 물리치고 「분수의 결정」을 되찾아요.',
     at: { map: 'cave2', x: 15.5, y: 12 },
-    done: ['인버트롤이 정화됐어요!', '「분수의 결정」을 되찾았어요. 촌장님께 가져다드려요.'],
+    done: ['인버트롤을 물리쳤어요!', '「분수의 결정」을 되찾았어요. 촌장님께 가져다드려요.'],
     reward: { exp: 150, gold: 100, potions: 2 },
   },
   {
@@ -64,9 +64,9 @@ export const R1_MAIN = [
 
 export const R1_SIDE = {
   slime: {
-    giver: 'pipi', title: '말랑 슬라임 정화', type: 'kill', kind: 'Slime', map: 'east_field', need: 5, after: 1,
-    desc: '바람개비 들판의 슬라임 5마리를 정화해요.',
-    start: ['바람개비 들판의 슬라임들이 심술이 났어요.', '5마리만 정화해 주실래요? 동쪽 길로 나가면 돼요!'],
+    giver: 'pipi', title: '말랑 슬라임 혼내 주기', type: 'kill', kind: 'Slime', map: 'east_field', need: 5, after: 1,
+    desc: '바람개비 들판의 슬라임 5마리를 물리쳐요.',
+    start: ['바람개비 들판의 슬라임들이 심술이 났어요.', '5마리만 혼내 주실래요? 동쪽 길로 나가면 돼요!'],
     ready: ['우와, 들판이 한결 맑아졌어요!', '고마워요! 이건 제 선물이에요.'],
     reward: { exp: 30, potions: 2 },
   },
@@ -79,8 +79,8 @@ export const R1_SIDE = {
   },
   spirit: {
     giver: 'innkeeper', title: '길 잃은 정령 달래기', type: 'kill', kind: 'Spirit', map: 'forest', need: 4, after: 1,
-    desc: '나무꾼 숲의 길 잃은 정령 4마리를 정화해요.',
-    start: ['요즘 서쪽 숲에서 길 잃은 정령들이 구슬을 던진대요.', '4마리만 정화해 주면 손님들이 안심하겠어요.'],
+    desc: '나무꾼 숲의 길 잃은 정령 4마리를 물리쳐요.',
+    start: ['요즘 서쪽 숲에서 길 잃은 정령들이 구슬을 던진대요.', '4마리만 물리쳐 주면 손님들이 안심하겠어요.'],
     ready: ['숲이 조용해졌다니 다행이에요.', '든든하게 회복약을 챙겨 드릴게요.'],
     reward: { exp: 60, potions: 3 },
   },

@@ -161,7 +161,7 @@ export class QuestLog {
     if (st?.type === 'boss' && st.target === id) this.advance();
   }
 
-  // 몬스터를 정화했을 때: 정화·모으기 퀘스트
+  // 몬스터를 물리쳤을 때: 물리치기·모으기 퀘스트
   onPurify(placeKey, kind) {
     if (this.vid !== R1) return;
     const map = String(placeKey).replace('Map:', '');

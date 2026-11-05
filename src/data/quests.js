@@ -25,8 +25,8 @@ export function regionQuests(id) {
       goals: { ...toWild, Wild: w.mouth }, done: ['던전 깊은 곳에 봉인된 문이 있어요.', '양옆의 룬 기둥 두 개를 깨워야 열려요.'], reward: { exp: X(0.15), gold: 60 } },
     { id: 'seal', title: '봉인된 문 열기', type: 'rune', target: ['dA', 'dB'], desc: '던전 속 룬 기둥 두 개를 모두 깨워요.',
       goals: { ...toWild, Wild: w.mouth, Dungeon: [20, 23] }, done: ['쿠르릉… 봉인된 문이 열렸어요!', '문 너머에서 커다란 기운이 느껴져요. 준비하고 들어가요.'], reward: { exp: X(0.2), potions: 2 } },
-    { id: 'boss', title: r.boss.name, type: 'boss', target: r.boss.id, desc: '던전 안쪽 방의 보스를 정화하고 결정을 되찾아요.',
-      goals: { ...toWild, Wild: w.mouth, Dungeon: [20, 12] }, done: [`${r.boss.name}이(가) 정화됐어요!`, '결정을 되찾았어요. 마을 대장님께 가져다드려요.'], reward: { exp: X(0.25), gold: 150 * r.n, potions: 2 } },
+    { id: 'boss', title: r.boss.name, type: 'boss', target: r.boss.id, desc: '던전 안쪽 방의 보스를 물리치고 결정을 되찾아요.',
+      goals: { ...toWild, Wild: w.mouth, Dungeon: [20, 12] }, done: [`${r.boss.name}을(를) 물리쳤어요!`, '결정을 되찾았어요. 마을 대장님께 가져다드려요.'], reward: { exp: X(0.25), gold: 150 * r.n, potions: 2 } },
     { id: 'report', title: '대장님께 결정 돌려드리기', type: 'talk', target: 'chief', desc: '되찾은 결정을 대장님께 가져다드려요.',
       goals: { Town: t.chief, Wild: w.south, Dungeon: [20, 49.5] },
       lines: ['오오, 결정이 다시 빛나는구먼!', `{name}, 자네 덕분에 ${r.name}이(가) 다시 평화로워졌네.`, id === 'solidPeaks' ? '이제 동쪽 「혼돈의 첨탑」만 남았네. 모든 결정의 힘을 모아 제로를 막아 주게!' : '동쪽 길로 가면 다음 마을이 있다네. 행운을 비네!'],
@@ -38,9 +38,9 @@ export function regionQuests(id) {
         goals: { Town: t.east }, done: ['여섯 단원의 문제가 모두 섞인 탑이에요.', '룬 기둥 두 개를 깨워 꼭대기로 가요!'], reward: { exp: 500 } },
       { id: 'spireSeal', title: '혼돈의 봉인 풀기', type: 'rune', target: ['sA', 'sB'], desc: '첨탑의 룬 기둥 두 개를 깨워요 (여섯 단원 섞어서).',
         goals: { Town: t.east, 'Dungeon:chaosSpire': [20, 23] }, done: ['혼돈의 문이 열렸어요!'], reward: { exp: 800, potions: 3 } },
-      { id: 'zero', title: SPIRE.boss.name, type: 'boss', target: SPIRE.boss.id, desc: '탑 꼭대기의 혼돈의 군주 제로를 정화해요!',
+      { id: 'zero', title: SPIRE.boss.name, type: 'boss', target: SPIRE.boss.id, desc: '탑 꼭대기의 혼돈의 군주 제로를 물리쳐요!',
         goals: { Town: t.east, 'Dungeon:chaosSpire': [20, 12] },
-        done: ['혼돈의 군주 제로가 정화됐어요!', '여섯 결정의 빛이 수학 대륙 전체로 퍼져 나가요.', '축하해요, {name}! 여섯 마을의 봉인을 모두 지켜 냈어요!'],
+        done: ['혼돈의 군주 제로를 물리쳤어요!', '여섯 결정의 빛이 수학 대륙 전체로 퍼져 나가요.', '축하해요, {name}! 여섯 마을의 봉인을 모두 지켜 냈어요!'],
         reward: { exp: 2000, gold: 1000 } },
     );
   }

@@ -1,8 +1,7 @@
 // 필드 몬스터: 돌아다니다 → 주인공을 보면 다가옴 → 빨간 경고 원 → 덮치기 → 잠깐 쉼
-// 맞으면 뒤로 밀리고 잠깐 멈춰요. HP가 0이 되면 연기와 함께 「정화」되어 사라졌다가 다시 나타나요.
+// 맞으면 뒤로 밀리고 잠깐 멈춰요. HP가 0이 되면 연기와 함께 사라졌다가 다시 나타나요.
 
 import { MONSTERS } from '../data/monsters.js';
-import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 const LEASH = 190;      // 집에서 이만큼 멀어지면 돌아가요
 const RESPAWN_MS = 16000;
@@ -109,7 +108,7 @@ export class Monster {
     this.slowUntil = this.scene.time.now + ms;
   }
 
-  // 쓰러지면 죽는 게 아니라 정화돼요: 하얗게 빛나며 작아지고, 연기와 반짝이
+  // 쓰러지면 하얗게 빛나며 작아지고, 연기와 반짝이
   purify() {
     this.purifyFx();
     this.combat.onPurified(this);
@@ -133,8 +132,6 @@ export class Monster {
       sp.play({ key: 'fx_spark', startFrame: i });
       s.tweens.add({ targets: sp, y: sp.y - 18 - Math.random() * 10, alpha: 0, duration: 700 + i * 120, onComplete: () => sp.destroy() });
     }
-    const t = crisp(s.add.text(x, y - 18, '정화!', textStyle(12, '#bff7ff')).setOrigin(0.5).setScale(1 / ZOOM).setDepth(100001));
-    s.tweens.add({ targets: t, y: t.y - 10, alpha: 0, delay: 300, duration: 600, onComplete: () => t.destroy() });
   }
 
   // ── 매 장면 ─────────────────────────────────
@@ -289,7 +286,7 @@ export class Monster {
     this.dir = DIRS[a[5]] || 'down';
     if (st === 'gone' && this.state !== 'gone') {
       this.purifyFx();
-      if (!first) this.combat.onPurified(this); // 함께 있을 때 정화한 것만 보상
+      if (!first) this.combat.onPurified(this); // 함께 있을 때 물리친 것만 보상
     }
     else if (st !== 'gone' && this.state === 'gone') { this.spawn(); this.feet.setPosition(a[0], a[1]); }
     this.state = st;

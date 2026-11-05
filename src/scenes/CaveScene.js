@@ -1,4 +1,4 @@
-// 던전 장면: 「뒤집힌 동굴」 — 룬 기둥 두 개로 봉인된 문을 열고, 안쪽 방의 인버트롤을 정화해요.
+// 던전 장면: 「뒤집힌 동굴」 — 룬 기둥 두 개로 봉인된 문을 열고, 안쪽 방의 인버트롤을 물리쳐요.
 
 import { T, seeded } from '../world/terrain.js';
 import { ASSET_ROOT, BGM } from '../data/assets.js';
@@ -51,7 +51,7 @@ export class CaveScene extends WorldScene {
     this.placeChests(this.M.CHESTS);
     for (const s of this.M.SPAWNS) this.combat.spawnMonster(s.kind, s.x, s.y, M.power);
 
-    // 보스 (정화했으면 그 자리에 분수의 결정 받침대만 남아요)
+    // 보스 (물리쳤으면 그 자리에 분수의 결정 받침대만 남아요)
     if (!q.passed(M.bossStep)) {
       this.boss = new Boss(this, this.combat, M.BOSS.x, M.BOSS.y, M.bossCfg);
       this.combat.monsters.push(this.boss);

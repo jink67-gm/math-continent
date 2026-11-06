@@ -162,19 +162,38 @@ export class Combat {
     const c = SMASH;
     p.smash(c.ms, () => { this.lastSwingEnd = this.scene.time.now; });
     this.scene.sound.play('sfx_swing3', { volume: 0.5, rate: 0.85 });
-    this.popNumber(p.x, p.y - 26, '강타!', '#ffb347', 12);
+    this.popNumber(p.x, p.y - 34, '강타!', '#ffb347', 13);
     this.scene.time.delayedCall(c.hitAt, () => {
       if (p.state !== 'atk') return;
       const [fx, fy] = p.facingVector();
       const hx = p.x + fx * c.reach;
       const hy = p.y - 2 + fy * c.reach * 0.8;
-      this.scene.fx('fx_slashdc', 'na/slashdc', hx, hy - 4, { angle: { right: 0, down: 90, left: 180, up: 270 }[p.dir], scale: 1.5, depth: p.y + 20 });
-      this.scene.fx('fx_ring', 'na/ring', hx, hy + 2, { scale: 1.6, depth: hy - 2, add: true }).setTint(0xffc860);
+      // 강타: 위에서 아래로 곧게 내려치는 주황 칼날 + 땅이 갈라지는 금
+      this.scene.fx('fx_slash', 'na/slash', hx, hy - 8, { angle: 90, scale: 1.7, depth: p.y + 20, add: true }).setTint(0xffa040);
+      this.crack(hx, hy + 2, 0xffb347);
+      this.scene.fx('fx_smoke', 'na/smoke', hx, hy, { scale: 0.9, depth: hy + 2 });
       this.scene.cameras.main.shake(120, 0.006);
       this.scene.sound.play('sfx_impact', { volume: 0.4 });
       const n = this.hitArea(hx, hy, c.r, c.mult, c.knock);
-      if (n) { this.hitstop(c.stop); this.scene.burst(hx, hy - 4, { len: 34, rays: 14, ms: 260, depth: p.y + 25, color: 0xffd27a }); }
+      if (n) this.hitstop(c.stop);
     });
+  }
+
+  // 땅이 갈라지는 금 (강타)
+  crack(x, y, color) {
+    const g = this.scene.add.graphics().setDepth(y - 4);
+    const R = Phaser.Math;
+    g.lineStyle(1.5, 0x3a2410, 0.8);
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + R.FloatBetween(-0.3, 0.3);
+      let px = x;
+      let py = y;
+      g.beginPath().moveTo(px, py);
+      for (let k = 0; k < 3; k++) { px += Math.cos(a + R.FloatBetween(-0.4, 0.4)) * 5; py += Math.sin(a + R.FloatBetween(-0.4, 0.4)) * 3.5; g.lineTo(px, py); }
+      g.strokePath();
+    }
+    g.fillStyle(color, 0.35).fillEllipse(x, y, 30, 12);
+    this.scene.tweens.add({ targets: g, alpha: 0, delay: 350, duration: 500, onComplete: () => g.destroy() });
   }
 
   // ── 힘 모으기 ──────────────────────────────
@@ -230,9 +249,12 @@ export class Combat {
       const hx = p.x + fx * 16;
       const hy = p.y - 3 + fy * 13;
       this.scene.sound.play('sfx_swing3', { volume: 0.5 });
-      this.popNumber(p.x, p.y - 26, '모아 베기!', '#9be8ff', 11);
+      this.popNumber(p.x, p.y - 34, '모아 베기!', '#9be8ff', 12);
       this.scene.time.delayedCall(90, () => {
-        this.scene.fx('fx_slashdc', 'na/slashdc', hx, hy - 3, { angle: { right: 0, down: 90, left: 180, up: 270 }[p.dir], scale: 1.7, depth: p.y + 20 });
+        // 모아 베기: 파란 빛의 넓은 초승달 두 겹 (3타·스킬과 다른 색)
+        const ang = { right: 0, down: 90, left: 180, up: 270 }[p.dir];
+        this.scene.fx('fx_slashc', 'na/slashc', hx, hy - 3, { angle: ang, scale: 2.1, depth: p.y + 20, add: true }).setTint(0x6fd0ff);
+        this.scene.time.delayedCall(50, () => this.scene.fx('fx_slashc', 'na/slashc', hx, hy - 3, { angle: ang, scale: 1.6, depth: p.y + 21, add: true, flipY: true }).setTint(0xbff0ff));
         if (this.hitArea(hx, hy, 24, 2.2, 2.2)) { this.hitstop(90); this.scene.cameras.main.shake(100, 0.005); }
       });
       return;
@@ -240,13 +262,18 @@ export class Combat {
     // 2단계: 회오리 베기 — 둘레를 두 바퀴
     p.spin(520);
     this.scene.sound.play('sfx_skill', { volume: 0.45 });
-    this.popNumber(p.x, p.y - 28, '회오리 베기!', '#ffd04a', 12);
+    this.popNumber(p.x, p.y - 36, '회오리 베기!', '#ffd04a', 13);
+    // 회오리 베기: 금빛 칼날 네 개가 둘레를 두 바퀴 (회전 베기 스킬과 다른 모양)
+    const blades = [0, 1, 2, 3].map(() => this.scene.add.sprite(p.x, p.y, 'na/slashc', 1).setBlendMode('ADD').setTint(0xffd04a).setScale(1.2).setDepth(p.y + 20));
+    this.scene.tweens.addCounter({ from: 0, to: Math.PI * 4, duration: 520, ease: 'Sine.inOut',
+      onUpdate: (t) => blades.forEach((b, i) => {
+        const a = t.getValue() + (i * Math.PI) / 2;
+        b.setPosition(p.x + Math.cos(a) * 24, p.y - 6 + Math.sin(a) * 16).setRotation(a + Math.PI / 2).setDepth(p.y + 20);
+      }),
+      onComplete: () => blades.forEach((b) => this.scene.tweens.add({ targets: b, alpha: 0, scale: 1.8, duration: 160, onComplete: () => b.destroy() })) });
+    this.scene.fx('fx_ring', 'na/ring', p.x, p.y - 2, { scale: 3, depth: p.y - 3, add: true }).setTint(0xffd04a);
     for (let i = 0; i < 2; i++) {
-      this.scene.time.delayedCall(80 + i * 200, () => {
-        this.scene.fx('fx_slashcirc', 'na/slashcirc', p.x, p.y - 6, { scale: 2 + i * 0.4, depth: p.y + 20, angle: i * 90 });
-        this.scene.burst(p.x, p.y - 4, { len: 40, rays: 18, color: 0xffd04a, ms: 280, depth: p.y + 25 });
-        if (this.hitArea(p.x, p.y - 2, 34, 1.7, 2.4)) this.hitstop(80);
-      });
+      this.scene.time.delayedCall(100 + i * 230, () => { if (this.hitArea(p.x, p.y - 2, 34, 1.7, 2.4)) this.hitstop(70); });
     }
     this.scene.cameras.main.shake(180, 0.006);
   }
@@ -271,7 +298,7 @@ export class Combat {
     if (slowMs && m.alive) m.slow(slowMs);
     // 친구 기기에서 때리면 방장에게 알려서 HP를 깎아요
     if (m.remote) this.party.send({ t: 'hit', i: this.monsters.indexOf(m), dmg, knock, fx: from.x, fy: from.y, slow: slowMs || 0 });
-    this.popNumber(m.x, m.y - 16, dmg, crit ? '#ffd23f' : '#ffffff', crit ? 16 : 13);
+    this.popNumber(m.x, m.y - 16, dmg, crit ? '#ffd23f' : '#ffffff', crit ? 18 : 15);
     // 연타 세기: 1.6초 안에 계속 맞히면 숫자가 올라가요
     const now = this.scene.time.now;
     this.chain = now - (this.chainAt || 0) < 1600 ? (this.chain || 0) + 1 : 1;
@@ -346,6 +373,8 @@ export class Combat {
     if (p.state === 'charge') this.cancelCharge();
     if (p.state === 'atk') p.state = 'move';
     if (!p.canAct) return;
+    this.queued = false; // 스킬을 쓰면 이어지던 콤보는 끊겨요 (효과가 겹치지 않게)
+    this.combo = 0;
     const sk = st.sk;
     const aim = this.nearestMonster(sk.range || 70);
     if (aim) p.faceTo(aim.x, aim.y);

@@ -16,7 +16,7 @@ export class Npc {
     this.sprite = scene.add.sprite(def.x, def.y, `ch/${def.sprite}`, 0).setOrigin(0.5, 1);
     this.sprite.play(`${this.key}_idle_down`);
     // 이름표는 작은 글씨를 또렷하게 보이려고 1/3 크기로 그려요 (화면 3배 확대)
-    this.tag = crisp(scene.add.text(def.x, def.y, def.name, textStyle(12, '#fff3c4')).setOrigin(0.5, 1).setScale(1 / ZOOM));
+    this.tag = crisp(scene.add.text(def.x, def.y, def.name, textStyle(14, '#fff3c4')).setOrigin(0.5, 1).setScale(1 / ZOOM));
 
     this.feet = scene.add.zone(def.x, def.y, 10, 6);
     scene.physics.add.existing(this.feet, !def.wander);

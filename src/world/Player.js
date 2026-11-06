@@ -2,8 +2,8 @@
 // 충돌은 발밑의 작은 상자(feet)로만 하고, 그림은 그 위에 따라 붙어요.
 // 언제 때리고 누가 맞는지는 Combat.js가 정해요. 여기서는 몸의 움직임만 다뤄요.
 
-const SPEED = 76;
-const DODGE_SPEED = 210;
+const SPEED = 60;
+const DODGE_SPEED = 185;
 const DODGE_MS = 230;
 const DODGE_INV_MS = 300; // 구르기 무적 시간
 

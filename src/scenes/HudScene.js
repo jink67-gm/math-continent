@@ -42,24 +42,24 @@ export class HudScene extends Phaser.Scene {
     this.makeJoystick();
     this.makeDialog();
     this.makePrompt();
-    this.toastText = crisp(this.add.text(W / 2, 92, '', textStyle(16, '#ffffff')).setOrigin(0.5).setAlpha(0).setDepth(50));
+    this.toastText = crisp(this.add.text(600, 150, '', textStyle(17, '#ffffff', { strokeThickness: 4, align: 'center', wordWrap: { width: 420, useAdvancedWrap: true } })).setOrigin(0.5).setAlpha(0).setDepth(50));
     this.showBanner(this.worldInfo.name, this.worldInfo.subtitle);
 
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
     this.makeSaveIndicator();
     this.makeMenuButton();
-    this.partyText = crisp(this.add.text(16, 112, '', textStyle(12, '#9be8ff')));
+    this.partyText = crisp(this.add.text(16, 0, '', textStyle(14, '#9be8ff')));
     // 퀘스트 알림판과 길 안내 화살표
     this.questBg = this.add.graphics();
-    this.questText = crisp(this.add.text(16, 132, '', textStyle(12, '#fff3c4', { lineSpacing: 4 })));
+    this.questText = crisp(this.add.text(18, 126, '', textStyle(15, '#fff3c4', { lineSpacing: 6, wordWrap: { width: 320, useAdvancedWrap: true } })));
     this.arrow = this.add.graphics().setDepth(5);
     this.bossBar = this.add.graphics().setDepth(6);
     // 성장 시험 단추 (레벨업하면 생겨요, 미뤄도 돼요)
     this.testBtn = this.add.container(16, 214).setVisible(false);
     const tg = this.add.graphics();
-    tg.fillStyle(0x3b2a7a, 0.92).fillRoundedRect(0, 0, 150, 30, 8).lineStyle(2, 0xffd866, 1).strokeRoundedRect(0, 0, 150, 30, 8);
-    this.testText = crisp(this.add.text(75, 15, '', textStyle(12, '#ffe9a8')).setOrigin(0.5));
-    this.testBtn.add([tg, this.testText]).setSize(150, 30).setInteractive(new Phaser.Geom.Rectangle(0, 0, 150, 30), Phaser.Geom.Rectangle.Contains);
+    tg.fillStyle(0x3b2a7a, 0.92).fillRoundedRect(0, 0, 160, 34, 9).lineStyle(2, 0xffd866, 1).strokeRoundedRect(0, 0, 160, 34, 9);
+    this.testText = crisp(this.add.text(80, 17, '', textStyle(14, '#ffe9a8')).setOrigin(0.5));
+    this.testBtn.add([tg, this.testText]).setSize(160, 34).setInteractive(new Phaser.Geom.Rectangle(0, 0, 160, 34), Phaser.Geom.Rectangle.Contains);
     this.testBtn.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.world.growthTest(); });
     this.tweens.add({ targets: this.testBtn, alpha: 0.7, duration: 700, yoyo: true, repeat: -1 });
     this.input.keyboard.on('keydown-T', () => this.world.growthTest());
@@ -67,18 +67,18 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-M', () => !this.dialogOpen && this.world.openMap());
     this.input.keyboard.on('keydown-C', () => !this.dialogOpen && this.world.openSkills('stats'));
     // 능력 단추 (지도 옆): 올릴 포인트가 있으면 빨간 숫자
-    const cc = this.add.container(460, 32);
-    const cg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-34, -16, 68, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-34, -16, 68, 32, 8);
-    this.ptsDot = this.add.circle(30, -13, 10, 0xd8443a).setStrokeStyle(2, 0xfff3c4).setVisible(false);
-    this.ptsText = crisp(this.add.text(30, -13, '', textStyle(10, '#ffffff', { strokeThickness: 2 })).setOrigin(0.5));
-    cc.add([cg, crisp(this.add.text(0, 0, this.isTouch ? '능력' : '능력 C', textStyle(13, '#ffe9a8')).setOrigin(0.5)), this.ptsDot, this.ptsText])
-      .setSize(68, 32).setInteractive({ useHandCursor: true });
+    const cc = this.add.container(534, 34);
+    const cg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-40, -18, 80, 36, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(-40, -18, 80, 36, 9);
+    this.ptsDot = this.add.circle(36, -16, 11, 0xd8443a).setStrokeStyle(2, 0xfff3c4).setVisible(false);
+    this.ptsText = crisp(this.add.text(36, -16, '', textStyle(12, '#ffffff', { strokeThickness: 2 })).setOrigin(0.5));
+    cc.add([cg, crisp(this.add.text(0, 0, this.isTouch ? '능력' : '능력 C', textStyle(16, '#ffe9a8')).setOrigin(0.5)), this.ptsDot, this.ptsText])
+      .setSize(80, 36).setInteractive({ useHandCursor: true });
     cc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openSkills('stats'); });
     this.tweens.add({ targets: this.ptsDot, scale: 1.2, duration: 500, yoyo: true, repeat: -1 });
     // 지도 단추 (메뉴 옆)
-    const mc = this.add.container(386, 32);
-    const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-30, -16, 60, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-30, -16, 60, 32, 8);
-    mc.add([mg, crisp(this.add.text(0, 0, this.isTouch ? '지도' : '지도 M', textStyle(13, '#ffe9a8')).setOrigin(0.5))]).setSize(60, 32).setInteractive({ useHandCursor: true });
+    const mc = this.add.container(442, 34);
+    const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-40, -18, 80, 36, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(-40, -18, 80, 36, 9);
+    mc.add([mg, crisp(this.add.text(0, 0, this.isTouch ? '지도' : '지도 M', textStyle(16, '#ffe9a8')).setOrigin(0.5))]).setSize(80, 36).setInteractive({ useHandCursor: true });
     mc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openMap(); });
     // 협동 인사말 (정해진 말만 보낼 수 있어요)
     this.greet = this.add.container(16, 252).setVisible(false);
@@ -86,7 +86,7 @@ export class HudScene extends Phaser.Scene {
       const x = (i % 2) * 76;
       const y = Math.floor(i / 2) * 30;
       const g = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(x, y, 70, 26, 8).lineStyle(1, 0x9be8ff, 1).strokeRoundedRect(x, y, 70, 26, 8);
-      const t = crisp(this.add.text(x + 35, y + 13, txt, textStyle(11, '#9be8ff')).setOrigin(0.5));
+      const t = crisp(this.add.text(x + 35, y + 13, txt, textStyle(13, '#9be8ff')).setOrigin(0.5));
       const z = this.add.zone(x + 35, y + 13, 70, 26).setInteractive({ useHandCursor: true });
       z.on('pointerdown', (p, lx, ly, ev) => {
         ev?.stopPropagation();
@@ -97,11 +97,11 @@ export class HudScene extends Phaser.Scene {
       });
       this.greet.add([g, t, z]);
     });
-    this.bossName = crisp(this.add.text(W / 2 + 10, 26, '', textStyle(13, '#ffe9a8')).setOrigin(0.5).setDepth(7));
+    this.bossName = crisp(this.add.text(600, 83, '', textStyle(15, '#ffe9a8')).setOrigin(0.5).setDepth(7));
     const pmsg = (m) => this.toast(m);
     this.game.events.on('party:msg', pmsg);
     this.events.once('shutdown', () => this.game.events.off('party:msg', pmsg));
-    this.boostText = crisp(this.add.text(W - 18, 200, '', textStyle(13, '#ffe066')).setOrigin(1, 0.5));
+    this.boostText = crisp(this.add.text(W - 18, 214, '', textStyle(15, '#ffe066')).setOrigin(1, 0.5));
     this.tweens.add({ targets: this.boostText, alpha: 0.55, duration: 600, yoyo: true, repeat: -1 });
     this.hurtFlash = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a1a, 0).setDepth(60);
     // 연타 수 (오른쪽 가운데)
@@ -110,11 +110,11 @@ export class HudScene extends Phaser.Scene {
 
   // ── 메뉴 (상태 막대 오른쪽): 저장 코드 보기, 소리 켜기/끄기 ──
   makeMenuButton() {
-    const c = this.add.container(320, 32);
+    const c = this.add.container(358, 34);
     const g = this.add.graphics();
-    g.fillStyle(0x16110b, 0.85).fillRoundedRect(-30, -16, 60, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-30, -16, 60, 32, 8);
-    const t = crisp(this.add.text(0, 0, '메뉴', textStyle(13, '#ffe9a8')).setOrigin(0.5));
-    c.add([g, t]).setSize(60, 32).setInteractive({ useHandCursor: true });
+    g.fillStyle(0x16110b, 0.85).fillRoundedRect(-36, -18, 72, 36, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(-36, -18, 72, 36, 9);
+    const t = crisp(this.add.text(0, 0, '메뉴', textStyle(16, '#ffe9a8')).setOrigin(0.5));
+    c.add([g, t]).setSize(72, 36).setInteractive({ useHandCursor: true });
     c.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.openMenu(); });
     this.input.keyboard.on('keydown-ESC', () => { if (this.menuItems) this.closeMenu(); else if (!this.dialogOpen) this.openMenu(); });
   }
@@ -131,10 +131,10 @@ export class HudScene extends Phaser.Scene {
     const by = (H - bh) / 2 - 10;
     items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
     items.push(crisp(this.add.text(W / 2, by + 28, '메뉴', textStyle(18, '#ffe9a8')).setOrigin(0.5).setDepth(47)));
-    items.push(crisp(this.add.text(W / 2, by + 62, '내 저장 코드', textStyle(13, '#cfe3c8')).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 62, '내 저장 코드', textStyle(15, '#cfe3c8')).setOrigin(0.5).setDepth(47)));
     items.push(crisp(this.add.text(W / 2, by + 98, formatCode(s.saveCode), textStyle(34, '#ffffff', { strokeThickness: 6 })).setOrigin(0.5).setDepth(47)));
     items.push(crisp(this.add.text(W / 2, by + 136, '다른 기기에서 「저장 코드로 불러오기」에 이 코드를 넣으면\n같은 캐릭터로 이어서 할 수 있어요. 친구에게는 알려 주지 마세요!',
-      textStyle(11, '#e6f0dd', { align: 'center', lineSpacing: 4 })).setOrigin(0.5, 0).setDepth(47)));
+      textStyle(13, '#e6f0dd', { align: 'center', lineSpacing: 4 })).setOrigin(0.5, 0).setDepth(47)));
     const btn = (x, y, w, label, fn) => {
       const g = this.add.graphics().setDepth(47);
       const t = crisp(this.add.text(x, y, label, textStyle(15, '#ffffff')).setOrigin(0.5).setDepth(48));
@@ -246,13 +246,14 @@ export class HudScene extends Phaser.Scene {
     const b = this.world.boss;
     const g = this.bossBar.clear();
     if (!b?.engaged) { this.bossName.setText(''); return; }
-    const x = W / 2 - 130;
-    const y = 38;
-    const w = 280;
-    g.fillStyle(0x16110b, 0.85).fillRoundedRect(x - 6, y - 22, w + 12, 40, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(x - 6, y - 22, w + 12, 40, 8);
-    g.fillStyle(0x000000, 0.7).fillRect(x, y, w, 10);
-    g.fillStyle(b.sealed ? 0xb48cff : 0xe0563c, 1).fillRect(x + 1, y + 1, (w - 2) * Math.max(0, b.hp / b.maxHp), 8);
-    for (const m of [0.66, 0.33]) g.fillStyle(0xffffff, 0.7).fillRect(x + w * m, y, 2, 10);
+    // 위쪽 가운데 (단추들 아래): 이름 + HP 막대
+    const w = 320;
+    const x = 600 - w / 2;
+    const y = 96;
+    g.fillStyle(0x16110b, 0.85).fillRoundedRect(x - 8, y - 26, w + 16, 46, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(x - 8, y - 26, w + 16, 46, 9);
+    g.fillStyle(0x000000, 0.7).fillRect(x, y, w, 12);
+    g.fillStyle(b.sealed ? 0xb48cff : 0xe0563c, 1).fillRect(x + 1, y + 1, (w - 2) * Math.max(0, b.hp / b.maxHp), 10);
+    for (const m of [0.66, 0.33]) g.fillStyle(0xffffff, 0.7).fillRect(x + w * m, y, 2, 12);
     this.bossName.setText(b.sealed ? `${b.def.name} · 보호막!` : b.def.name);
   }
 
@@ -262,7 +263,7 @@ export class HudScene extends Phaser.Scene {
     if (text !== this.questText.text) {
       this.questText.setText(text);
       // 읽기 쉽게 반투명 바탕
-      this.questBg.clear().fillStyle(0x0f0b06, 0.5).fillRoundedRect(10, 126, this.questText.width + 14, this.questText.height + 12, 6);
+      this.questBg.clear().fillStyle(0x0f0b06, 0.55).fillRoundedRect(10, 118, this.questText.width + 16, this.questText.height + 16, 8);
     }
     const g = this.arrow.clear();
     const goal = q.goal(this.world.placeKey);
@@ -298,7 +299,7 @@ export class HudScene extends Phaser.Scene {
   // 협동: 친구가 같은 지도에 있는데 화면 밖이면 가장자리에 파란 화살표와 이름
   drawFriend(time, together) {
     const g = (this.friendG ??= this.add.graphics().setDepth(6));
-    this.friendLabel ??= crisp(this.add.text(0, 0, '', textStyle(11, '#9be8ff')).setOrigin(0.5).setDepth(6));
+    this.friendLabel ??= crisp(this.add.text(0, 0, '', textStyle(13, '#9be8ff')).setOrigin(0.5).setDepth(6));
     g.clear();
     this.friendLabel.setVisible(false);
     const r = this.world.combat.remote;
@@ -332,25 +333,25 @@ export class HudScene extends Phaser.Scene {
   // ── 상태 (왼쪽 위) ─────────────────────────────
   makeStatus() {
     const s = this.stats;
-    panel(this, 10, 10, 270, 84);
+    panel(this, 10, 10, 300, 98);
     // 얼굴 + 레벨 배지
-    this.add.circle(50, 48, 30, 0x2c4a3a).setStrokeStyle(3, GOLD);
-    const img = this.add.image(50, 48, `face/${HEROES[s.gender] || HEROES.male}`).setScale(1.3);
-    const maskG = this.make.graphics().fillCircle(50, 48, 28);
+    this.add.circle(54, 52, 33, 0x2c4a3a).setStrokeStyle(3, GOLD);
+    const img = this.add.image(54, 52, `face/${HEROES[s.gender] || HEROES.male}`).setScale(1.45);
+    const maskG = this.make.graphics().fillCircle(54, 52, 31);
     img.setMask(maskG.createGeometryMask());
-    this.add.graphics().fillStyle(INK, 1).fillRoundedRect(28, 72, 44, 18, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(28, 72, 44, 18, 9);
-    this.lvText = crisp(this.add.text(50, 81, '', textStyle(12, '#ffe9a8')).setOrigin(0.5));
-    this.nameText = crisp(this.add.text(92, 15, s.name, textStyle(14, '#fff3c4')));
+    this.add.graphics().fillStyle(INK, 1).fillRoundedRect(26, 80, 56, 22, 11).lineStyle(2, GOLD, 1).strokeRoundedRect(26, 80, 56, 22, 11);
+    this.lvText = crisp(this.add.text(54, 91, '', textStyle(14, '#ffe9a8')).setOrigin(0.5));
+    this.nameText = crisp(this.add.text(100, 16, s.name, textStyle(17, '#fff3c4')));
 
     // 막대: 글자(HP·SP)는 막대 왼쪽, 숫자는 막대 안 가운데
     this.bars = this.add.graphics();
-    this.barBox = { x: 118, w: 150 };
-    crisp(this.add.text(92, 45, 'HP', textStyle(11, '#ff9b8a')).setOrigin(0, 0.5));
-    crisp(this.add.text(92, 63, 'SP', textStyle(11, '#9cc8ff')).setOrigin(0, 0.5));
-    crisp(this.add.text(92, 79, 'EXP', textStyle(9, '#f0d68a')).setOrigin(0, 0.5));
+    this.barBox = { x: 132, w: 166 };
+    crisp(this.add.text(100, 52, 'HP', textStyle(14, '#ff9b8a')).setOrigin(0, 0.5));
+    crisp(this.add.text(100, 74, 'SP', textStyle(14, '#9cc8ff')).setOrigin(0, 0.5));
+    crisp(this.add.text(100, 93, 'EXP', textStyle(11, '#f0d68a')).setOrigin(0, 0.5));
     const mid = this.barBox.x + this.barBox.w / 2;
-    this.hpText = crisp(this.add.text(mid, 45, '', textStyle(10, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
-    this.spText = crisp(this.add.text(mid, 63, '', textStyle(10, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
+    this.hpText = crisp(this.add.text(mid, 52, '', textStyle(13, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
+    this.spText = crisp(this.add.text(mid, 74, '', textStyle(13, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
   }
 
   drawBars() {
@@ -365,9 +366,9 @@ export class HudScene extends Phaser.Scene {
         g.fillStyle(0xffffff, 0.22).fillRect(x + 2, y - h / 2 + 2, Math.max(0, (w - 4) * r), 2);
       }
     };
-    bar(45, s.hp / s.maxHp, 0xd8443a, 14);
-    bar(63, s.sp / s.maxSp, 0x3d7fe0, 14);
-    bar(79, s.exp / s.next, 0xf0c64a, 6);
+    bar(52, s.hp / s.maxHp, 0xd8443a, 18);
+    bar(74, s.sp / s.maxSp, 0x3d7fe0, 18);
+    bar(93, s.exp / s.next, 0xf0c64a, 7);
     this.hpText.setText(`${s.hp} / ${s.maxHp}`);
     this.spText.setText(`${s.sp} / ${s.maxSp}`);
     this.lvText.setText(`Lv ${s.lv}`);
@@ -380,9 +381,9 @@ export class HudScene extends Phaser.Scene {
     const mw = grid.cols * S;
     const mh = grid.rows * S;
     const x0 = W - mw - 18;
-    const y0 = 34;
-    panel(this, x0 - 8, 10, mw + 16, mh + 32 + 26);
-    crisp(this.add.text(x0 + mw / 2, 22, this.worldInfo.name, textStyle(12, '#ffe9a8')).setOrigin(0.5));
+    const y0 = 38;
+    panel(this, x0 - 8, 10, mw + 16, mh + 36 + 28);
+    crisp(this.add.text(x0 + mw / 2, 22, this.worldInfo.name, textStyle(15, '#ffe9a8')).setOrigin(0.5));
     const g = this.add.graphics();
     const col = { g: 0x5f9b45, d: 0xc9a066, w: 0x3f86c9 };
     for (let ty = 0; ty < grid.rows; ty++) {
@@ -396,9 +397,9 @@ export class HudScene extends Phaser.Scene {
     g.lineStyle(1, INK, 1).strokeRect(x0, y0, mw, mh);
     this.mini = { x0, y0, S };
     this.miniDots = this.add.graphics();
-    this.goldText = crisp(this.add.text(x0 + mw, y0 + mh + 14, '', textStyle(12, '#ffd866')).setOrigin(1, 0.5));
+    this.goldText = crisp(this.add.text(x0 + mw, y0 + mh + 15, '', textStyle(14, '#ffd866')).setOrigin(1, 0.5));
     this.add.image(x0 + 8, y0 + mh + 14, 'items/consumables/scroll').setScale(0.16);
-    this.diffText = crisp(this.add.text(x0 + 18, y0 + mh + 14, '', textStyle(11, '#cfe3c8')).setOrigin(0, 0.5));
+    this.diffText = crisp(this.add.text(x0 + 18, y0 + mh + 15, '', textStyle(13, '#cfe3c8')).setOrigin(0, 0.5));
   }
 
   drawMinimap(time) {
@@ -419,7 +420,7 @@ export class HudScene extends Phaser.Scene {
     g.fillStyle(0xff4b3a, blink).fillCircle(x0 + p.x * k, y0 + p.y * k, 3);
     g.lineStyle(1, 0xffffff, 1).strokeCircle(x0 + p.x * k, y0 + p.y * k, 3);
     this.goldText.setText(`${this.stats.gold} G`);
-    this.diffText.setText(`난이도 ${DIFFICULTY[this.stats.difficulty]?.label || '보통'}`);
+    this.diffText.setText(DIFFICULTY[this.stats.difficulty]?.label || '보통');
   }
 
   // ── 행동 버튼 (오른쪽 아래) ─────────────────────
@@ -430,7 +431,7 @@ export class HudScene extends Phaser.Scene {
       const base = this.add.image(0, 0, key).setDisplaySize(size, size);
       const [ik, ifr] = Array.isArray(icon) ? icon : [icon, undefined];
       const ic = this.add.image(0, -2, ik, ifr).setScale(iconScale);
-      const t = crisp(this.add.text(0, size / 2 + 2, label, textStyle(10, '#fff3c4')).setOrigin(0.5, 0));
+      const t = crisp(this.add.text(0, size / 2 + 2, label, textStyle(13, '#fff3c4')).setOrigin(0.5, 0));
       c.add([base, ic, t]);
       c.setSize(size, size).setInteractive({ useHandCursor: true });
       c.on('pointerdown', (ptr, lx, ly, ev) => { ev?.stopPropagation(); c.setScale(0.9); fn(); });
@@ -468,10 +469,10 @@ export class HudScene extends Phaser.Scene {
       const x = ax + Math.cos(a) * 100;
       const y = ay + Math.sin(a) * 100;
       const b = mk(x, y, 'ui2/action_skill', 54, sk?.icon || ['na/sparkc', 0], this.isTouch ? '' : keys[i], () => v().combat.castSkill(i), 1.1);
-      b.label.setY(-40).setFontSize(13).setText(this.isTouch ? '' : keys[i]);
+      b.label.setY(-46).setFontSize(17).setText(this.isTouch ? '' : keys[i]);
       b.dial = this.add.graphics();
-      b.lockText = crisp(this.add.text(0, 0, '', textStyle(11, '#ffe9a8')).setOrigin(0.5));
-      b.cdText = crisp(this.add.text(0, 0, '', textStyle(13, '#ffffff')).setOrigin(0.5));
+      b.lockText = crisp(this.add.text(0, 0, '', textStyle(13, '#ffe9a8')).setOrigin(0.5));
+      b.cdText = crisp(this.add.text(0, 0, '', textStyle(17, '#ffffff')).setOrigin(0.5));
       b.add([b.dial, b.lockText, b.cdText]);
       this.skillBtns.push(b);
     });
@@ -534,8 +535,8 @@ export class HudScene extends Phaser.Scene {
     }
     const pot = this.add.image(x, H - 46, 'items/consumables/potion_red').setScale(0.22).setInteractive({ useHandCursor: true });
     pot.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.usePotion(); });
-    this.potText = crisp(this.add.text(x + 18, H - 26, '', textStyle(11, '#ffffff')).setOrigin(1, 1));
-    if (!this.isTouch) crisp(this.add.text(x - 19, H - 66, 'Q', textStyle(11, '#ffe9a8')));
+    this.potText = crisp(this.add.text(x + 20, H - 24, '', textStyle(14, '#ffffff')).setOrigin(1, 1));
+    if (!this.isTouch) crisp(this.add.text(x - 20, H - 68, 'Q', textStyle(14, '#ffe9a8')));
   }
 
   usePotion() {
@@ -596,17 +597,17 @@ export class HudScene extends Phaser.Scene {
   makeDialog() {
     const c = this.add.container(0, 0).setDepth(40).setVisible(false);
     const bx = 70;
-    const by = H - 150;
+    const by = H - 156;
     const bw = W - 140;
-    const bh = 128;
-    const box = panel(this, bx, by, bw, bh, 0.92);
+    const bh = 140;
+    const box = panel(this, bx, by, bw, bh, 0.97);
     this.dlgPortraitBg = this.add.graphics();
     this.dlgPortrait = this.add.image(bx + 70, by + bh - 10, 'face/OldMan').setOrigin(0.5, 0.5);
-    this.dlgName = crisp(this.add.text(bx + 140, by + 16, '', textStyle(15, '#ffd866')));
-    this.dlgText = crisp(this.add.text(bx + 140, by + 44, '', {
-      fontFamily: FONT, fontSize: '15px', color: '#fff8e6', lineSpacing: 8, wordWrap: { width: bw - 170, useAdvancedWrap: true },
+    this.dlgName = crisp(this.add.text(bx + 140, by + 14, '', textStyle(18, '#ffd866')));
+    this.dlgText = crisp(this.add.text(bx + 140, by + 46, '', {
+      fontFamily: FONT, fontSize: '18px', color: '#fff8e6', lineSpacing: 9, wordWrap: { width: bw - 170, useAdvancedWrap: true },
     }));
-    this.dlgArrow = crisp(this.add.text(bx + bw - 24, by + bh - 20, '▼', textStyle(12, '#ffd866')).setOrigin(0.5));
+    this.dlgArrow = crisp(this.add.text(bx + bw - 24, by + bh - 20, '▼', textStyle(15, '#ffd866')).setOrigin(0.5));
     this.tweens.add({ targets: this.dlgArrow, y: this.dlgArrow.y + 4, duration: 400, yoyo: true, repeat: -1 });
     c.add([box, this.dlgPortraitBg, this.dlgPortrait, this.dlgName, this.dlgText, this.dlgArrow]);
     this.dlg = c;
@@ -667,8 +668,8 @@ export class HudScene extends Phaser.Scene {
     const bx = (W - bw) / 2;
     const by = (H - bh) / 2 - 20;
     items.push(panel(this, bx, by, bw, bh, 0.95).setDepth(46));
-    items.push(crisp(this.add.text(W / 2, by + 30, title, textStyle(17, '#ffe9a8')).setOrigin(0.5).setDepth(47)));
-    items.push(crisp(this.add.text(W / 2, by + 60, note, textStyle(12, '#e6f0dd', { align: 'center', wordWrap: { width: bw - 50 } })).setOrigin(0.5, 0).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 30, title, textStyle(20, '#ffe9a8')).setOrigin(0.5).setDepth(47)));
+    items.push(crisp(this.add.text(W / 2, by + 58, note, textStyle(15, '#e6f0dd', { align: 'center', wordWrap: { width: bw - 50 } })).setOrigin(0.5, 0).setDepth(47)));
     const close = () => {
       items.forEach((o) => o.destroy());
       this.choiceOpen = false;
@@ -717,7 +718,7 @@ export class HudScene extends Phaser.Scene {
   makePrompt() {
     this.prompt = this.add.container(0, 0).setVisible(false).setDepth(30);
     const bg = this.add.graphics();
-    const t = crisp(this.add.text(0, 0, '', textStyle(12, '#1b1208', { stroke: '#fff8e6', strokeThickness: 0 })).setOrigin(0.5));
+    const t = crisp(this.add.text(0, 0, '', textStyle(15, '#1b1208', { stroke: '#fff8e6', strokeThickness: 0 })).setOrigin(0.5));
     this.prompt.add([bg, t]);
     this.promptBg = bg;
     this.promptText = t;
@@ -738,9 +739,9 @@ export class HudScene extends Phaser.Scene {
     if (this.promptText.text !== text) {
       this.promptText.setText(text);
       const w = this.promptText.width + 18;
-      this.promptBg.clear().fillStyle(0xfff8e6, 0.95).fillRoundedRect(-w / 2, -12, w, 24, 10)
-        .lineStyle(2, INK, 1).strokeRoundedRect(-w / 2, -12, w, 24, 10)
-        .fillStyle(0xfff8e6, 0.95).fillTriangle(-6, 11, 6, 11, 0, 18);
+      this.promptBg.clear().fillStyle(0xfff8e6, 0.95).fillRoundedRect(-w / 2, -15, w, 30, 12)
+        .lineStyle(2, INK, 1).strokeRoundedRect(-w / 2, -15, w, 30, 12)
+        .fillStyle(0xfff8e6, 0.95).fillTriangle(-7, 14, 7, 14, 0, 21);
     }
     // 마을 카메라는 확대돼 있어서, 세상 좌표를 화면 좌표로 바꿔요
     const wv = cam.worldView;
@@ -753,7 +754,7 @@ export class HudScene extends Phaser.Scene {
 
   // ── 저장 표시 (상태 막대 아래) ─────────────────
   makeSaveIndicator() {
-    const t = crisp(this.add.text(16, 96, '', textStyle(11, '#cfe3c8')).setAlpha(0));
+    const t = crisp(this.add.text(W / 2 + 60, 64, '', textStyle(13, '#cfe3c8')).setOrigin(0.5, 0).setAlpha(0));
     const words = {
       saving: ['저장 중…', '#ffe9a8'], saved: ['✓ 저장됨', '#9be38a'],
       local: ['✓ 이 기기에 저장됨', '#9be38a'], offline: ['인터넷 연결 안 됨 · 이 기기에 저장됨', '#ffb36b'],
@@ -771,9 +772,9 @@ export class HudScene extends Phaser.Scene {
 
   // ── 알림 ──────────────────────────────────────
   toast(msg) {
-    this.toastText.setText(msg).setAlpha(1).setY(100);
+    this.toastText.setText(msg).setAlpha(1).setY(158);
     this.tweens.killTweensOf(this.toastText);
-    this.tweens.add({ targets: this.toastText, alpha: 0, y: 90, delay: 1600, duration: 500 });
+    this.tweens.add({ targets: this.toastText, alpha: 0, y: 148, delay: 1800, duration: 500 });
   }
 
   // 큰 알림: 여러 개가 한꺼번에 오면 차례로 보여 줘요
@@ -787,12 +788,12 @@ export class HudScene extends Phaser.Scene {
     if (!item) { this.bannerBusy = false; return; }
     this.bannerBusy = true;
     const [title, sub] = item;
-    const c = this.add.container(W / 2, 150).setDepth(45).setAlpha(0);
+    const c = this.add.container(600, 214).setDepth(45).setAlpha(0);
     const g = this.add.graphics();
-    g.fillStyle(0x000000, 0.45).fillRect(-260, -38, 520, 76);
-    g.lineStyle(2, GOLD, 0.9).lineBetween(-240, -30, 240, -30).lineBetween(-240, 30, 240, 30);
-    const t1 = crisp(this.add.text(0, -8, title, textStyle(28, '#ffe9a8')).setOrigin(0.5));
-    const t2 = crisp(this.add.text(0, 18, sub, textStyle(13, '#e6f0dd')).setOrigin(0.5));
+    g.fillStyle(0x000000, 0.5).fillRect(-260, -42, 520, 84);
+    g.lineStyle(2, GOLD, 0.9).lineBetween(-245, -34, 245, -34).lineBetween(-245, 34, 245, 34);
+    const t1 = crisp(this.add.text(0, -10, title, textStyle(30, '#ffe9a8')).setOrigin(0.5));
+    const t2 = crisp(this.add.text(0, 20, sub, textStyle(15, '#e6f0dd', { wordWrap: { width: 490, useAdvancedWrap: true }, align: 'center' })).setOrigin(0.5));
     c.add([g, t1, t2]);
     this.tweens.chain({
       targets: c,
@@ -814,9 +815,11 @@ export class HudScene extends Phaser.Scene {
     const tests = this.stats.tests || 0;
     this.testBtn.setVisible(tests > 0);
     // 알림판 길이에 맞춰 단추들을 아래로 쌓아요
-    const below = 132 + this.questText.height + 14;
+    let below = 126 + this.questText.height + 18;
+    this.partyText.setY(below);
+    if (this.partyText.text) below += 24;
     this.testBtn.setY(below);
-    this.greet.setY(tests > 0 ? below + 38 : below);
+    this.greet.setY(tests > 0 ? below + 40 : below);
     if (tests) this.testText.setText(`⭐ 성장 시험 ${tests}${this.isTouch ? '' : ' (T)'}`);
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
       : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? ' · 지도에 파란 점' : ` · 지금 「${this.peerPlace(party)}」`}`);

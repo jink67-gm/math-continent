@@ -54,6 +54,23 @@ function sfx(game, key, volume = 0.45) {
   try { game.sound.play(key, { volume }); } catch { /* 괜찮아요 */ }
 }
 
+// 누른 줄이 통통 튀고, 단추 위로 「+1」 같은 글자가 떠올라요 (다시 그린 뒤에 불러요)
+function bump(body, selector, text) {
+  const btn = body.querySelector(selector);
+  const rowEl = btn?.closest('.panel-row');
+  if (!rowEl) return;
+  rowEl.classList.add('bump');
+  if (!text) return;
+  rowEl.style.position = 'relative';
+  const pop = document.createElement('span');
+  pop.className = 'plus-pop';
+  pop.textContent = text;
+  pop.style.right = `${Math.max(8, rowEl.getBoundingClientRect().right - btn.getBoundingClientRect().right + btn.offsetWidth / 2 - 12)}px`;
+  pop.style.top = '-6px';
+  rowEl.appendChild(pop);
+  setTimeout(() => pop.remove(), 750);
+}
+
 function statLine(d, plus = 0) {
   if (!d) return '';
   const pb = plusBonus(d, plus);
@@ -113,6 +130,7 @@ export function openShop(game, scene) {
       sfx(game, 'sfx_gold', 0.5);
       scene.saveGame();
       paint();
+      bump(document.querySelector('.panel-card .panel-body'), `[data-buy="${b.dataset.buy}"]`, `-${price} G`);
     }));
   });
 }
@@ -156,7 +174,13 @@ export function openBag(game, scene) {
     }
     html += `<p class="panel-note">회복약 ${s.potions}개 · 강화석 ${s.stones || 0}개 · 빛나는 강화석 ${s.stones2 || 0}개</p>`;
     body.innerHTML = html;
-    body.querySelectorAll('[data-eq]').forEach((b) => b.addEventListener('click', () => { equip(game, scene, b.dataset.eq); scene.saveGame(); paint(); }));
+    body.querySelectorAll('[data-eq]').forEach((b) => b.addEventListener('click', () => {
+      const id = b.dataset.eq;
+      equip(game, scene, id);
+      scene.saveGame();
+      paint();
+      bump(document.querySelector('.panel-card .panel-body'), `[data-eq="${id}"]`, '착용!');
+    }));
   });
 }
 
@@ -300,10 +324,12 @@ export function openCharacter(game, scene, tab = 'stats') {
       const before = s.maxHp;
       refreshMax(s);
       if (s.maxHp > before) s.hp += s.maxHp - before;
-      sfx(game, 'sfx_click', 0.4);
+      sfx(game, 'sfx_confirm', 0.45);
       scene.saveGame();
       paint();
+      bump(root(), `[data-up="${k}"]`, `+${n}`);
     };
+    const root = () => document.querySelector('.panel-card .panel-body');
     body.querySelectorAll('[data-up]').forEach((b) => b.addEventListener('click', () => upStat(b.dataset.up, 1)));
     body.querySelectorAll('[data-up5]').forEach((b) => b.addEventListener('click', () => upStat(b.dataset.up5, 5)));
     body.querySelectorAll('[data-lvup]').forEach((b) => b.addEventListener('click', () => {
@@ -314,6 +340,7 @@ export function openCharacter(game, scene, tab = 'stats') {
       sfx(game, 'sfx_unlock', 0.45);
       scene.saveGame();
       paint();
+      bump(root(), `[data-lvup="${id}"]`, `${s.skillLv[id]}단계!`);
     }));
     body.querySelectorAll('[data-slot]').forEach((b) => b.addEventListener('click', () => {
       const [id, i] = b.dataset.slot.split(':');
@@ -325,6 +352,7 @@ export function openCharacter(game, scene, tab = 'stats') {
       scene.hud?.refreshSkills?.();
       scene.saveGame();
       paint();
+      bump(document.querySelector('.panel-card .panel-body'), `[data-slot="${id}:${n}"]`);
     }));
     body.querySelectorAll('[data-learn]').forEach((b) => b.addEventListener('click', () => {
       const sk = skillsFor(s).find((k) => k.id === b.dataset.learn);

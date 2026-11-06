@@ -65,7 +65,7 @@ export class MapScene extends WorldScene {
     for (const o of b.objects) {
       const img = this.placeObject(o);
       if (o.tint) img.setTint(o.tint);
-      if (o.label) crisp(this.add.text(o.x, o.y - img.height - 2, o.label, textStyle(11, '#fff3c4'))).setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(o.y + 1);
+      if (o.label) crisp(this.add.text(o.x, o.y - img.height - 2, o.label, textStyle(13, '#fff3c4'))).setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(o.y + 1);
     }
     this.mapBuildings = b.objects.filter((o) => o.solid === 'building');
 

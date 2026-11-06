@@ -6,6 +6,7 @@ import { TitleScene } from './scenes/TitleScene.js';
 import { MapScene } from './scenes/MapScene.js';
 import { TownScene, WildScene, DungeonScene } from './scenes/RegionScenes.js';
 import { HudScene } from './scenes/HudScene.js';
+import { IntroScene } from './scenes/IntroScene.js';
 import { SaveManager } from './save/SaveManager.js';
 import { Party } from './net/Party.js';
 import { Runes } from './math/Runes.js';
@@ -23,7 +24,7 @@ const config = {
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   dom: { createContainer: true },
   input: { activePointers: 3 },
-  scene: [BootScene, TitleScene, MapScene, TownScene, WildScene, DungeonScene, HudScene],
+  scene: [BootScene, TitleScene, IntroScene, MapScene, TownScene, WildScene, DungeonScene, HudScene],
 };
 
 // 글꼴을 다 받은 뒤에 시작해야 글자가 기본 글꼴로 그려지지 않아요

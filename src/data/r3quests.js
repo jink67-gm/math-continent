@@ -55,33 +55,53 @@ export const R3_MAIN = [
   },
 ];
 
+// 곁 퀘스트: 데시마르 사람들의 이야기 (단계는 r1quests.js 설명과 같아요)
 export const R3_SIDE = {
-  fish: {
-    giver: 'sailor', title: '퐁당 물고기 몰아내기', type: 'kill', kind: 'Fish', map: 'dh_beach', need: 6, after: 1,
-    desc: '조개 모래톱의 퐁당 물고기 6마리를 물리쳐요.',
-    start: ['모래톱 물고기들이 그물을 다 찢어 놨어!', '6마리만 혼내 줄래? 북쪽 모래톱이야.'],
-    ready: ['이제 그물을 다시 칠 수 있겠어. 고마워!', '바다에서 건진 회복약이야. 받아!'],
-    reward: { exp: 120, potions: 2 },
+  lighthouse: {
+    giver: 'samurai', title: '등대 무사의 찌르기', after: 1,
+    start: ['나는 등대를 지키는 무사 파랑이오. 요즘 산호 해안 문어들이 먹물을 뿜어 등대 불빛을 가리고 있소.', '문어들을 물리쳐 불빛을 되찾아 준다면, 내 콤보 「모아 찌르기」를 전해 주겠소.'],
+    steps: [
+      { type: 'kill', kind: 'Octopus', map: 'dh_reef', need: 5, desc: '산호 해안의 먹물 문어 5마리를 물리쳐요.', short: '먹물 문어 물리치기' },
+      { type: 'talk', npc: 'sailor', desc: '선원 돌핀에게 등대 불빛이 돌아왔는지 물어봐요.', short: '돌핀에게 확인하기',
+        lines: ['오! 방금 바다에서 등대 불빛이 똑똑히 보였어!', '파랑 무사님께 고맙다고 전해 줘. 그분 찌르기는 정말 번개 같다니까.'] },
+      { type: 'solve', npc: 'samurai', desc: '파랑 무사의 「한 점」 시험을 풀어요.', short: '무사의 시험 풀기',
+        lines: ['불빛이 돌아왔구려. 마지막 시험이오.', '찌르기는 한 점을 정확히 노려야 하오. 소수점 하나 틀려도 빗나가지.'], ask: '소수점까지 정확하게!' },
+    ],
+    ready: ['좋소. 「모아 찌르기」를 알려 주겠소.', 'J를 꾹 눌러 힘을 모았다가 떼시오. 앞으로 미끄러지며 줄지은 적을 한꺼번에 꿰뚫는다오.', '더 오래 모으면 세 번 연달아 찌르지. SP는 들지 않소.'],
+    reward: { exp: 160, combo: 'pierce', gold: 120 },
   },
-  shells: {
-    giver: 'smith', title: '반짝이는 소라 껍데기', type: 'collect', kind: 'Mollusc', map: 'dh_pier', need: 5, chance: 0.6, item: '소라 껍데기', after: 1,
-    desc: '등대 방파제의 소라게에게서 소라 껍데기 5개를 모아요.',
-    start: ['단단한 소라 껍데기를 갈아 넣으면 아주 튼튼한 갑옷이 되지.', '동쪽 방파제 소라게들이 가지고 있다네. 5개만 부탁하네!'],
-    ready: ['오오, 반짝반짝 단단하구먼!', '약속대로 철 갑옷을 만들어 주지. 가방(B)에서 입어 보게!'],
-    reward: { exp: 150, armor: 'iron' },
-  },
-  octopus: {
-    giver: 'innkeeper', title: '먹물 문어 혼내 주기', type: 'kill', kind: 'Octopus', map: 'dh_reef', need: 5, after: 1,
-    desc: '산호 해안의 먹물 문어 5마리를 물리쳐요.',
-    start: ['산호 해안 문어들이 손님들한테 먹물을 쏘아 대요.', '5마리만 혼내 주면 손님들이 좋아할 거예요.'],
-    ready: ['이제 손님들이 바닷가를 마음껏 걷겠네요!', '감사의 뜻으로 회복약을 넉넉히 드릴게요.'],
-    reward: { exp: 150, potions: 3, gold: 80 },
+  net: {
+    giver: 'sailor', title: '찢어진 그물', after: 1,
+    start: ['큰일이야! 내 그물이 찢어져서 고기를 한 마리도 못 잡았어.', '모래톱 물고기들이 가진 튼튼한 해초로 기우면 되는데… 도와줄래?'],
+    steps: [
+      { type: 'collect', kind: 'Fish', map: 'dh_beach', need: 4, chance: 0.6, item: '튼튼한 해초', desc: '조개 모래톱의 퐁당 물고기에게서 튼튼한 해초를 모아요.', short: '튼튼한 해초 모으기' },
+      { type: 'solve', npc: 'merchant', desc: '항구 상인 마리에게 해초를 알맞은 길이로 잘라 달라고 해요.', short: '마리와 해초 자르기',
+        lines: ['해초를 그물 실로 쓰려고? 똑같은 길이로 잘라야 해.', '몇 도막이 나오는지 계산해 줄래? 소수 나눗셈이야!'], ask: '해초를 몇 도막으로 자를 수 있을까요?' },
+    ],
+    ready: ['그물이 새것처럼 튼튼해졌어!', '오늘 잡은 고기를 판 돈이야. 그리고 이 물새 장화, 물가에서 미끄러지지 않아!'],
+    reward: { exp: 140, gold: 200, item: 'wader' },
   },
   pearl: {
-    giver: 'child', title: '잃어버린 진주', type: 'find', target: 'find_pearl', map: 'dh_cove', need: 1, item: '진주', after: 1,
-    desc: '소용돌이 만 동쪽 조개 더미에서 소라의 진주를 찾아요.',
-    start: ['엄마한테 받은 진주를 바닷가에서 떨어뜨렸어…', '소용돌이 만 동쪽 조개 더미 쪽이었던 것 같아. 찾아 줄래?'],
-    ready: ['내 진주다! 정말 고마워!', '이건 내가 모은 용돈이야. 헤헤.'],
-    reward: { exp: 110, gold: 200 },
+    giver: 'child', title: '엄마의 진주', after: 1,
+    start: ['엄마 생신 선물로 진주를 주우러 갔다가… 소용돌이 만에 떨어뜨렸어.', '엄마한테는 비밀이야! 여관에 있는 엄마한테 슬쩍 생신 날짜만 물어봐 줄래?'],
+    steps: [
+      { type: 'talk', npc: 'innkeeper', desc: '여관 주인 파도(소라 엄마)에게 슬쩍 이야기를 들어 봐요.', short: '파도에게 슬쩍 묻기',
+        lines: ['어머, 소라 친구구나? 내 생일은 바로 내일이란다.', '소라가 요즘 소용돌이 만 동쪽 조개 더미 쪽을 자꾸 들락거리던데… 무슨 일일까?'] },
+      { type: 'kill', kind: 'Mollusc', map: 'dh_cove', need: 3, desc: '소용돌이 만에서 진주를 노리는 소라게 3마리를 쫓아요.', short: '소라게 쫓아내기' },
+      { type: 'find', target: 'find_pearl', desc: '소용돌이 만 동쪽 조개 더미에서 진주를 찾아요.', short: '조개 더미에서 진주 찾기', item: '진주', lines: ['조개 사이에서 동그란 진주가 반짝여요!'] },
+    ],
+    ready: ['내 진주다! 엄마가 정말 좋아하실 거야!', '이건 우리 집에 대대로 내려오는 자수정 목걸이래. 모험가한테 주라고 엄마가 그랬어! (엄마는 다 알고 계셨나 봐)'],
+    reward: { exp: 120, gold: 150, item: 'amulet' },
+  },
+  shell: {
+    giver: 'smith', title: '소라 껍데기 갑옷', after: 1,
+    start: ['단단한 소라 껍데기를 갈아 넣으면 아주 튼튼한 갑옷이 되지.', '등대 방파제 소라게들이 가지고 있다네. 다섯 개만 부탁하네!'],
+    steps: [
+      { type: 'collect', kind: 'Mollusc', map: 'dh_pier', need: 5, chance: 0.6, item: '소라 껍데기', desc: '등대 방파제의 소라게에게서 소라 껍데기를 모아요.', short: '소라 껍데기 모으기' },
+      { type: 'solve', npc: 'smith', desc: '닻쇠와 함께 껍데기 가루를 알맞게 섞어요.', short: '닻쇠와 갑옷 만들기',
+        lines: ['껍데기 가루를 쇳물에 섞을 차례야.', '비율이 소수점 하나만 틀려도 갑옷이 물러진다네. 계산해 주게!'], ask: '가루를 몇 번에 나눠 넣을까요?' },
+    ],
+    ready: ['오오, 반짝반짝 단단하구먼!', '철 갑옷일세. 장비(B) 창에서 입어 보게! 강화석도 넣어 두었네.'],
+    reward: { exp: 150, armor: 'iron', stones: 2 },
   },
 };

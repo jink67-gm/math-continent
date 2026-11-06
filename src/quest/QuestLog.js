@@ -5,6 +5,11 @@
 //       = { main: 단계 번호, runes: {룬id: true}, side: { 퀘스트id: { state: 'active'|'ready'|'done', n } } }
 //   나머지 마을(예전 구조): 메인 이야기만 (data/quests.js regionQuests) — stats.vq[마을]
 // 화면 쪽(장면·HUD)은 이 파일에 "무슨 일이 있었는지"만 알려 주면 돼요.
+//
+// 곁 퀘스트는 여러 단계로 이어지는 이야기예요 (rNquests.js의 steps):
+//   talk(사람과 이야기) · solve(그 사람이 내는 수학 문제) · kill(물리치기) · collect(떨어뜨리는 물건 모으기)
+//   find(숨은 물건 찾기) · enter(어떤 지도에 가 보기)
+//   단계를 모두 마치면 처음 부탁한 사람에게 돌아가 보상을 받아요. 보상에 combo가 있으면 새 콤보를 배워요.
 
 import { regionQuests } from '../data/quests.js';
 import { MAP_REGIONS, ALL_MAPS } from '../data/mapRegions.js';
@@ -96,12 +101,20 @@ export class QuestLog {
   // 조작법 안내 (터치 기기와 키보드가 달라요)
   controlsLine() {
     if (this.game.device?.input?.touch) return '왼쪽 아래를 누른 채 끌면 걸어요. 오른쪽 큰 단추는 공격, 둘레의 작은 단추는 스킬, 왼쪽 아래 단추는 구르기예요. 사람 곁에서는 말풍선 단추로 대화해요.';
-    return 'WASD(또는 방향키)로 걷고, J로 공격, Space로 구르기, E로 대화해요. 스킬은 U·I·O·L, 회복약은 Q, 지도는 M, 가방은 B예요.';
+    return 'WASD(또는 방향키)로 걷고, J로 공격, Space로 구르기, E로 대화해요. 스킬은 U·I·O·L, 회복약은 Q, 지도는 M, 장비는 B, 능력은 C, 퀘스트 목록은 K예요.';
   }
 
   // ── 곁 퀘스트 (여러 지도 지역) ────────────────────
   get sides() { return this.rc?.side || {}; }
   sideState(id) { return this.state().side[id]; }
+  // 예전 한 단계짜리 퀘스트도 steps 하나로 다뤄요
+  stepsOf(d) { return d.steps || [d]; }
+  sideStep(id) {
+    const ss = this.sideState(id);
+    if (ss?.state !== 'active') return null;
+    return this.stepsOf(this.sides[id])[ss.step || 0] || null;
+  }
+  npcName(npcId) { return this.rc?.maps[this.rc.town]?.npcs.find((n) => n.id === npcId)?.name || '마을 사람'; }
 
   sideAvailable(id) {
     const d = this.sides[id];
@@ -115,6 +128,8 @@ export class QuestLog {
     if (st?.type === 'talk' && st.target === npcId) return '?';
     let mark = null;
     for (const [id, d] of Object.entries(this.sides)) {
+      const cur = this.sideStep(id);
+      if (cur && (cur.type === 'talk' || cur.type === 'solve') && cur.npc === npcId) return '?';
       if (d.giver !== npcId) continue;
       if (this.sideState(id)?.state === 'ready') return '?';
       if (this.sideAvailable(id)) mark = '!';
@@ -130,19 +145,34 @@ export class QuestLog {
       return { lines: this.fill(st.lines), after: () => this.advance() };
     }
     if (this.rc) {
+      // 1) 지금 단계가 이 사람과 이야기하기 · 문제 풀기인 퀘스트
+      for (const [id, d] of Object.entries(this.sides)) {
+        const cur = this.sideStep(id);
+        if (!cur || cur.npc !== npcId) continue;
+        if (cur.type === 'talk') return { lines: this.fill(cur.lines || [cur.desc]), after: () => this.advanceSide(id) };
+        if (cur.type === 'solve') {
+          return { lines: this.fill(cur.lines || [cur.desc]), after: async () => {
+            const res = await this.game.runes.start({ context: 'quest', unit: this.rc.unit, title: d.title, line: cur.ask || '이 문제를 풀어 줄래?', allowLater: true });
+            if (res.correct) this.advanceSide(id);
+            else this.scene?.hud?.toast('천천히 생각해 보고 다시 말을 걸어요');
+          } };
+        }
+      }
+      // 2) 부탁한 사람: 보고 · 새 부탁 · 진행 알려 주기
       for (const [id, d] of Object.entries(this.sides)) {
         if (d.giver !== npcId) continue;
         const ss = this.sideState(id);
-        if (ss?.state === 'ready') return { lines: d.ready, after: () => { ss.state = 'done'; this.reward(d.reward, d.title); this.scene?.saveGame({ now: true }); } };
+        if (ss?.state === 'ready') return { lines: this.fill(d.ready), after: () => { ss.state = 'done'; this.reward(d.reward, d.title); this.scene?.saveGame({ now: true }); } };
         if (this.sideAvailable(id)) {
-          return { lines: d.start, after: () => {
-            this.state().side[id] = { state: 'active', n: 0 };
+          return { lines: this.fill(d.start), after: () => {
+            this.state().side[id] = { state: 'active', step: 0, n: 0 };
             this.scene?.sound.play('sfx_unlock', { volume: 0.4 });
-            this.scene?.hud?.showBanner('새 퀘스트!', `${d.title} — ${d.desc}`);
+            this.scene?.hud?.showBanner('새 퀘스트!', `${d.title} — ${this.stepsOf(d)[0].desc}`);
             this.scene?.saveGame();
           } };
         }
-        if (ss?.state === 'active') return { lines: [`${d.desc}`, `지금 ${ss.n}/${d.need}이에요. 힘내요!`] };
+        const cur = this.sideStep(id);
+        if (cur) return { lines: [`「${d.title}」 ${cur.desc}`, ...(cur.need ? [`지금 ${ss.n || 0}/${cur.need}이에요. 힘내요!`] : [])] };
       }
     }
     // 룬 학자: 배울 수 있는 스킬 중에서 골라 배워요 (스킬 포인트 1 + 룬 문제)
@@ -187,38 +217,64 @@ export class QuestLog {
     if (st?.type === 'boss' && st.target === id) this.advance();
   }
 
-  // 몬스터를 물리쳤을 때: 물리치기·모으기 퀘스트
+  // 몬스터를 물리쳤을 때: 물리치기·모으기 단계
   onPurify(placeKey, kind) {
     if (!this.rc) return;
     const map = String(placeKey).replace('Map:', '');
     for (const [id, d] of Object.entries(this.sides)) {
+      const cur = this.sideStep(id);
+      if (!cur || (cur.type !== 'kill' && cur.type !== 'collect') || cur.map !== map || cur.kind !== kind) continue;
+      if (cur.type === 'collect' && Math.random() > (cur.chance ?? 0.6)) continue;
       const ss = this.sideState(id);
-      if (ss?.state !== 'active' || d.map !== map || d.kind !== kind) continue;
-      if (d.type === 'collect' && Math.random() > d.chance) continue;
-      ss.n = Math.min(d.need, ss.n + 1);
-      this.scene?.hud?.toast(d.type === 'collect' ? `${d.item}를 주웠어요 (${ss.n}/${d.need})` : `${d.title} ${ss.n}/${d.need}`);
-      if (ss.n >= d.need) this.sideReady(id, d);
+      ss.n = Math.min(cur.need, (ss.n || 0) + 1);
+      this.scene?.hud?.toast(cur.type === 'collect' ? `${cur.item}을(를) 얻었어요 (${ss.n}/${cur.need})` : `${d.title} ${ss.n}/${cur.need}`);
+      if (ss.n >= cur.need) this.advanceSide(id);
     }
   }
 
   // 숨은 물건 찾기 → 찾았으면 true
   onFind(spotId) {
     if (!this.rc) return false;
-    for (const [id, d] of Object.entries(this.sides)) {
-      const ss = this.sideState(id);
-      if (d.type !== 'find' || d.target !== spotId || ss?.state !== 'active') continue;
-      ss.n = d.need;
+    for (const id of Object.keys(this.sides)) {
+      const cur = this.sideStep(id);
+      if (cur?.type !== 'find' || cur.target !== spotId) continue;
       this.scene?.sound.play('sfx_item', { volume: 0.5 });
-      this.sideReady(id, d);
+      if (cur.lines) this.scene?.hud?.openDialog({ name: cur.item || '찾았다!', lines: this.fill(cur.lines) });
+      this.advanceSide(id);
       return true;
     }
     return false;
   }
 
+  // 지도에 들어왔을 때: 가 보기 단계
+  onEnterMap(mapId) {
+    if (!this.rc) return;
+    for (const id of Object.keys(this.sides)) {
+      const cur = this.sideStep(id);
+      if (cur?.type === 'enter' && cur.map === mapId) {
+        if (cur.lines) this.scene?.hud?.openDialog({ name: ALL_MAPS[mapId]?.name || '', lines: this.fill(cur.lines) });
+        this.advanceSide(id);
+      }
+    }
+  }
+
+  // 곁 퀘스트 다음 단계로 (다 끝나면 부탁한 사람에게 돌아가요)
+  advanceSide(id) {
+    const d = this.sides[id];
+    const ss = this.sideState(id);
+    if (!ss || ss.state !== 'active') return;
+    ss.step = (ss.step || 0) + 1;
+    ss.n = 0;
+    const next = this.stepsOf(d)[ss.step];
+    if (!next) { this.sideReady(id, d); return; }
+    this.scene?.sound.play('sfx_unlock', { volume: 0.35 });
+    this.scene?.hud?.showBanner(d.title, `다음: ${next.desc}`);
+    this.scene?.saveGame();
+  }
+
   sideReady(id, d) {
     this.sideState(id).state = 'ready';
-    const giver = this.rc.maps[this.rc.town].npcs.find((n) => n.id === d.giver)?.name || '부탁한 사람';
-    this.scene?.hud?.showBanner(`${d.title} 완료!`, `마을의 ${giver}에게 알려 줘요`);
+    this.scene?.hud?.showBanner(`${d.title} — 거의 다 했어요!`, `마을의 ${this.npcName(d.giver)}에게 알려 줘요`);
     this.scene?.saveGame();
   }
 
@@ -249,6 +305,12 @@ export class QuestLog {
     s.potions = (s.potions || 0) + (r.potions || 0);
     const got = [r.exp && `경험치 ${r.exp}`, r.gold && `${r.gold} G`, r.potions && `회복약 ${r.potions}개`];
     for (const id of [r.weapon, r.armor, r.item].filter(Boolean)) if (giveItem(s, id)) got.push(itemDef(id).name);
+    if (r.combo) {
+      s.combos ??= [];
+      if (!s.combos.includes(r.combo)) s.combos.push(r.combo);
+      got.push(`새 콤보 「${{ launch: '띄워 베기', pierce: '모아 찌르기' }[r.combo] || r.combo}」`);
+      scene?.time.delayedCall(2600, () => scene.hud?.showBanner('새 콤보를 배웠어요!', r.combo === 'launch' ? 'J J 쉬고 J → 적을 띄워 올려 공중 연타' : 'J를 꾹 눌렀다 떼기 → 앞으로 꿰뚫는 찌르기 (오래 모으면 세 번)'));
+    }
     if (r.stones) { s.stones = (s.stones || 0) + r.stones; got.push(`강화석 ${r.stones}개`); }
     if (r.stones2) { s.stones2 = (s.stones2 || 0) + r.stones2; got.push(`빛나는 강화석 ${r.stones2}개`); }
     scene?.sound.play('sfx_quest', { volume: 0.5 });
@@ -271,10 +333,18 @@ export class QuestLog {
     if (!this.rc) return lines.join('\n');
     for (const [id, d] of Object.entries(this.sides)) {
       const ss = this.sideState(id);
-      if (ss?.state === 'active') lines.push(`· ${d.title} ${ss.n}/${d.need} (${ALL_MAPS[d.map].name})`);
-      if (ss?.state === 'ready') lines.push(`· ${d.title} 완료 — 마을에 알리기`);
+      const cur = this.sideStep(id);
+      if (cur) lines.push(`· ${d.title}: ${this.stepLabel(cur, ss)}`);
+      if (ss?.state === 'ready') lines.push(`· ${d.title}: ${this.npcName(d.giver)}에게 알리기`);
     }
     return lines.join('\n');
+  }
+
+  // 단계를 짧게 (알림판·퀘스트 창)
+  stepLabel(cur, ss) {
+    if (cur.type === 'kill' || cur.type === 'collect') return `${cur.short || cur.desc} ${ss?.n || 0}/${cur.need}`;
+    if (cur.type === 'talk' || cur.type === 'solve') return cur.short || `${this.npcName(cur.npc)}에게 가기`;
+    return cur.short || cur.desc;
   }
 
   // 여러 지도 지역: 지금 메인 단계가 향하는 곳 { map, x, y }

@@ -74,33 +74,55 @@ export const R1_MAIN = [
   },
 ];
 
+// 곁 퀘스트: 마을 사람마다 이야기가 있어요. steps를 차례로 해내고, 부탁한 사람에게 돌아가 보상을 받아요.
+// 단계: talk(npc와 이야기) · solve(npc가 내는 수학 문제) · kill · collect(item) · find(target 자리) · enter(map)
 export const R1_SIDE = {
-  slime: {
-    giver: 'pipi', title: '말랑 슬라임 혼내 주기', type: 'kill', kind: 'Slime', map: 'east_field', need: 5, after: 2,
-    desc: '바람개비 들판의 슬라임 5마리를 물리쳐요.',
-    start: ['바람개비 들판의 슬라임들이 심술이 났어요.', '5마리만 혼내 주실래요? 동쪽 길로 나가면 돼요!'],
-    ready: ['우와, 들판이 한결 맑아졌어요!', '고마워요! 이건 제 선물이에요.'],
-    reward: { exp: 30, potions: 2 },
+  bread: {
+    giver: 'innkeeper', title: '여관의 나눔 빵', after: 2,
+    start: ['어쩌면 좋아요… 손님들과 나눠 먹을 빵을 구우려는데, 바람개비 들판의 슬라임들이 밀가루 자루를 몽땅 끌고 가 버렸어요.', '밀가루 자루 세 개만 찾아다 주실래요? 상인 루루가 빵을 똑같이 나누는 걸 도와준대요.'],
+    steps: [
+      { type: 'collect', kind: 'Slime', map: 'east_field', need: 3, chance: 0.6, item: '밀가루 자루', desc: '바람개비 들판의 슬라임에게서 밀가루 자루를 되찾아요.', short: '밀가루 자루 찾기' },
+      { type: 'solve', npc: 'merchant', desc: '상인 루루와 빵을 똑같이 나눠요.', short: '루루와 빵 나누기',
+        lines: ['밀가루를 찾았구나! 이제 구운 빵을 손님 수에 맞게 똑같이 나눠야 해.', '나누기를 잘하는 너라면 금방 풀 거야!'], ask: '빵을 똑같이 나누려면 어떻게 계산할까요?' },
+    ],
+    ready: ['고소한 빵 냄새가 여관 가득 퍼졌어요!', '손님들이 모두 한 조각씩 나눠 먹었대요. 이건 여관에서 드리는 선물이에요.'],
+    reward: { exp: 55, potions: 3, gold: 30 },
   },
-  spore: {
-    giver: 'smith', title: '반짝이는 버섯 포자', type: 'collect', kind: 'Mushroom', map: 'stream', need: 5, chance: 0.6, item: '버섯 포자', after: 2,
-    desc: '졸졸 시냇가의 버섯에게서 버섯 포자 5개를 모아요.',
-    start: ['쾅! 좋은 검을 만들려면 반짝이는 버섯 포자가 필요하지.', '남쪽 시냇가의 졸린 버섯들이 가지고 있다네. 5개만 부탁하네!'],
-    ready: ['오오, 반짝반짝하구먼!', '약속한 대로 튼튼한 대검을 만들어 주지. 가방(B)에서 끼워 보게!'],
-    reward: { exp: 45, weapon: 'iron_sword' },
+  sword: {
+    giver: 'smith', title: '경비병의 새 검', after: 2,
+    start: ['쾅! 경비병 단단이 검이 너무 낡았다고 투덜대더군.', '어떤 검을 원하는지 먼저 물어봐 주겠나? 나는 망치질 준비를 해 두지.'],
+    steps: [
+      { type: 'talk', npc: 'guard', desc: '경비병 단단에게 어떤 검을 원하는지 물어봐요.', short: '단단에게 물어보기',
+        lines: ['새 검? 그렇다면 묵직하고 튼튼한 대검이 좋겠소!', '대장장이가 그러는데, 쇠를 단단하게 하려면 시냇가 버섯의 반짝이는 포자가 필요하다더군.'] },
+      { type: 'collect', kind: 'Mushroom', map: 'stream', need: 4, chance: 0.6, item: '반짝이는 포자', desc: '졸졸 시냇가의 졸린 버섯에게서 반짝이는 포자를 모아요.', short: '반짝이는 포자 모으기' },
+      { type: 'solve', npc: 'smith', desc: '쿵쿵과 함께 쇠를 알맞게 나눠 담금질해요.', short: '쿵쿵과 담금질하기',
+        lines: ['포자를 가져왔군! 이제 쇳물을 틀에 똑같이 나눠 부어야 하네.', '계산이 틀리면 칼날이 비뚤어지지. 도와주게!'], ask: '쇳물을 틀에 똑같이 나눠 부어요!' },
+    ],
+    ready: ['쾅! 쾅! 다 됐다! 단단이 쓸 검을 만들고 남은 쇠로 자네 검도 하나 만들었지.', '든든한 대검일세. 장비(B) 창에서 끼워 보게!'],
+    reward: { exp: 60, weapon: 'iron_sword', stones: 2 },
   },
-  spirit: {
-    giver: 'innkeeper', title: '길 잃은 정령 달래기', type: 'kill', kind: 'Spirit', map: 'forest', need: 4, after: 2,
-    desc: '나무꾼 숲의 길 잃은 정령 4마리를 물리쳐요.',
-    start: ['요즘 서쪽 숲에서 길 잃은 정령들이 구슬을 던진대요.', '4마리만 물리쳐 주면 손님들이 안심하겠어요.'],
-    ready: ['숲이 조용해졌다니 다행이에요.', '든든하게 회복약을 챙겨 드릴게요.'],
-    reward: { exp: 60, potions: 3 },
+  spirits: {
+    giver: 'pipi', title: '길 잃은 정령 친구들', after: 2,
+    start: ['{name}님… 사실 나무꾼 숲에 사는 정령들은 제 친구들이에요.', '혼돈의 바람을 맞고 길을 잃어서 사람들에게 구슬을 던지고 있대요. 친구들을 진정시켜 줄래요?'],
+    steps: [
+      { type: 'enter', map: 'forest', desc: '서쪽 나무꾼 숲으로 가요.', short: '나무꾼 숲으로', lines: ['숲속 어딘가에서 보랏빛 기운이 느껴져요…'] },
+      { type: 'kill', kind: 'Spirit', map: 'forest', need: 4, desc: '길 잃은 정령 4마리를 진정시켜요.', short: '정령 진정시키기' },
+      { type: 'talk', npc: 'runeMaster', desc: '룬 할아버지께 정령을 원래대로 돌리는 방법을 여쭤봐요.', short: '룬 할아버지께 여쭙기',
+        lines: ['허허, 정령들이 혼돈의 바람을 맞았구나.', '걱정 마라. 피피에게 이 「맑음의 룬」을 전해 주면 친구들이 다시 맑아질 게다.'] },
+    ],
+    ready: ['맑음의 룬이에요! 이제 친구들이 다시 웃을 수 있겠어요.', '고마워요, {name}님. 이건 숲에서 찾은 행운의 네잎 클로버예요!'],
+    reward: { exp: 60, potions: 2, item: 'clover' },
   },
   ball: {
-    giver: 'child', title: '잃어버린 공', type: 'find', target: 'ball', map: 'hill', need: 1, item: '빨간 공', after: 2,
-    desc: '바람의 언덕 오른쪽 아래 풀숲에서 콩이의 공을 찾아요.',
-    start: ['내 빨간 공이 바람에 날아가서 언덕까지 굴러갔어…', '바람의 언덕 오른쪽 아래 풀숲에 있을 거야. 찾아 줄래?'],
-    ready: ['내 공이다! 고마워!', '이건 내가 모은 용돈이야. 헤헤.'],
-    reward: { exp: 40, gold: 60 },
+    giver: 'child', title: '콩이의 빨간 공', after: 2,
+    start: ['으앙… 내 빨간 공이 바람에 날아가 버렸어!', '경비병 아저씨가 어디로 날아갔는지 봤대. 같이 찾아 줄래?'],
+    steps: [
+      { type: 'talk', npc: 'guard', desc: '경비병 단단에게 공이 어디로 갔는지 물어봐요.', short: '단단에게 물어보기',
+        lines: ['빨간 공? 아까 바람을 타고 북쪽 「바람의 언덕」으로 날아가더군.', '언덕 오른쪽 아래 풀숲 근처였소. 나비들이 공을 가지고 노는 것 같던데…'] },
+      { type: 'kill', kind: 'Butterfly', map: 'hill', need: 3, desc: '바람의 언덕에서 공을 가지고 노는 나비 3마리를 쫓아내요.', short: '장난꾸러기 나비 쫓기' },
+      { type: 'find', target: 'ball', desc: '바람의 언덕 오른쪽 아래 풀숲에서 공을 찾아요.', short: '풀숲에서 공 찾기', item: '빨간 공', lines: ['풀숲 사이에서 빨간 공을 찾았어요!'] },
+    ],
+    ready: ['내 공이다! 정말 고마워!', '이건 아빠가 만들어 준 가죽 모자야. 나보다 형한테 더 잘 어울릴 것 같아!'],
+    reward: { exp: 45, gold: 60, item: 'cap' },
   },
 };

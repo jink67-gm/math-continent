@@ -66,12 +66,12 @@ export const MAPS = {
     entries: { plaza: [22, 24.5] },
     npcs: [
       { id: 'chief', sprite: 'OldWoman', name: '산지기 할머니 볼타', x: 17.4, y: 9.8, lines: [['아이고, 이 추운 산골까지 잘 왔구나.']] },
-      { id: 'runeMaster', sprite: 'OldMan3', name: '룬 학자 스피로', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔구먼.']] },
-      { id: 'merchant', sprite: 'Villager4', name: '산골 상인 눈송이', x: 13.6, y: 28.8, role: 'shop', lines: [['따뜻한 물건 많아요~']] },
-      { id: 'smith', sprite: 'Shaman', name: '대장장이 빙글', x: 27.4, y: 28.8, role: 'forge', lines: [['칼도 빙글빙글 돌려 가며 갈아야 고르게 갈리지!']] },
-      { id: 'innkeeper', sprite: 'Woman', name: '여관 주인 온기', x: 30.6, y: 17.4, lines: [['몸 좀 녹이고 가요.', '광장 옆 샘물을 마시면 기운이 나요.']] },
-      { id: 'climber', sprite: 'Villager2', name: '산악인 오름', x: 19.4, y: 13.8, lines: [['북쪽은 눈꽃 비탈, 남쪽은 얼음 골짜기야. 동쪽 끝에는… 혼돈의 첨탑이 보여.']] },
-      { id: 'child', sprite: 'Child', name: '꼬마 데굴이', x: 26.6, y: 25.4, wander: 14, lines: [['반원을 빙글 돌리면 공(구)이 된대!', '직사각형을 돌리면 원기둥이고!']] },
+      { id: 'runeMaster', sprite: 'SorcererBlack', name: '룬 학자 스피로', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔구먼.']] },
+      { id: 'merchant', sprite: 'Eskimo', name: '산골 상인 눈송이', x: 13.6, y: 28.8, role: 'shop', lines: [['따뜻한 물건 많아요~']] },
+      { id: 'smith', sprite: 'FighterRed', name: '대장장이 빙글', x: 27.4, y: 28.8, role: 'forge', lines: [['칼도 빙글빙글 돌려 가며 갈아야 고르게 갈리지!']] },
+      { id: 'innkeeper', sprite: 'LionOrange', name: '여관 주인 온기', x: 30.6, y: 17.4, lines: [['몸 좀 녹이고 가요.', '광장 옆 샘물을 마시면 기운이 나요.']] },
+      { id: 'climber', sprite: 'EskimoNinja', name: '산악인 오름', x: 19.4, y: 13.8, lines: [['북쪽은 눈꽃 비탈, 남쪽은 얼음 골짜기야. 동쪽 끝에는… 혼돈의 첨탑이 보여.']] },
+      { id: 'child', sprite: 'NinjaYellow', name: '꼬마 데굴이', x: 26.6, y: 25.4, wander: 14, lines: [['반원을 빙글 돌리면 공(구)이 된대!', '직사각형을 돌리면 원기둥이고!']] },
     ],
     spots: [
       { id: 'spring', kind: 'heal', name: '따뜻한 샘', x: 16, y: 25.4, r: 26, label: '샘물 마시기', lines: [['따뜻한 샘물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },

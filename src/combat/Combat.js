@@ -120,7 +120,7 @@ export class Combat {
     if (!p.canAct) return;
     const now = this.scene.time.now;
     const gap = now - this.lastSwingEnd;
-    if (this.combo === 2 && !this.fromQueue && gap >= SMASH_MIN && gap <= SMASH_MAX) { this.smash(); return; }
+    if (this.combo === 2 && !this.fromQueue && gap >= SMASH_MIN && gap <= SMASH_MAX && this.hasCombo('launch')) { this.smash(); return; }
     this.fromQueue = false;
     this.combo = gap < COMBO_GAP && this.combo < 3 ? this.combo + 1 : 1;
     this.queued = false;
@@ -152,31 +152,43 @@ export class Combat {
     });
   }
 
-  // 강타: 뛰어올라 크게 내려쳐요 (콤보가 끝나요)
+  // ── 콤보 ①: 띄워 베기 (큐베른 각진 사범에게 배워요) ───────────
+  // J J … J: 칼을 아래에서 위로 올려 베어 앞의 적을 공중에 띄우고, 따라 뛰어올라 공중에서 두 번 더 베요.
+  // 스킬과 달리 SP가 들지 않고, 적을 「띄워서 못 움직이게」 하는 것이 특징이에요. (보스는 뜨지 않고 피해만 받아요)
   smash() {
     const p = this.player;
     this.combo = 0;
     this.queued = false;
     const target = this.nearestMonster(44);
     if (target) p.faceTo(target.x, target.y);
-    const c = SMASH;
-    p.smash(c.ms, () => { this.lastSwingEnd = this.scene.time.now; });
-    this.scene.sound.play('sfx_swing3', { volume: 0.5, rate: 0.85 });
-    this.popNumber(p.x, p.y - 34, '강타!', '#ffb347', 13);
-    this.scene.time.delayedCall(c.hitAt, () => {
+    const [fx, fy] = p.facingVector();
+    p.uppercut(640, () => { this.lastSwingEnd = this.scene.time.now; });
+    this.scene.sound.play('sfx_swing3', { volume: 0.5, rate: 0.9 });
+    this.popNumber(p.x, p.y - 34, '띄워 베기!', '#ffb347', 13);
+    const hx = p.x + fx * 14;
+    const hy = p.y - 3 + fy * 11;
+    const launched = [];
+    // 1) 올려 베기: 맞은 적이 하늘로 떠요
+    this.scene.time.delayedCall(110, () => {
       if (p.state !== 'atk') return;
-      const [fx, fy] = p.facingVector();
-      const hx = p.x + fx * c.reach;
-      const hy = p.y - 2 + fy * c.reach * 0.8;
-      // 강타: 위에서 아래로 곧게 내려치는 주황 칼날 + 땅이 갈라지는 금
-      this.scene.fx('fx_slash', 'na/slash', hx, hy - 8, { angle: 90, scale: 1.7, depth: p.y + 20, add: true }).setTint(0xffa040);
-      this.crack(hx, hy + 2, 0xffb347);
-      this.scene.fx('fx_smoke', 'na/smoke', hx, hy, { scale: 0.9, depth: hy + 2 });
-      this.scene.cameras.main.shake(120, 0.006);
-      this.scene.sound.play('sfx_impact', { volume: 0.4 });
-      const n = this.hitArea(hx, hy, c.r, c.mult, c.knock);
-      if (n) this.hitstop(c.stop);
+      this.scene.fx('fx_slash', 'na/slash', hx, hy - 10, { angle: -90, scale: 1.4, depth: p.y + 20, add: true }).setTint(0xffa040);
+      for (const m of this.monsters) {
+        if (!m.hittable || Math.hypot(m.x - hx, (m.y - hy) * 1.2) > 20 + (m.radius || 0)) continue;
+        this.damageMonster(m, 1.3, 0.2, p, { sound: !launched.length });
+        if (m.alive) { m.launch?.(900); launched.push(m); }
+      }
+      if (launched.length) this.hitstop(70);
     });
+    // 2) 공중 연타 두 번 (띄운 적만)
+    [300, 450].forEach((t, k) => this.scene.time.delayedCall(t, () => {
+      if (p.state !== 'atk') return;
+      const air = launched.filter((m) => m.hittable);
+      for (const m of air) {
+        this.scene.fx('fx_slashc', 'na/slashc', m.x, m.y - 18, { angle: k ? 45 : -45, scale: 0.9, depth: m.y + 30, add: true, flipY: !!k }).setTint(0xffc860);
+        this.damageMonster(m, 0.85, 0.1, p, { sound: m === air[0] });
+      }
+      if (air.length) this.hitstop(40);
+    }));
   }
 
   // 땅이 갈라지는 금 (강타)
@@ -196,6 +208,8 @@ export class Combat {
     this.scene.tweens.add({ targets: g, alpha: 0, delay: 350, duration: 500, onComplete: () => g.destroy() });
   }
 
+  hasCombo(id) { return (this.stats.combos || []).includes(id); }
+
   // ── 힘 모으기 ──────────────────────────────
   // held: 지금 공격 키(J·공격 단추)를 누르고 있는지. 매 장면 불러요.
   updateCharge(time, held) {
@@ -204,7 +218,7 @@ export class Combat {
     const released = !held && this.wasHeld;
     this.wasHeld = held;
     if (this.scene.locked && this.chargeAt) { this.cancelCharge(); return; }
-    if (held && !this.chargeAt && time - this.holdAt > CHARGE_START && p.canAct) {
+    if (held && !this.chargeAt && time - this.holdAt > CHARGE_START && p.canAct && this.hasCombo('pierce')) {
       this.chargeAt = time;
       this.chargeLv = 0;
       p.startCharge();
@@ -235,6 +249,9 @@ export class Combat {
     this.player.endCharge();
   }
 
+  // ── 콤보 ②: 모아 찌르기 (데시마르 등대 무사에게 배워요) ─────────
+  // J를 꾹 눌렀다 떼면 앞으로 미끄러지며 칼끝으로 길게 꿰뚫어요. 앞에 줄지은 적이 모두 맞고 멀리 밀려나요.
+  // 2단계까지 모으면 한 걸음씩 나아가며 세 번 연달아 찔러요. (둘레를 베는 스킬과 달리 「앞으로 한 줄」만)
   releaseCharge() {
     const lv = this.chargeLv;
     const p = this.player;
@@ -242,40 +259,44 @@ export class Combat {
     if (!lv) return;
     this.lastSwingEnd = this.scene.time.now;
     this.combo = 0;
-    if (lv === 1) {
-      // 앞쪽으로 넓게 베기
-      p.swing(3, 380);
-      const [fx, fy] = p.facingVector();
-      const hx = p.x + fx * 16;
-      const hy = p.y - 3 + fy * 13;
-      this.scene.sound.play('sfx_swing3', { volume: 0.5 });
-      this.popNumber(p.x, p.y - 34, '모아 베기!', '#9be8ff', 12);
-      this.scene.time.delayedCall(90, () => {
-        // 모아 베기: 파란 빛의 넓은 초승달 두 겹 (3타·스킬과 다른 색)
-        const ang = { right: 0, down: 90, left: 180, up: 270 }[p.dir];
-        this.scene.fx('fx_slashc', 'na/slashc', hx, hy - 3, { angle: ang, scale: 2.1, depth: p.y + 20, add: true }).setTint(0x6fd0ff);
-        this.scene.time.delayedCall(50, () => this.scene.fx('fx_slashc', 'na/slashc', hx, hy - 3, { angle: ang, scale: 1.6, depth: p.y + 21, add: true, flipY: true }).setTint(0xbff0ff));
-        if (this.hitArea(hx, hy, 24, 2.2, 2.2)) { this.hitstop(90); this.scene.cameras.main.shake(100, 0.005); }
-      });
-      return;
+    const target = this.nearestMonster(60);
+    if (target) p.faceTo(target.x, target.y);
+    const n = lv === 2 ? 3 : 1;
+    p.thrust(n === 3 ? 620 : 300);
+    this.popNumber(p.x, p.y - 34, n === 3 ? '삼단 찌르기!' : '모아 찌르기!', '#9be8ff', 13);
+    for (let k = 0; k < n; k++) this.scene.time.delayedCall(k * 190, () => this.thrustHit(k === n - 1 ? 2.6 : 1.8, k === n - 1 ? 3.2 : 1.4, 52 + k * 6));
+  }
+
+  // 칼끝 찌르기 한 번: 앞으로 짧게 미끄러지고, 앞쪽 가늘고 긴 띠 안의 적을 모두 꿰뚫어요
+  thrustHit(mult, knock, len) {
+    const p = this.player;
+    const [fx, fy] = p.facingVector();
+    p.feet.body.setVelocity(fx * 160, fy * 160);
+    this.scene.time.delayedCall(90, () => { if (p.state === 'atk') p.feet.body.setVelocity(0, 0); });
+    this.scene.sound.play('sfx_swing2', { volume: 0.45, rate: 1.2 });
+    const x0 = p.x + fx * 6;
+    const y0 = p.y - 6 + fy * 4;
+    // 빛줄기 (가늘고 긴 창 모양)
+    const g = this.scene.add.graphics().setDepth(p.y + 25).setBlendMode('ADD');
+    const nx = -fy;
+    const ny = fx;
+    g.fillStyle(0x6fd0ff, 0.45).fillTriangle(x0 + nx * 5, y0 + ny * 5, x0 - nx * 5, y0 - ny * 5, x0 + fx * len, y0 + fy * len);
+    g.fillStyle(0xffffff, 0.95).fillTriangle(x0 + nx * 1.6, y0 + ny * 1.6, x0 - nx * 1.6, y0 - ny * 1.6, x0 + fx * (len + 6), y0 + fy * (len + 6));
+    this.scene.tweens.add({ targets: g, alpha: 0, duration: 220, onComplete: () => g.destroy() });
+    this.scene.fx('fx_sparkc', 'na/sparkc', x0 + fx * len, y0 + fy * len, { scale: 0.6, depth: p.y + 26, add: true }).setTint(0x9be8ff);
+    let hits = 0;
+    for (const m of this.monsters) {
+      if (!m.hittable) continue;
+      // 찌르는 방향 띠 안에 있는지 (앞쪽 len · 옆으로 10)
+      const dx = m.x - p.x;
+      const dy = m.y - 4 - (p.y - 4);
+      const along = dx * fx + dy * fy;
+      const side = Math.abs(dx * nx + dy * ny);
+      if (along < -4 || along > len + (m.radius || 0) || side > 10 + (m.radius || 0)) continue;
+      this.damageMonster(m, mult, knock, p, { sound: hits === 0 });
+      hits++;
     }
-    // 2단계: 회오리 베기 — 둘레를 두 바퀴
-    p.spin(520);
-    this.scene.sound.play('sfx_skill', { volume: 0.45 });
-    this.popNumber(p.x, p.y - 36, '회오리 베기!', '#ffd04a', 13);
-    // 회오리 베기: 금빛 칼날 네 개가 둘레를 두 바퀴 (회전 베기 스킬과 다른 모양)
-    const blades = [0, 1, 2, 3].map(() => this.scene.add.sprite(p.x, p.y, 'na/slashc', 1).setBlendMode('ADD').setTint(0xffd04a).setScale(1.2).setDepth(p.y + 20));
-    this.scene.tweens.addCounter({ from: 0, to: Math.PI * 4, duration: 520, ease: 'Sine.inOut',
-      onUpdate: (t) => blades.forEach((b, i) => {
-        const a = t.getValue() + (i * Math.PI) / 2;
-        b.setPosition(p.x + Math.cos(a) * 24, p.y - 6 + Math.sin(a) * 16).setRotation(a + Math.PI / 2).setDepth(p.y + 20);
-      }),
-      onComplete: () => blades.forEach((b) => this.scene.tweens.add({ targets: b, alpha: 0, scale: 1.8, duration: 160, onComplete: () => b.destroy() })) });
-    this.scene.fx('fx_ring', 'na/ring', p.x, p.y - 2, { scale: 3, depth: p.y - 3, add: true }).setTint(0xffd04a);
-    for (let i = 0; i < 2; i++) {
-      this.scene.time.delayedCall(100 + i * 230, () => { if (this.hitArea(p.x, p.y - 2, 34, 1.7, 2.4)) this.hitstop(70); });
-    }
-    this.scene.cameras.main.shake(180, 0.006);
+    if (hits) { this.hitstop(60); this.scene.cameras.main.shake(70, 0.003); }
   }
 
   // 범위 안 몬스터를 모두 때려요. 맞은 수를 돌려줘요.

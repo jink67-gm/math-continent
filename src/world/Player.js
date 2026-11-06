@@ -65,7 +65,7 @@ export class Player {
       this.actionEnd = null;
       if (this.state !== state) return;
       this.feet.body.setVelocity(0, 0);
-      this.sword.setVisible(false);
+      this.sword.setVisible(false).setScale(1);
       this.sprite.anims.timeScale = 1;
       this.state = 'move';
       onEnd?.();
@@ -92,7 +92,32 @@ export class Player {
     this.lock('atk', ms, onEnd);
   }
 
-  // 강타 (JJ … J): 뛰어오르며 칼을 머리 위에서 크게 내려쳐요
+  // 띄워 베기: 칼을 아래에서 위로 올려 벤 뒤, 따라 뛰어올라 공중에서 두 번 베요
+  uppercut(ms, onEnd) {
+    const base = BLADE[this.dir];
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    this.feet.body.setVelocity(0, 0);
+    this.scene.tweens.killTweensOf(this.sword);
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.2).setAngle(base);
+    this.scene.tweens.add({ targets: this.sword, angle: base + 180, duration: 120, ease: 'Cubic.out' });
+    this.scene.tweens.add({ targets: this, lift: 12, duration: 200, delay: 180, yoyo: true, hold: 160, ease: 'Quad.out' });
+    this.scene.time.delayedCall(290, () => this.state === 'atk' && this.scene.tweens.add({ targets: this.sword, angle: base + 180 + 300, duration: 300, ease: 'Linear' }));
+    this.lean(1.25);
+    this.lock('atk', ms, onEnd);
+  }
+
+  // 찌르기: 칼을 앞으로 곧게 뻗어요 (n번)
+  thrust(ms) {
+    const base = BLADE[this.dir];
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    this.scene.tweens.killTweensOf(this.sword);
+    this.sword.setVisible(true).setOrigin(0.5, 0.05).setAngle(base).setScale(1.1, 1.5);
+    this.scene.tweens.add({ targets: this.sword, scaleY: 2, duration: 70, yoyo: true, repeat: Math.max(0, Math.round(ms / 190) - 1), repeatDelay: 50 });
+    this.lean(1.2);
+    this.lock('atk', ms);
+  }
+
+  // (예전) 강타
   smash(ms, onEnd) {
     const [vx, vy] = this.facingVector();
     this.feet.body.setVelocity(vx * 150, vy * 150);

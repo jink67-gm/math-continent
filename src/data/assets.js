@@ -109,6 +109,12 @@ export const IMAGES = {
 export const CHARACTERS = [
   'HanbokBoy', 'HanbokGirl', 'KnightGold', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
   'OldWoman', 'Child', 'Spirit', 'Woman', 'Villager2', 'Monk',
+  // 마을마다 다른 사람들 (Ninja Adventure, CC0)
+  'GoldKnight', 'SorcererOrange', 'Villager3', 'Caveman', 'GladiatorBlue', 'EggBoy', 'Master',
+  'OldMan2', 'Inspector', 'Villager', 'Caveman2', 'Cavegirl2', 'Hunter', 'EggGirl', 'Samurai',
+  'Noble', 'Princess', 'Monk2', 'BlueSamurai', 'Boy',
+  'FighterWhite', 'Lion', 'Cavegirl', 'MaskFrog', 'LionBoy',
+  'SorcererBlack', 'Eskimo', 'FighterRed', 'LionOrange', 'EskimoNinja', 'NinjaYellow',
 ];
 
 // 주인공: 한복 (Ninja Adventure의 Boy·Princess 옷 색을 바꿈 — tools/build_hanbok.py). KnightGold는 프로포르 재상이 써요.

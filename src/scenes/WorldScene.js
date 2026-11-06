@@ -7,7 +7,7 @@ import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
 import { normalizeStats, refreshMax, statsOf, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
 import { weaponOf, giveItem, itemDef } from '../data/items.js';
-import { openShop, openForge, openBag, openWorldMap, openCharacter, openTravel } from '../ui/Panels.js';
+import { openShop, openForge, openBag, openWorldMap, openCharacter, openTravel, openQuests } from '../ui/Panels.js';
 import { textStyle, crisp, ZOOM } from '../ui/style.js';
 import { SKILL_KEYS } from '../data/skills.js';
 
@@ -77,7 +77,7 @@ export class WorldScene extends Phaser.Scene {
     this.hud = this.scene.get('Hud');
     this.quests = this.game.quests;
     this.quests.scene = this;
-    this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key, this.region, this.placeKey));
+    this.time.delayedCall(700, () => { this.quests.onEnter(this.scene.key, this.region, this.placeKey); if (this.mapId) this.quests.onEnterMap(this.mapId); });
     // 처음 시작하면 안내 정령 피피가 먼저 다가와 말을 걸어요
     const guide = this.npcs.find((n) => n.id === this.quests.step?.target && this.quests.step?.id === 'pipi');
     if (guide) {
@@ -146,7 +146,7 @@ export class WorldScene extends Phaser.Scene {
     k.ENTER.on('down', () => dlg() && this.hud.advanceDialog());
     k.J.on('down', () => (dlg() ? this.hud.advanceDialog() : this.combat.attack()));
     // 스킬: 1~4 또는 U·I·O·L (K는 예전처럼 첫 번째 스킬)
-    [['ONE', 'U', 'K'], ['TWO', 'I'], ['THREE', 'O'], ['FOUR', 'L']].forEach((names, i) => {
+    [['ONE', 'U'], ['TWO', 'I'], ['THREE', 'O'], ['FOUR', 'L']].forEach((names, i) => {
       for (const n of names) k[n].on('down', () => !dlg() && this.combat.castSkill(i));
     });
   }
@@ -318,6 +318,7 @@ export class WorldScene extends Phaser.Scene {
   openBag() { if (!this.locked) openBag(this.game, this); }
   openSkills(tab = 'skills') { if (!this.game.panelOpen && !this.game.runes?.open) openCharacter(this.game, this, tab); }
   openMap() { if (!this.locked) openWorldMap(this.game, this); }
+  openQuests() { if (!this.locked) openQuests(this.game, this); }
 
   // ── 성장 룬 ──────────────────────────────────
   async learnSkill(sk) {

@@ -55,6 +55,7 @@ export class Monster {
     this.maxHp = Math.round(this.def.hp * d.monHp * this.combat.partyHp * (this.elite ? 2.4 : 1));
     this.hp = this.maxHp;
     this.state = 'appear';
+    this.air = 0;
     this.until = this.scene.time.now + 500;
     this.nextAttack = 0;
     this.slowUntil = 0;
@@ -102,6 +103,7 @@ export class Monster {
     if (this.remote) return true; // 친구 기기: HP는 방장이 깎아요
     this.hp -= dmg;
     if (this.hp <= 0) { this.purify(); return true; }
+    if (this.air) return true; // 공중에 떠 있는 동안은 그대로 떠 있어요
     // 뒤로 밀리고 잠깐 멈춤 (공격 준비도 끊겨요)
     const dx = this.x - fromX;
     const dy = this.y - fromY;
@@ -113,6 +115,18 @@ export class Monster {
     this.until = this.scene.time.now + 180 + knock * 90;
     this.nextAttack = Math.max(this.nextAttack, this.scene.time.now + 500);
     return true;
+  }
+
+  // 띄워 베기에 맞으면 잠깐 공중에 떠서 아무것도 못 해요
+  launch(ms) {
+    if (this.remote || !this.alive) return;
+    this.state = 'stun';
+    this.until = this.scene.time.now + ms;
+    this.feet.body.setVelocity(0, 0);
+    this.warnG.clear();
+    this.scene.tweens.killTweensOf(this);
+    this.air = 0;
+    this.scene.tweens.add({ targets: this, air: 18, duration: ms * 0.35, ease: 'Quad.out', yoyo: true, hold: ms * 0.3, onComplete: () => { this.air = 0; } });
   }
 
   slow(ms) {
@@ -166,6 +180,7 @@ export class Monster {
         if (time > this.until) this.state = 'idle';
         break;
       case 'stun':
+        if (this.air) { this.feet.body.setVelocity(0, 0); break; }
         this.feet.body.velocity.scale(0.86);
         if (time > this.until) { this.feet.body.setVelocity(0, 0); this.state = playerOk && pd < d.sight * 1.4 ? 'chase' : 'idle'; }
         break;
@@ -345,8 +360,9 @@ export class Monster {
     const hop = this.def.move === 'hop' && this.state === 'chase' ? -Math.abs(Math.sin(time / 130 + this.phase)) * 3 : 0;
     const sx = Math.round(this.feet.x);
     const sy = Math.round(this.feet.y + 3);
-    this.sprite.setPosition(sx, sy + fly + hop).setDepth(sy);
-    this.shadow.setPosition(sx, sy - 1).setDepth(sy - 1).setScale(this.def.fly ? 0.75 : 1);
+    const air = this.air || 0;
+    this.sprite.setPosition(sx, sy + fly + hop - air).setDepth(sy);
+    this.shadow.setPosition(sx, sy - 1).setDepth(sy - 1).setScale((this.def.fly ? 0.75 : 1) * (1 - air / 40));
     if (time < this.slowUntil) this.sprite.setTint(0x9fd8ff);
     else if (this.elite && this.state !== 'stun') this.sprite.setTint(0xffd06a);
     else if (this.state !== 'stun') this.sprite.clearTint();

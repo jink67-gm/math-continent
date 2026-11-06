@@ -82,33 +82,54 @@ export const R6_MAIN = [
   },
 ];
 
+// 곁 퀘스트: 볼테라 사람들의 이야기 (단계는 r1quests.js 설명과 같아요)
 export const R6_SIDE = {
-  moles: {
-    giver: 'climber', title: '눈 두더지 쫓아내기', type: 'kill', kind: 'Mole2', map: 'sp_slope', need: 6, after: 1,
-    desc: '눈꽃 비탈의 눈 두더지 6마리를 물리쳐요.',
-    start: ['눈꽃 비탈 두더지들이 등산로를 다 파헤쳐 놨어.', '6마리만 쫓아내 줄래? 북쪽 길이야.'],
-    ready: ['이제 등산로가 평평해졌어. 고마워!', '산악인들이 쓰는 회복약이야. 받아!'],
-    reward: { exp: 520, potions: 3 },
-  },
-  embers: {
-    giver: 'smith', title: '얼음 불꽃 조각', type: 'collect', kind: 'Flam2', map: 'sp_valley', need: 5, chance: 0.6, item: '얼음 불꽃 조각', after: 1,
-    desc: '얼음 골짜기의 얼음 불꽃에게서 조각 5개를 모아요.',
-    start: ['얼음 불꽃 조각으로 담금질하면 칼이 아주 단단해지지.', '남쪽 골짜기 얼음 불꽃들이 떨어뜨린다네. 5개만 부탁하네!'],
-    ready: ['오오, 차가운데 따뜻한 빛이구먼!', '고맙네. 대장간 금고의 금화와 회복약일세.'],
-    reward: { exp: 600, gold: 600, potions: 2 },
-  },
-  axolots: {
-    giver: 'innkeeper', title: '파란 우파루파 달래기', type: 'kill', kind: 'AxolotBlue', map: 'sp_lake', need: 5, after: 1,
-    desc: '얼어붙은 호수의 파란 우파루파 5마리를 물리쳐요.',
-    start: ['얼어붙은 호수 우파루파들이 얼음낚시를 방해해요.', '5마리만 혼내 주면 정말 고맙겠어요.'],
-    ready: ['이제 손님들이 얼음낚시를 즐기겠네요!', '감사의 뜻으로 회복약을 넉넉히 드릴게요.'],
-    reward: { exp: 600, potions: 3, gold: 240 },
-  },
   scarf: {
-    giver: 'child', title: '잃어버린 털목도리', type: 'find', target: 'find_scarf', map: 'sp_ridge', need: 1, item: '털목도리', after: 1,
-    desc: '구름 능선 동쪽 눈 더미에서 데굴이의 털목도리를 찾아요.',
-    start: ['할머니가 떠 준 털목도리를 잃어버렸어… 능선에서 눈싸움하다가 떨어뜨렸나 봐.', '구름 능선 동쪽 눈 더미 쪽이었어. 찾아 줄래?'],
-    ready: ['내 목도리다! 이제 하나도 안 추워!', '이건 내가 모은 용돈이야. 헤헤.'],
-    reward: { exp: 460, gold: 600 },
+    giver: 'child', title: '할머니의 털목도리', after: 1,
+    start: ['쉿, 나는 꼬마 닌자 데굴이! …사실은 할머니가 떠 준 목도리를 잃어버렸어.', '할머니께 들키면 안 돼! 어디서 잃어버렸는지 할머니께 슬쩍 물어봐 줄래?'],
+    steps: [
+      { type: 'talk', npc: 'chief', desc: '산지기 할머니 볼타에게 슬쩍 물어봐요.', short: '할머니께 슬쩍 묻기',
+        lines: ['데굴이가 목도리를? 호호, 이미 다 알고 있단다.', '어제 구름 능선에서 눈싸움하다 흘렸겠지. 눈꽃 비탈 두더지들이 털실을 물어 가니 조심하렴.'] },
+      { type: 'kill', kind: 'Mole2', map: 'sp_slope', need: 4, desc: '털실을 물어 가는 눈꽃 비탈의 눈 두더지 4마리를 쫓아요.', short: '눈 두더지 쫓기' },
+      { type: 'find', target: 'find_scarf', desc: '구름 능선 동쪽 눈 더미에서 목도리를 찾아요.', short: '눈 더미에서 목도리 찾기', item: '털목도리', lines: ['눈 더미 속에서 따뜻한 털목도리를 찾았어요!'] },
+    ],
+    ready: ['내 목도리다! 하나도 안 추워!', '이건 닌자 수련용 구름 신이야. 발이 구름처럼 가벼워져!'],
+    reward: { exp: 480, gold: 600, item: 'cloud_shoes' },
+  },
+  summit: {
+    giver: 'climber', title: '정상으로 가는 길', after: 1,
+    start: ['나는 산악인 오름. 구름 위 정상까지 가는 길을 지도로 만들고 있어.', '그런데 구름 능선의 아기 용들이 길을 막고 불을 뿜어! 길을 열어 줄래?'],
+    steps: [
+      { type: 'enter', map: 'sp_ridge', desc: '구름 능선으로 가 봐요.', short: '구름 능선 가기', lines: ['구름 사이로 아기 용들이 날아다녀요. 조심해요!'] },
+      { type: 'kill', kind: 'DragonYellow', map: 'sp_ridge', need: 4, desc: '구름 능선의 아기 용 4마리를 물리쳐요.', short: '아기 용 물리치기' },
+      { type: 'solve', npc: 'climber', desc: '오름과 함께 산 모양(원뿔)의 부피를 계산해요.', short: '오름과 산 부피 재기',
+        lines: ['길이 열렸어! 이제 지도에 산의 크기를 적어야 해.', '산은 원뿔 모양이야. 원뿔의 부피는 원기둥의 3분의 1!'], ask: '산 모양의 부피를 구해요!' },
+    ],
+    ready: ['지도가 완성됐어! 이제 누구든 정상까지 갈 수 있어.', '이건 내가 정상에서 주운 불꽃 투구야. 빛나는 강화석도 줄게!'],
+    reward: { exp: 560, item: 'flame_helm', stones2: 1 },
+  },
+  ember: {
+    giver: 'smith', title: '얼음 불꽃 담금질', after: 1,
+    start: ['최고의 갑옷은 얼음 불꽃으로 담금질해야 하지! 얼음 골짜기 얼음 불꽃에게서 조각을 구해 오게.', '그리고 여관 화로도 빌려야 하는데… 온기에게 부탁해 주겠나?'],
+    steps: [
+      { type: 'collect', kind: 'Flam2', map: 'sp_valley', need: 5, chance: 0.6, item: '얼음 불꽃 조각', desc: '얼음 골짜기의 얼음 불꽃에게서 조각을 모아요.', short: '얼음 불꽃 조각 모으기' },
+      { type: 'talk', npc: 'innkeeper', desc: '여관 주인 온기에게 화로를 빌려요.', short: '온기에게 화로 빌리기',
+        lines: ['어흥~ 화로? 손님들 몸 녹이는 화로인데… 모험가님 부탁이면 빌려 드려야죠!', '대신 다 쓰면 꼭 돌려주세요. 수프를 끓여야 하거든요.'] },
+      { type: 'solve', npc: 'smith', desc: '빙글과 함께 원기둥 화로의 들이를 계산해요.', short: '빙글과 담금질하기',
+        lines: ['화로까지! 이제 쇳물이 화로에 얼마나 들어가는지 알아야 하네.', '원기둥 들이 = 밑넓이 × 높이! 계산해 주게!'], ask: '원기둥 화로의 들이를 구해요!' },
+    ],
+    ready: ['얼음 불꽃으로 담금질한 화산 갑옷일세! 뜨겁고도 단단하지.', '빛나는 강화석도 가져가게. 첨탑이 머지않았어.'],
+    reward: { exp: 600, armor: 'volcano', stones2: 2 },
+  },
+  soup: {
+    giver: 'innkeeper', title: '따뜻한 무 수프', after: 1,
+    start: ['어흥~ 산을 오르는 손님들께 따뜻한 무 수프를 드리고 싶은데, 무가 꽁꽁 얼어붙은 호수 두더지들 굴에 있대요.', '무를 구해 주시고, 눈송이에게 냄비 크기도 물어봐 주실래요?'],
+    steps: [
+      { type: 'collect', kind: 'Mole2', map: 'sp_lake', need: 4, chance: 0.6, item: '얼음 무', desc: '얼어붙은 호수의 눈 두더지에게서 얼음 무를 모아요.', short: '얼음 무 모으기' },
+      { type: 'solve', npc: 'merchant', desc: '산골 상인 눈송이와 수프 냄비(원기둥)의 들이를 계산해요.', short: '눈송이와 냄비 고르기',
+        lines: ['수프 냄비? 이 원기둥 냄비면 딱이야!', '손님 모두에게 한 그릇씩 돌아가는지 들이를 계산해 볼까?'], ask: '냄비의 들이를 구해요!' },
+    ],
+    ready: ['보글보글~ 따뜻한 무 수프 완성!', '손님들이 몸을 녹이고 힘을 냈대요. 이건 별의 목걸이, 산 위 별을 닮았죠?'],
+    reward: { exp: 500, potions: 4, item: 'star_amulet' },
   },
 };

@@ -115,9 +115,16 @@ export function openShop(game, scene) {
       if (it.kind === 'stone') return row({ d: STONE, name: `${STONE.name} (가진 것 ${s.stones || 0}개)`, info: STONE.desc, button: `${STONE.price} G 사기`, disabled: s.gold < STONE.price, data: `data-buy="${i}"` });
       if (it.kind === 'stone2') return row({ d: STONE2, name: `${STONE2.name} (가진 것 ${s.stones2 || 0}개)`, info: STONE2.desc, button: `${STONE2.price} G 사기`, disabled: s.gold < STONE2.price, data: `data-buy="${i}"` });
       const d = itemDef(it.id);
-      const owned = s.bag[slotOf(it.id)].includes(it.id);
-      return row({ d, name: `[${SLOT_NAMES[slotOf(it.id)]}] ${d.name}`, info: `${statLine(d)} — ${d.desc}`, button: owned ? '가지고 있어요' : `${d.price} G 사기`, disabled: owned || s.gold < d.price, data: `data-buy="${i}"` });
-    }).join('') + '<p class="panel-note">지역마다 파는 장비가 달라요. 산 장비는 바로 껴요 (가방 B에서 바꿀 수 있어요).</p>';
+      const sl = slotOf(it.id);
+      const owned = s.bag[sl].includes(it.id);
+      // 지금 낀 장비와 비교
+      const now = statsOf(s);
+      const aft = statsOf({ ...s, gear: { ...s.gear, [sl]: it.id } });
+      const diff = [['atk', '공격'], ['def', '방어'], ['maxHp', 'HP']].map(([k, l]) => { const v = Math.round(aft[k] - now[k]); return v ? `${l} ${v > 0 ? '▲' : '▼'}${Math.abs(v)}` : ''; }).filter(Boolean).join(' ');
+      return `<div class="panel-row">${icon(d)}<div class="panel-text"><div class="panel-name">[${SLOT_NAMES[sl]}] ${nameHtml(d)}</div>
+        <div class="panel-info">${escapeHtml(statLine(d))} — ${escapeHtml(d.desc)}${diff ? ` <b class="${diff.includes('▲') ? 'up' : 'down'}">(지금보다 ${escapeHtml(diff)})</b>` : ''}</div></div>
+        <button class="rune-btn" type="button" ${owned || s.gold < d.price ? 'disabled' : ''} data-buy="${i}">${owned ? '가지고 있어요' : `${d.price} G 사기`}</button></div>`;
+    }).join('') + '<p class="panel-note">지역마다 파는 장비가 달라요. 산 장비는 바로 껴요 (장비 B에서 바꿀 수 있어요).</p>';
     body.querySelectorAll('[data-buy]').forEach((b) => b.addEventListener('click', () => {
       const it = list[Number(b.dataset.buy)];
       const price = it.kind === 'potion' ? POTION.price : it.kind === 'stone' ? STONE.price : it.kind === 'stone2' ? STONE2.price : itemDef(it.id).price;
@@ -156,32 +163,122 @@ function statsHead(s) {
   return `<div class="panel-stats">레벨 ${s.lv} · 공격 ${st.atk} · 방어 ${st.def} · HP ${s.maxHp} · SP ${s.maxSp} · 치명타 ${st.crit.toFixed(1)}% · 스킬 피해 +${Math.round(st.mag * 100)}% · 이동 +${Math.round(st.speed * 100)}%</div>`;
 }
 
-// ── 가방 (장비 다섯 칸) ──────────────────────────────
-export function openBag(game, scene) {
+// ── 장비 등급 (단계별 이름 색) ─────────────────────
+export const RARITY = [
+  null,
+  { name: '일반', color: '#e8e2d0' }, { name: '고급', color: '#7ee07e' }, { name: '희귀', color: '#6fb6ff' },
+  { name: '영웅', color: '#c38bff' }, { name: '전설', color: '#ffb347' }, { name: '신화', color: '#ff6a6a' },
+];
+function rarityOf(d) { return RARITY[Math.max(1, Math.min(6, d?.tier || 1))]; }
+function nameHtml(d, plus = 0) {
+  const r = rarityOf(d);
+  return `<span style="color:${r.color}">${escapeHtml(d.name)}${plus ? ` +${plus}` : ''}</span> <small class="rar" style="border-color:${r.color};color:${r.color}">${r.name}</small>`;
+}
+
+// 능력치 비교 줄: 지금 → 바꾸면 (오르면 초록 ▲, 내리면 빨강 ▼)
+const STAT_ROWS = [['atk', '공격'], ['def', '방어'], ['maxHp', 'HP'], ['maxSp', 'SP'], ['crit', '치명타', '%'], ['mag', '스킬 피해', '%', 100], ['speed', '이동', '%', 100]];
+function statCompare(now, after) {
+  return STAT_ROWS.map(([k, label, unit = '', mul = 1]) => {
+    const a = Math.round(now[k] * mul * 10) / 10;
+    const b = after ? Math.round(after[k] * mul * 10) / 10 : a;
+    const d = Math.round((b - a) * 10) / 10;
+    const delta = !after || !d ? '' : `<b class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}${unit}</b>`;
+    return `<div class="cmp-row"><span>${label}</span><i>${a}${unit}</i>${after && d ? `<em>→ ${b}${unit}</em>` : ''}${delta}</div>`;
+  }).join('');
+}
+
+// ── 장비 창 (B) ────────────────────────────────────
+// 왼쪽: 주인공과 장비 다섯 칸 · 가운데: 고른 칸의 장비 목록 · 오른쪽: 능력치 (고른 장비로 바꾸면 어떻게 변하는지)
+export function openBag(game, scene, startSlot = 'weapon') {
   const s = game.registry.get('player');
-  return openPanel(game, '가방', (body, paint) => {
-    let html = statsHead(s);
-    for (const slot of SLOTS) {
-      const ids = s.bag[slot] || [];
-      html += `<div class="panel-sub">${SLOT_NAMES[slot]}</div>`;
-      if (!ids.length) { html += '<p class="panel-note">아직 없어요. 상점에서 사거나 상자·퀘스트에서 얻어요.</p>'; continue; }
-      html += ids.map((id) => {
-        const d = itemDef(id);
-        const on = s.gear[slot] === id;
-        const plus = s.plus?.[id] || 0;
-        return row({ d, name: `${d.name}${plus ? ` +${plus}` : ''}`, info: statLine(d, plus), button: on ? '끼고 있어요' : '끼우기', disabled: on, data: `data-eq="${id}"` });
-      }).join('');
-    }
-    html += `<p class="panel-note">회복약 ${s.potions}개 · 강화석 ${s.stones || 0}개 · 빛나는 강화석 ${s.stones2 || 0}개</p>`;
-    body.innerHTML = html;
+  let slot = startSlot;
+  let pick = null; // 미리 보기로 고른 장비
+  return openPanel(game, '장비', (body, paint) => {
+    const hero = s.gender === 'female' ? 'HanbokGirl' : 'HanbokBoy';
+    const cell = (sl) => {
+      const id = s.gear[sl];
+      const d = itemDef(id);
+      const hue = d?.hue ? ` style="filter:hue-rotate(${d.hue}deg)"` : '';
+      const r = d ? rarityOf(d) : null;
+      return `<button type="button" class="eq-slot ${sl} ${slot === sl ? 'on' : ''}" data-slot="${sl}" ${r ? `style="border-color:${r.color}"` : ''}>
+        ${d ? `<img src="${IMG(d.icon)}" alt=""${hue}>` : '<span class="eq-empty">＋</span>'}
+        <span class="eq-label">${SLOT_NAMES[sl]}${d && s.plus?.[id] ? ` +${s.plus[id]}` : ''}</span></button>`;
+    };
+    const doll = `<div class="eq-doll">
+      ${cell('head')}${cell('weapon')}
+      <div class="eq-hero"><img src="assets/na/chars/${hero}/Faceset.png" alt=""><div>${escapeHtml(s.name)}<br><small>Lv ${s.lv}</small></div></div>
+      ${cell('acc')}${cell('body')}${cell('feet')}</div>`;
+    const ids = s.bag[slot] || [];
+    const list = ids.length ? ids.map((id) => {
+      const d = itemDef(id);
+      const on = s.gear[slot] === id;
+      const plus = s.plus?.[id] || 0;
+      const hue = d.hue ? ` style="filter:hue-rotate(${d.hue}deg)"` : '';
+      return `<div class="panel-row eq-item ${pick === id ? 'picked' : ''} ${on ? 'worn' : ''}" data-pick="${id}">
+        <img class="panel-icon" src="${IMG(d.icon)}" alt=""${hue}>
+        <div class="panel-text"><div class="panel-name">${nameHtml(d, plus)}</div><div class="panel-info">${escapeHtml(statLine(d, plus))}</div></div>
+        ${on ? '<span class="eq-worn">착용 중</span>' : `<button class="rune-btn" type="button" data-eq="${id}">착용</button>`}</div>`;
+    }).join('') : '<p class="panel-note">이 칸에 낄 장비가 아직 없어요. 상점에서 사거나 상자·퀘스트에서 얻어요.</p>';
+    const now = statsOf(s);
+    const after = pick && s.gear[slot] !== pick ? statsOf({ ...s, gear: { ...s.gear, [slot]: pick } }) : null;
+    body.innerHTML = `<div class="eq-wrap">
+      <div class="eq-left">${doll}</div>
+      <div class="eq-mid"><div class="panel-sub">${SLOT_NAMES[slot]} (${ids.length})</div>${list}</div>
+      <div class="eq-right"><div class="panel-sub">능력치${after ? ' <small>(바꾸면)</small>' : ''}</div>${statCompare(now, after)}
+        <p class="panel-note">장비를 한 번 누르면 바꿨을 때 능력치가 어떻게 변하는지 보여요.</p>
+        <p class="panel-note">강화석 ${s.stones || 0} · 빛나는 강화석 ${s.stones2 || 0} · 회복약 ${s.potions}</p></div></div>`;
+    body.querySelectorAll('[data-slot]').forEach((b) => b.addEventListener('click', () => { slot = b.dataset.slot; pick = null; sfx(game, 'sfx_click', 0.35); paint(); }));
+    body.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', (e) => {
+      if (e.target.closest('[data-eq]')) return;
+      pick = b.dataset.pick;
+      sfx(game, 'sfx_click', 0.3);
+      paint();
+    }));
     body.querySelectorAll('[data-eq]').forEach((b) => b.addEventListener('click', () => {
       const id = b.dataset.eq;
       equip(game, scene, id);
+      pick = null;
       scene.saveGame();
       paint();
-      bump(document.querySelector('.panel-card .panel-body'), `[data-eq="${id}"]`, '착용!');
+      bump(document.querySelector('.panel-card .panel-body'), `[data-pick="${id}"] .eq-worn`, '착용!');
     }));
+  }, { wide: true });
+}
+
+// ── 퀘스트 목록 (K) ─────────────────────────────────
+export function openQuests(game, scene) {
+  const q = game.quests;
+  return openPanel(game, '퀘스트', (body) => {
+    const st = q.step;
+    let html = '<div class="panel-sub">메인 이야기</div>';
+    html += st ? `<div class="panel-row quest-main"><div class="panel-emoji">★</div><div class="panel-text"><div class="panel-name">${escapeHtml(st.title)}</div><div class="panel-info">${escapeHtml(st.desc)}</div></div></div>`
+      : '<p class="panel-note">이 마을의 이야기를 모두 마쳤어요! 다음 마을로 가요.</p>';
+    const sides = Object.entries(q.sides);
+    const rows = { active: [], ready: [], open: [], done: [] };
+    for (const [id, d] of sides) {
+      const ss = q.sideState(id);
+      const steps = q.stepsOf(d);
+      if (ss?.state === 'done') { rows.done.push(`<div class="panel-row done"><div class="panel-emoji">✔</div><div class="panel-text"><div class="panel-name">${escapeHtml(d.title)}</div><div class="panel-info">${escapeHtml(q.npcName(d.giver))}의 부탁 · 완료</div></div></div>`); continue; }
+      if (ss?.state === 'ready') { rows.ready.push(`<div class="panel-row"><div class="panel-emoji">?</div><div class="panel-text"><div class="panel-name">${escapeHtml(d.title)}</div><div class="panel-info">다 했어요! ${escapeHtml(q.npcName(d.giver))}에게 알려 줘요</div></div></div>`); continue; }
+      if (ss?.state === 'active') {
+        const i = ss.step || 0;
+        const cur = steps[i];
+        const dots = steps.map((_, k) => `<i class="${k < i ? 'ok' : k === i ? 'now' : ''}"></i>`).join('');
+        const where = cur.map ? ` · ${ALL_MAPS_NAME(cur.map)}` : '';
+        rows.active.push(`<div class="panel-row"><div class="panel-emoji">!</div><div class="panel-text"><div class="panel-name">${escapeHtml(d.title)} <span class="q-steps">${dots}</span></div>
+          <div class="panel-info">${escapeHtml(cur.desc)}${cur.need ? ` (${ss.n || 0}/${cur.need})` : ''}${escapeHtml(where)}</div></div></div>`);
+        continue;
+      }
+      if (q.sideAvailable(id)) rows.open.push(`<div class="panel-row"><div class="panel-emoji">💬</div><div class="panel-text"><div class="panel-name">${escapeHtml(d.title)}</div><div class="panel-info">${escapeHtml(q.npcName(d.giver))}이(가) 부탁할 일이 있대요 (머리 위 「!」)</div></div></div>`);
+    }
+    html += `<div class="panel-sub">마을 사람들의 부탁</div>${[...rows.ready, ...rows.active].join('') || '<p class="panel-note">지금 하고 있는 부탁이 없어요.</p>'}`;
+    if (rows.open.length) html += `<div class="panel-sub">새 부탁</div>${rows.open.join('')}`;
+    if (rows.done.length) html += `<div class="panel-sub">끝낸 부탁</div>${rows.done.join('')}`;
+    const combos = (game.registry.get('player').combos || []);
+    html += `<div class="panel-sub">배운 콤보</div><p class="panel-note">기본: J J J 3연타${combos.includes('launch') ? '<br>띄워 베기: J J 쉬고 J — 적을 띄워 공중 연타' : '<br>🔒 띄워 베기 — 큐베른의 검술 사범에게 배워요'}${combos.includes('pierce') ? '<br>모아 찌르기: J 꾹 눌렀다 떼기 — 앞으로 꿰뚫기 (오래 모으면 세 번)' : '<br>🔒 모아 찌르기 — 데시마르의 등대 무사에게 배워요'}</p>`;
+    body.innerHTML = html;
   });
+  function ALL_MAPS_NAME(id) { return q.rc?.maps[id]?.name || ''; }
 }
 
 // ── 대장간 (강화) ───────────────────────────────

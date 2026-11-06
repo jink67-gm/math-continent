@@ -75,6 +75,19 @@ export class HudScene extends Phaser.Scene {
       .setSize(80, 36).setInteractive({ useHandCursor: true });
     cc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openSkills('stats'); });
     this.tweens.add({ targets: this.ptsDot, scale: 1.2, duration: 500, yoyo: true, repeat: -1 });
+    // 장비 · 퀘스트 단추
+    const topBtn = (x, w, label, key, fn) => {
+      const b = this.add.container(x, 34);
+      const g = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-w / 2, -18, w, 36, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(-w / 2, -18, w, 36, 9);
+      b.add([g, crisp(this.add.text(0, 0, this.isTouch ? label : `${label} ${key}`, textStyle(16, '#ffe9a8')).setOrigin(0.5))]).setSize(w, 36).setInteractive({ useHandCursor: true });
+      b.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); b.setScale(0.92); if (!this.dialogOpen) fn(); });
+      b.on('pointerup', () => b.setScale(1));
+      b.on('pointerout', () => b.setScale(1));
+      return b;
+    };
+    topBtn(626, 80, '장비', 'B', () => this.world.openBag());
+    topBtn(718, 88, '퀘스트', 'K', () => this.world.openQuests());
+    this.input.keyboard.on('keydown-K', () => !this.dialogOpen && this.world.openQuests());
     // 지도 단추 (메뉴 옆)
     const mc = this.add.container(442, 34);
     const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-40, -18, 80, 36, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(-40, -18, 80, 36, 9);
@@ -148,7 +161,7 @@ export class HudScene extends Phaser.Scene {
       items.push(g, t, z);
     };
     const soundLabel = () => (this.game.sound.mute ? '소리 켜기' : '소리 끄기');
-    btn(W / 2 - 140, by + 214, 128, '가방 (B)', () => { this.closeMenu(); this.world.openBag(); });
+    btn(W / 2 - 140, by + 214, 128, '장비 (B)', () => { this.closeMenu(); this.world.openBag(); });
     btn(W / 2 + 140, by + 214, 128, soundLabel(), (paint) => {
       this.game.sound.mute = !this.game.sound.mute;
       try { localStorage.setItem('mathContinent.mute', this.game.sound.mute ? '1' : '0'); } catch { /* 저장 못 해도 괜찮아요 */ }

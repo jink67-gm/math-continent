@@ -55,33 +55,53 @@ export const R5_MAIN = [
   },
 ];
 
+// 곁 퀘스트: 키르쿠스 사람들의 이야기 (단계는 r1quests.js 설명과 같아요)
 export const R5_SIDE = {
-  owls: {
-    giver: 'ranger', title: '꾸벅 부엉이 깨우기', type: 'kill', kind: 'Owl', map: 'ck_ring', need: 6, after: 1,
-    desc: '둥근 나무 숲의 부엉이 6마리를 물리쳐요.',
-    start: ['둥근 나무 숲 부엉이들이 사냥길을 막고 있어.', '6마리만 혼내 줄래? 북쪽 길이야.'],
-    ready: ['이제 사냥길이 뚫렸어. 고마워!', '사냥꾼들이 쓰는 회복약이야. 받아!'],
-    reward: { exp: 330, potions: 3 },
-  },
-  spores: {
-    giver: 'smith', title: '반딧불 버섯 포자', type: 'collect', kind: 'Mushroom2', map: 'ck_glade', need: 5, chance: 0.6, item: '반딧불 포자', after: 1,
-    desc: '버섯 빈터의 버섯에게서 반딧불 포자 5개를 모아요.',
-    start: ['반딧불 포자를 녹여 바르면 칼날이 반짝반짝 빛나지.', '남쪽 버섯 빈터 버섯들이 가지고 있다네. 5개만 부탁하네!'],
-    ready: ['오오, 은은하게 빛나는구먼!', '고맙네. 대장간 금고에서 꺼낸 금화와 회복약일세.'],
-    reward: { exp: 380, gold: 400, potions: 2 },
-  },
-  butterflies: {
-    giver: 'innkeeper', title: '파란 나비 쫓아내기', type: 'kill', kind: 'ButterflyBlue', map: 'ck_lake', need: 5, after: 1,
-    desc: '보름달 호수의 파란 나비 5마리를 물리쳐요.',
-    start: ['보름달 호수 나비들이 손님들 도시락을 노려요.', '5마리만 쫓아내 주면 정말 고맙겠어요.'],
-    ready: ['이제 손님들이 호숫가에서 편히 쉬겠네요!', '감사의 뜻으로 회복약을 넉넉히 드릴게요.'],
-    reward: { exp: 380, potions: 3, gold: 160 },
+  nest: {
+    giver: 'ranger', title: '부엉이 둥지 지키기', after: 1,
+    start: ['개굴! 나는 숲을 지키는 사냥꾼 활대야. 혼돈의 바람 때문에 둥근 나무 숲 부엉이들이 사나워졌어.', '부엉이들을 진정시키고, 아기 부엉이들이 덮을 부드러운 이끼도 구해 줄래?'],
+    steps: [
+      { type: 'kill', kind: 'Owl', map: 'ck_ring', need: 5, desc: '둥근 나무 숲의 사나워진 부엉이 5마리를 진정시켜요.', short: '부엉이 진정시키기' },
+      { type: 'talk', npc: 'innkeeper', desc: '여관 주인 보름에게 이끼를 어디서 구하는지 물어봐요.', short: '보름에게 묻기',
+        lines: ['부드러운 이끼? 버섯 빈터 파란 버섯들이 머리에 이고 다니던걸요.', '조금씩만 나눠 달라고 하면 될 거예요. (물론 버섯들은 순순히 주지 않겠지만요!)'] },
+      { type: 'collect', kind: 'Mushroom2', map: 'ck_glade', need: 3, chance: 0.6, item: '부드러운 이끼', desc: '버섯 빈터의 파란 버섯에게서 이끼를 모아요.', short: '부드러운 이끼 모으기' },
+    ],
+    ready: ['아기 부엉이들이 이끼 이불을 덮고 새근새근 자. 개굴!', '이건 숲의 정령이 엮었다는 잎새 관이야. 머리가 맑아질 거야.'],
+    reward: { exp: 320, potions: 3, item: 'leaf_crown' },
   },
   compass: {
-    giver: 'child', title: '잃어버린 컴퍼스', type: 'find', target: 'find_compass', map: 'ck_path', need: 1, item: '컴퍼스', after: 1,
-    desc: '고대 유적 길 동쪽 덤불에서 동글이의 컴퍼스를 찾아요.',
-    start: ['원을 그리던 내 컴퍼스가 없어졌어! 유적 길에서 놀다가 떨어뜨렸나 봐.', '고대 유적 길 동쪽 덤불 쪽이었어. 찾아 줄래?'],
-    ready: ['내 컴퍼스다! 이제 다시 동그라미를 그릴 수 있어!', '이건 내가 모은 용돈이야. 헤헤.'],
-    reward: { exp: 290, gold: 400 },
+    giver: 'child', title: '컴퍼스로 그린 원', after: 1,
+    start: ['어흥! (아니, 나는 사자 아니고 동글이야.) 내 컴퍼스가 없어졌어!', '도토리 아저씨가 고대 유적 길에서 봤대. 같이 찾아 줄래?'],
+    steps: [
+      { type: 'talk', npc: 'merchant', desc: '숲 상인 도토리에게 컴퍼스를 어디서 봤는지 물어봐요.', short: '도토리에게 묻기',
+        lines: ['아, 그 반짝이는 컴퍼스? 고대 유적 길 동쪽 덤불에 떨어져 있었어.', '내가 주우려는데 파란 나비들이 몰려와서 도망쳤지 뭐야.'] },
+      { type: 'find', target: 'find_compass', desc: '고대 유적 길 동쪽 덤불에서 컴퍼스를 찾아요.', short: '덤불에서 컴퍼스 찾기', item: '컴퍼스', lines: ['덤불 속에서 컴퍼스를 찾았어요!'] },
+      { type: 'solve', npc: 'child', desc: '동글이와 컴퍼스로 원을 그리고 넓이를 구해요.', short: '동글이와 원의 넓이',
+        lines: ['찾았다! 이제 커다란 원을 그려 볼래.', '반지름 × 반지름 × 원주율! 넓이는 얼마일까?'], ask: '원의 넓이를 구해요!' },
+    ],
+    ready: ['내가 그린 원 중에 제일 동그래!', '이건 할아버지가 준 파란 구슬이야. 마법 힘이 세진대. 어흥!'],
+    reward: { exp: 300, gold: 400, item: 'orb' },
+  },
+  scale: {
+    giver: 'smith', title: '둥근 방패의 은빛 비늘', after: 1,
+    start: ['어흥, 나는 대장장이 둥글이다! 숲지기들을 위한 둥근 방패를 만들고 있지.', '보름달 호수 숲 뱀의 은빛 비늘이 필요해. 네 개만 부탁한다!'],
+    steps: [
+      { type: 'collect', kind: 'Snake3', map: 'ck_lake', need: 4, chance: 0.6, item: '은빛 비늘', desc: '보름달 호수의 숲 뱀에게서 은빛 비늘을 모아요.', short: '은빛 비늘 모으기' },
+      { type: 'solve', npc: 'smith', desc: '둥글과 함께 둥근 방패의 넓이를 계산해요.', short: '둥글과 방패 만들기',
+        lines: ['비늘을 방패에 빙 둘러 붙이려면 방패 넓이를 알아야 해.', '둥근 방패니까… 원의 넓이! 계산해 줘!'], ask: '둥근 방패의 넓이를 구해요!' },
+    ],
+    ready: ['어흥! 반짝이는 방패가 완성됐다!', '남은 비늘로 만든 숲지기 갑옷이다. 강화석도 챙겨 가라!'],
+    reward: { exp: 360, armor: 'grove', stones: 3 },
+  },
+  letter: {
+    giver: 'innkeeper', title: '파란 나비의 편지', after: 1,
+    start: ['보름달 호수에 사는 오랜 친구가 편지를 파란 나비에게 맡겼는데, 나비들이 편지를 갖고 놀고 있대요.', '편지를 되찾아 숲지기 키르님께 전해 주실래요? 두 분이 오랜 친구거든요.'],
+    steps: [
+      { type: 'kill', kind: 'ButterflyBlue', map: 'ck_lake', need: 5, desc: '보름달 호수의 파란 나비 5마리에게서 편지를 되찾아요.', short: '편지 되찾기' },
+      { type: 'talk', npc: 'chief', desc: '숲지기 키르에게 편지를 전해요.', short: '키르에게 편지 전하기',
+        lines: ['이건… 볼테라의 산지기 할머니가 보낸 편지로구나!', '「산에 눈보라가 심상치 않으니 조심하라」고 적혀 있구나. 고맙다, 보름에게도 잘 받았다고 전해 주렴.'] },
+    ],
+    ready: ['편지가 잘 전해졌다니 다행이에요!', '감사의 뜻으로 회복약을 넉넉히 드릴게요. 다음 산길은 춥대요.'],
+    reward: { exp: 300, potions: 4, gold: 200 },
   },
 };

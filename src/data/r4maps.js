@@ -65,12 +65,12 @@ export const MAPS = {
     entries: { plaza: [22, 24.5] },
     npcs: [
       { id: 'chief', sprite: 'KnightGold', name: '왕국 재상 포르', x: 17.4, y: 9.8, lines: [['어서 오시오. 이곳은 공평함을 소중히 여기는 천칭 왕국이오.']] },
-      { id: 'runeMaster', sprite: 'OldMan3', name: '룬 학자 레시오', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔는가?']] },
-      { id: 'merchant', sprite: 'Villager2', name: '왕실 상인 비비', x: 13.6, y: 28.8, role: 'shop', lines: [['왕실에 납품하는 좋은 물건이에요~']] },
-      { id: 'smith', sprite: 'Shaman', name: '대장장이 저울', x: 29.4, y: 28.8, role: 'forge', lines: [['균형 잡힌 칼이 좋은 칼이지!']] },
+      { id: 'runeMaster', sprite: 'Noble', name: '룬 학자 레시오', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔는가?']] },
+      { id: 'merchant', sprite: 'Princess', name: '왕실 상인 비비', x: 13.6, y: 28.8, role: 'shop', lines: [['왕실에 납품하는 좋은 물건이에요~']] },
+      { id: 'smith', sprite: 'Monk2', name: '대장장이 저울', x: 29.4, y: 28.8, role: 'forge', lines: [['균형 잡힌 칼이 좋은 칼이지!']] },
       { id: 'innkeeper', sprite: 'Woman', name: '여관 주인 반반', x: 30.6, y: 17.4, lines: [['먼 길 오느라 고생했어요.', '광장 옆 샘물을 마시면 기운이 나요.']] },
-      { id: 'guard', sprite: 'Knight', name: '왕실 기사 균형', x: 19.4, y: 13.8, lines: [['성 북쪽은 저울 평원, 동쪽은 사과 과수원, 남쪽은 톱니바퀴 언덕이오.']] },
-      { id: 'child', sprite: 'Child', name: '꼬마 비율이', x: 27, y: 25, wander: 16, lines: [['빵 10개를 2:3으로 나누면 4개랑 6개래!', '2+3=5니까 10을 5로 나눠서 2씩!']] },
+      { id: 'guard', sprite: 'BlueSamurai', name: '왕실 기사 균형', x: 19.4, y: 13.8, lines: [['성 북쪽은 저울 평원, 동쪽은 사과 과수원, 남쪽은 톱니바퀴 언덕이오.']] },
+      { id: 'child', sprite: 'Boy', name: '꼬마 비율이', x: 27, y: 25, wander: 16, lines: [['빵 10개를 2:3으로 나누면 4개랑 6개래!', '2+3=5니까 10을 5로 나눠서 2씩!']] },
     ],
     spots: [
       { id: 'spring', kind: 'heal', name: '왕성의 샘', x: 16, y: 25.4, r: 26, label: '샘물 마시기', lines: [['맑은 샘물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },

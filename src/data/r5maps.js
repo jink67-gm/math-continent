@@ -75,12 +75,12 @@ export const MAPS = {
     entries: { plaza: [22, 25] },
     npcs: [
       { id: 'chief', sprite: 'Monk', name: '숲지기 키르', x: 17.4, y: 9.8, lines: [['숲이 둥글게 자라는 걸 본 적 있니? 키르쿠스에 온 걸 환영한다.']] },
-      { id: 'runeMaster', sprite: 'OldMan3', name: '룬 학자 파이', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔구나.']] },
-      { id: 'merchant', sprite: 'Villager4', name: '숲 상인 도토리', x: 13.6, y: 28.8, role: 'shop', lines: [['숲에서 모은 좋은 물건이 많아요~']] },
-      { id: 'smith', sprite: 'Shaman', name: '대장장이 둥글', x: 29.4, y: 28.8, role: 'forge', lines: [['둥글게 갈아야 칼날이 잘 들지!']] },
-      { id: 'innkeeper', sprite: 'OldWoman', name: '여관 주인 보름', x: 30.6, y: 17.4, lines: [['먼 길 오느라 고생했어요.', '광장 옆 샘물을 마시면 기운이 나요.']] },
-      { id: 'ranger', sprite: 'Villager2', name: '사냥꾼 활대', x: 19.4, y: 13.8, lines: [['숲 북쪽은 둥근 나무 숲, 동쪽은 보름달 호수, 남쪽은 버섯 빈터야.']] },
-      { id: 'child', sprite: 'Child', name: '꼬마 동글이', x: 26.6, y: 25.4, wander: 14, lines: [['컴퍼스로 원을 그리면 가운데에서 둘레까지 길이가 다 같아!', '그게 반지름이래.']] },
+      { id: 'runeMaster', sprite: 'FighterWhite', name: '룬 학자 파이', x: 26.4, y: 9.8, lines: [['기술의 룬을 배우러 왔구나.']] },
+      { id: 'merchant', sprite: 'Villager2', name: '숲 상인 도토리', x: 13.6, y: 28.8, role: 'shop', lines: [['숲에서 모은 좋은 물건이 많아요~']] },
+      { id: 'smith', sprite: 'Lion', name: '대장장이 둥글', x: 29.4, y: 28.8, role: 'forge', lines: [['둥글게 갈아야 칼날이 잘 들지!']] },
+      { id: 'innkeeper', sprite: 'Cavegirl', name: '여관 주인 보름', x: 30.6, y: 17.4, lines: [['먼 길 오느라 고생했어요.', '광장 옆 샘물을 마시면 기운이 나요.']] },
+      { id: 'ranger', sprite: 'MaskFrog', name: '사냥꾼 활대', x: 19.4, y: 13.8, lines: [['숲 북쪽은 둥근 나무 숲, 동쪽은 보름달 호수, 남쪽은 버섯 빈터야.']] },
+      { id: 'child', sprite: 'LionBoy', name: '꼬마 동글이', x: 26.6, y: 25.4, wander: 14, lines: [['컴퍼스로 원을 그리면 가운데에서 둘레까지 길이가 다 같아!', '그게 반지름이래.']] },
     ],
     spots: [
       { id: 'spring', kind: 'heal', name: '숲의 샘', x: 16, y: 25.4, r: 26, label: '샘물 마시기', lines: [['맑은 샘물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },

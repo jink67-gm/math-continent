@@ -110,7 +110,7 @@ export class DungeonScene extends CaveScene {
       COLS: DUNGEON.cols, ROWS: DUNGEON.rows, WIDTH: DUNGEON.cols * T, HEIGHT: DUNGEON.rows * T, WALLS: d.walls, DOOR: d.door, BOSS: d.boss,
       BOSS_ROOM_Y: d.bossRoomY, SPOTS: d.spots, EXITS: d.exits, SPAWNS: d.spawns, CHESTS: d.chests, SPAWN_SOUTH: d.spawn,
       grid: d.grid, power: d.power, tint: this.r.dungeonTint || 0xb8aec8,
-      bossCfg: this.r.boss, sealStep: spire ? 'spireSeal' : 'seal', bossStep: spire ? 'zero' : 'boss',
+      bossCfg: { ...this.r.boss, tier: spire ? 7 : this.r.n || 1 }, sealStep: spire ? 'spireSeal' : 'seal', bossStep: spire ? 'zero' : 'boss',
       respawn: ['Dungeon', 'south', this.region],
     };
     M.deco = () => dungeonDeco(M, 300 + (this.r.n || 7));

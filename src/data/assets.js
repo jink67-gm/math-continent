@@ -80,6 +80,16 @@ export const IMAGES = {
   'hand/BigSword': 'na/items/BigSword_hand.png',
   'hand/Katana': 'na/items/Katana_hand.png',
   'hand/MagicWand': 'na/items/MagicWand_hand.png',
+  'hand/Club': 'na/items/Club_hand.png',
+  'hand/Book': 'na/items/Book_hand.png',
+  'hand/Rapier': 'na/items/Rapier_hand.png',
+  'hand/Sai': 'na/items/Sai_hand.png',
+  'hand/Lance': 'na/items/Lance_hand.png',
+  'hand/Lance2': 'na/items/Lance2_hand.png',
+  'hand/Ninjaku': 'na/items/Ninjaku_hand.png',
+  'hand/Hammer': 'na/items/Hammer_hand.png',
+  'hand/Axe': 'na/items/Axe_hand.png',
+  'hand/Sword': 'na/items/Sword_hand.png',
   'na/facebox': 'na/ui/FacesetBox.png',
   'ui2/action_attack': 'ui2/action_attack.webp',
   'ui2/action_dodge': 'ui2/action_dodge.webp',
@@ -91,6 +101,8 @@ export const IMAGES = {
   'ui2/button_green': 'ui2/button_green.webp',
   'items/consumables/potion_red': 'items/consumables/potion_red.webp',
   'items/consumables/scroll': 'items/consumables/scroll.webp',
+  'items/materials/ore_stone': 'items/materials/ore_stone.webp',     // 강화석
+  'items/materials/crystal_blue': 'items/materials/crystal_blue.webp', // 빛나는 강화석
 };
 
 // 캐릭터: SpriteSheet.png (16px, 가로 4칸 = 아래·위·왼·오, 세로 0~3줄 걷기, 4줄 공격) + Faceset.png

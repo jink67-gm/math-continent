@@ -5,9 +5,9 @@ import { Player } from '../world/Player.js';
 import { Combat } from '../combat/Combat.js';
 import { RemotePlayer } from '../world/RemotePlayer.js';
 import { ASSET_ROOT, BGM, HEROES } from '../data/assets.js';
-import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
-import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
-import { openShop, openForge, openBag, openWorldMap } from '../ui/Panels.js';
+import { normalizeStats, refreshMax, statsOf, DIFFICULTY, DIFF_ORDER } from '../data/rules.js';
+import { weaponOf, giveItem, itemDef } from '../data/items.js';
+import { openShop, openForge, openBag, openWorldMap, openCharacter, openTravel } from '../ui/Panels.js';
 import { textStyle, crisp, ZOOM } from '../ui/style.js';
 import { SKILL_KEYS } from '../data/skills.js';
 
@@ -52,6 +52,7 @@ export class WorldScene extends Phaser.Scene {
     this.player = new Player(this, at.x, at.y, HEROES[stats.gender] || HEROES.male);
     this.physics.add.collider(this.player.feet, this.solids);
     this.player.setWeapon(weaponOf(stats).hand);
+    this.player.speedMul = 1 + statsOf(stats).speed;
     for (const n of this.npcs) {
       this.physics.add.collider(this.player.feet, n.feet);
       if (n.def.wander) this.physics.add.collider(n.feet, this.solids);
@@ -254,7 +255,23 @@ export class WorldScene extends Phaser.Scene {
       stats.sp = stats.maxSp;
       this.sound.play('sfx_heal', { volume: 0.6 });
       this.fx('fx_sparkc', 'na/sparkc', this.player.x, this.player.y - 8, { scale: 1.2, depth: this.player.y + 30, add: true });
-      this.time.delayedCall(10, () => this.saveGame());
+      // 마을 샘 = 체크포인트: 처음 쓰면 등록되고, 등록한 마을끼리 빠르게 이동할 수 있어요
+      const town = this.mapId && this.rc?.town === this.mapId ? this.mapId : null;
+      stats.waypoints ??= [];
+      const fresh = town && !stats.waypoints.includes(town);
+      if (fresh) stats.waypoints.push(town);
+      this.time.delayedCall(10, () => this.saveGame({ now: !!fresh }));
+      const lines = [...(s.lines?.[0] || ['HP와 SP가 모두 회복됐어요!'])];
+      if (fresh) lines.push('✦ 이 마을이 체크포인트로 등록됐어요! 다른 마을의 샘이나 지도(M)에서 빠르게 이동할 수 있어요.');
+      this.hud.openDialog({ name: s.name, lines, onClose: () => {
+        if (!town || stats.waypoints.length < 2) return;
+        this.time.delayedCall(150, () => this.hud.openChoice({
+          title: '빠른 이동', note: '등록한 다른 마을로 바로 갈까요?',
+          options: [{ id: 'go', label: '마을 고르기' }, { id: 'no', label: '여기 있을래요' }],
+          onPick: (id) => { if (id === 'go') openTravel(this.game, this); },
+        }));
+      } });
+      return;
     }
     if (s.kind === 'rune') { this.useRune(s); return; }
     if (s.kind === 'bossSeal') { this.useBossSeal?.(); return; }
@@ -299,18 +316,29 @@ export class WorldScene extends Phaser.Scene {
   }
 
   openBag() { if (!this.locked) openBag(this.game, this); }
+  openSkills(tab = 'skills') { if (!this.game.panelOpen && !this.game.runes?.open) openCharacter(this.game, this, tab); }
   openMap() { if (!this.locked) openWorldMap(this.game, this); }
 
   // ── 성장 룬 ──────────────────────────────────
   async learnSkill(sk) {
+    const stats = this.registry.get('player');
+    if ((stats.skillPts || 0) < 1) { this.hud.toast('스킬 포인트가 없어요. 레벨을 올려 포인트를 모아요'); return; }
     const res = await this.game.runes.start({ context: 'skill', unit: this.info.unit, allowLater: true, line: `「${sk.name}」의 룬이에요. 풀면 새 기술을 배워요!` });
     if (!this.sys.isActive() || !res.correct) return;
-    const stats = this.registry.get('player');
-    if (!stats.learned.includes(sk.id)) stats.learned.push(sk.id);
+    if (!stats.learned.includes(sk.id)) {
+      stats.learned.push(sk.id);
+      stats.skillPts = Math.max(0, (stats.skillPts || 0) - 1);
+      stats.skillLv ??= {};
+      stats.skillLv[sk.id] = 1;
+      // 빈 칸이 있으면 바로 끼워요
+      const empty = stats.slots.indexOf(null);
+      if (empty >= 0) stats.slots[empty] = sk.id;
+      this.hud?.refreshSkills?.();
+    }
     this.sound.play('sfx_unlock', { volume: 0.55 });
     this.fx('fx_ring', 'na/ring', this.player.x, this.player.y - 4, { scale: 2.4, depth: this.player.y + 30, add: true }).setTint(0xb8a0ff);
-    const slot = this.combat.skills.indexOf(sk);
-    this.hud.showBanner(`새 스킬: ${sk.name}`, this.hud.isTouch ? `${slot + 1}번째 스킬 단추로 쓸 수 있어요` : `${SKILL_KEYS[slot]} 키로 쓸 수 있어요`);
+    const slot = stats.slots.indexOf(sk.id);
+    this.hud.showBanner(`새 스킬: ${sk.name}`, slot < 0 ? '능력(C) 창의 스킬 칸에 끼워서 써요' : this.hud.isTouch ? `${slot + 1}번째 스킬 단추로 쓸 수 있어요` : `${SKILL_KEYS[slot]} 키로 쓸 수 있어요`);
     this.saveGame({ now: true });
   }
 
@@ -318,25 +346,15 @@ export class WorldScene extends Phaser.Scene {
   async growthTest() {
     const stats = this.registry.get('player');
     if (!stats.tests || this.locked) return;
-    const res = await this.game.runes.start({ context: 'levelup', unit: this.info.unit, allowLater: true });
+    const res = await this.game.runes.start({ context: 'levelup', unit: this.info.unit, allowLater: true, line: '룬을 풀면 보너스 능력치 포인트 2를 받아요!' });
     if (!this.sys.isActive() || !res.correct) return;
-    this.hud.openChoice({
-      title: '보너스 능력을 골라요',
-      note: '고른 능력이 영원히 올라가요.',
-      options: [{ id: 'atk', label: '힘 +2' }, { id: 'hp', label: '체력 +15' }, { id: 'sp', label: '마력 +8' }],
-      onPick: (id) => {
-        const add = { atk: 2, hp: 15, sp: 8 }[id];
-        stats.bonus[id] = (stats.bonus[id] || 0) + add;
-        stats.tests = Math.max(0, stats.tests - 1);
-        refreshMax(stats);
-        if (id === 'hp') stats.hp += add;
-        if (id === 'sp') stats.sp += add;
-        this.sound.play('sfx_levelup', { volume: 0.5 });
-        this.hud.toast(`${{ atk: '힘', hp: '체력', sp: '마력' }[id]}이(가) ${add} 올랐어요!`);
-        this.saveGame({ now: true });
-      },
-      closable: false,
-    });
+    // 맞히면 보너스 능력치 포인트 2 → 능력 창에서 원하는 곳에 올려요
+    stats.tests = Math.max(0, stats.tests - 1);
+    stats.statEarned = (stats.statEarned || 0) + 2;
+    stats.statPts = (stats.statPts || 0) + 2;
+    this.sound.play('sfx_levelup', { volume: 0.5 });
+    this.hud.showBanner('보너스 능력치 +2!', '능력(C) 창에서 힘·체력·솜씨·지혜에 나눠 올려요');
+    this.saveGame({ now: true });
   }
 
   // 황금 수학 상자: 룬을 풀면 열려요 (한 번만)
@@ -352,8 +370,11 @@ export class WorldScene extends Phaser.Scene {
     const got = [];
     if (c.gold) { this.combat.dropCoins(c.x, c.y + 6, c.gold); got.push(`${c.gold} G`); }
     if (c.potions) { stats.potions += c.potions; got.push(`회복약 ${c.potions}개`); }
-    if (c.weapon && !stats.bag.weapons.includes(c.weapon)) { stats.bag.weapons.push(c.weapon); got.push(WEAPONS[c.weapon].name); }
-    if (c.armor && !stats.bag.armors.includes(c.armor)) { stats.bag.armors.push(c.armor); got.push(ARMORS[c.armor].name); }
+    for (const id of [c.weapon, c.armor, c.item].filter(Boolean)) if (giveItem(stats, id)) got.push(itemDef(id).name);
+    // 상자에는 강화석도 들어 있어요
+    const st = 1 + (Math.random() < 0.5 ? 1 : 0);
+    stats.stones = (stats.stones || 0) + st;
+    got.push(`강화석 ${st}개`);
     this.hud.showBanner('황금 수학 상자!', got.join(' · '));
     this.saveGame({ now: true });
   }
@@ -378,7 +399,26 @@ export class WorldScene extends Phaser.Scene {
     this.exitCooldown = this.time.now + 2500;
     if (!e.scene) { this.hud?.toast(`「${e.to}」은(는) 다음 단계에서 열려요`); return; }
     if (e.requires && !this.quests.passed(e.requires) && !this.game.classCfg?.unlockAll) { this.hud?.toast(e.lockedMsg || '아직 갈 수 없어요'); return; }
+    // 다음 지역은 레벨이 되어야 갈 수 있어요 (충분히 강해진 뒤에)
+    const need = this.exitMinLv?.(e) || 0;
+    const lv = this.registry.get('player').lv;
+    if (lv < need && !this.game.classCfg?.unlockAll) {
+      this.hud?.showBanner(`Lv ${need}부터 갈 수 있어요`, `지금 Lv ${lv} · 몬스터를 물리치고 곁 퀘스트를 하며 더 강해져요!`);
+      this.bounceBack(e);
+      return;
+    }
     this.goTo(e.scene, e.entry, e.region, e.map);
+  }
+
+  // 막힌 출구에서 한 걸음 뒤로
+  bounceBack(e) {
+    const p = this.player;
+    const cx = e.x + e.w / 2;
+    const cy = e.y + e.h / 2;
+    const dx = p.x - cx;
+    const dy = p.y - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    p.feet.body.reset(p.x + (dx / len) * 14, p.y + (dy / len) * 14);
   }
 
   goTo(sceneKey, entry, region, map) {
@@ -530,14 +570,16 @@ export class WorldScene extends Phaser.Scene {
     const paused = (!!this.game.runes?.open || !!this.game.panelOpen) && !this.combat.coop;
     if (paused !== !!this.worldPaused) {
       this.worldPaused = paused;
-      if (paused) { this.physics.world.pause(); this.tweens.pauseAll(); } else { this.physics.world.resume(); this.tweens.resumeAll(); }
+      // 물리·움직임·예약된 공격(시간)까지 모두 멈춰요
+      if (paused) { this.physics.world.pause(); this.tweens.pauseAll(); this.time.paused = true; this.anims.pauseAll(); }
+      else { this.physics.world.resume(); this.tweens.resumeAll(); this.time.paused = false; this.anims.resumeAll(); }
     }
     if (paused) return;
     const stats = this.registry.get('player');
     stats.playTime = (stats.playTime || 0) + Math.min(1, (time - this.lastTick) / 1000);
     this.lastTick = time;
-    // 공격 버튼(J 또는 화면 버튼)을 누르고 있으면 콤보가 계속 이어져요
-    if ((this.keys.J.isDown || this.hud?.attackHeld) && !this.locked) this.combat.attack();
+    // 공격: 누를 때마다 1·2·3타, 2타 뒤 잠깐 쉬고 누르면 강타, 꾹 누르면 힘 모으기
+    this.combat.updateCharge(time, !!(this.keys.J.isDown || this.hud?.attackHeld) && !this.locked);
     if (!this.combat.frozen) {
       const [vx, vy] = this.moveInput();
       this.player.update(vx, vy, this.locked);

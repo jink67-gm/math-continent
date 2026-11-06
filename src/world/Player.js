@@ -92,6 +92,35 @@ export class Player {
     this.lock('atk', ms, onEnd);
   }
 
+  // 강타 (JJ … J): 뛰어오르며 칼을 머리 위에서 크게 내려쳐요
+  smash(ms, onEnd) {
+    const [vx, vy] = this.facingVector();
+    this.feet.body.setVelocity(vx * 150, vy * 150);
+    this.scene.time.delayedCall(140, () => { if (this.state === 'atk') this.feet.body.setVelocity(0, 0); });
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    const base = BLADE[this.dir];
+    this.scene.tweens.killTweensOf(this.sword);
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.3).setAngle(base + 170);
+    this.scene.tweens.add({ targets: this.sword, angle: base, duration: 150, ease: 'Back.in', delay: 40 });
+    this.scene.tweens.add({ targets: this, lift: 7, duration: 110, yoyo: true, ease: 'Quad.out' });
+    this.lean(1.3);
+    this.lock('atk', ms, onEnd);
+  }
+
+  // 힘 모으기 (J를 꾹): 칼을 뒤로 젖히고 천천히 걸어요
+  startCharge() {
+    this.state = 'charge';
+    this.sprite.play(`${this.key}_atk_${this.dir}`, true);
+    this.scene.tweens.killTweensOf(this.sword);
+    this.sword.setVisible(true).setOrigin(0.5, 0.15).setScale(1.1).setAngle(BLADE[this.dir] + 140);
+  }
+
+  endCharge() {
+    if (this.state !== 'charge') return;
+    this.state = 'move';
+    this.sword.setVisible(false);
+  }
+
   // 휘두르는 쪽으로 몸을 쭉 뻗었다가 돌아와요
   lean(k) {
     const side = this.dir === 'left' || this.dir === 'right';
@@ -163,12 +192,20 @@ export class Player {
   // vx, vy: -1~1 입력값
   update(vx, vy, locked) {
     const now = this.scene.time.now;
+    if (this.state === 'charge') {
+      // 힘을 모으는 동안은 천천히 걸을 수 있어요 (보는 쪽은 그대로)
+      const len = Math.hypot(vx, vy);
+      if (locked || len < 0.15) this.feet.body.setVelocity(0, 0);
+      else this.feet.body.setVelocity((vx / len) * SPEED * 0.4, (vy / len) * SPEED * 0.4);
+      this.sword.setAngle(BLADE[this.dir] + 140 + Math.sin(now / 40) * 4);
+    }
     if (this.state === 'move') {
       if (locked) { vx = 0; vy = 0; }
       const len = Math.hypot(vx, vy);
       if (len > 0.15) {
         const n = Math.min(1, len);
-        this.feet.body.setVelocity((vx / len) * SPEED * n, (vy / len) * SPEED * n);
+        const sp = SPEED * (this.speedMul || 1);
+        this.feet.body.setVelocity((vx / len) * sp * n, (vy / len) * sp * n);
         if (Math.abs(vx) > Math.abs(vy) * 1.1) this.dir = vx < 0 ? 'left' : 'right';
         else this.dir = vy < 0 ? 'up' : 'down';
         this.play(`walk_${this.dir}`);

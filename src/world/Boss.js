@@ -22,11 +22,17 @@ export class Boss {
     this.combat = combat;
     this.kind = cfg.id;
     this.id = cfg.id;
-    this.def = cfg;
+    // 지역 단계(tier)가 높을수록 더 단단하고 아프고 빨라요. 4단계부터는 공격을 두 번 이어서 해요.
+    this.tier = cfg.tier || 1;
+    const t = this.tier - 1;
+    this.def = { ...cfg, hp: Math.round(cfg.hp * (1.35 + 0.06 * t)), atk: Math.round(cfg.atk * (1.25 + 0.04 * t)) };
+    this.pace = Math.max(0.55, 1 - 0.08 * t);    // 쉬는 시간 배율
+    this.warnMul = Math.max(0.7, 1 - 0.05 * t);  // 경고 시간 배율
+    this.chain = t >= 3 ? 0.3 + 0.05 * (t - 3) : t >= 1 ? 0.15 : 0; // 이어 공격 확률
     this.art = cfg.art || { type: 'troll' };
     this.radius = this.art.radius || (this.art.type === 'troll' ? 14 : 16);
     this.home = { x, y };
-    this.maxHp = Math.round(cfg.hp * combat.diff.monHp * combat.partyHp);
+    this.maxHp = Math.round(this.def.hp * combat.diff.monHp * combat.partyHp);
     this.hp = this.maxHp;
     this.state = 'sleep';
     this.sealsLeft = [0.66, 0.33];
@@ -199,7 +205,7 @@ export class Boss {
         if (time > this.until) { this.state = 'chase'; this.anim('idle'); this.nextAttack = time + 800; }
         break;
       case 'chase': {
-        const sp = 24 * slowMul;
+        const sp = 24 * slowMul * (1 + 0.07 * (this.tier - 1));
         const dx = target.x - this.x;
         const dy = target.y - this.y;
         this.feet.body.setVelocity(d > 30 ? (dx / d) * sp : 0, d > 30 ? (dy / d) * sp : 0);
@@ -242,7 +248,7 @@ export class Boss {
     this.attack = type;
     this.state = 'warn';
     const base = this.combat.diff.warnMs;
-    this.warnMs = base + (type === 'swipe' ? 100 : 350);
+    this.warnMs = (base + (type === 'swipe' ? 100 : 350)) * this.warnMul;
     this.until = this.scene.time.now + this.warnMs;
     this.feet.body.setVelocity(0, 0);
     const dx = target.x - this.x;
@@ -324,7 +330,9 @@ export class Boss {
     this.anim('idle');
     this.state = 'rest';
     this.until = this.scene.time.now + restMs;
-    this.nextAttack = this.until + (this.sealed ? 1500 : 700) + Math.random() * 600;
+    this.nextAttack = this.until + ((this.sealed ? 1500 : 700) + Math.random() * 600) * this.pace;
+    // 이어 공격: 쉬지 않고 바로 다음 공격
+    if (!this.sealed && Math.random() < this.chain) { this.until = this.scene.time.now + 120; this.nextAttack = this.until; }
   }
 
   hitArea(x, y, r, mult) {

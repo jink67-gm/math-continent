@@ -65,6 +65,16 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-T', () => this.world.growthTest());
     this.input.keyboard.on('keydown-B', () => !this.dialogOpen && this.world.openBag());
     this.input.keyboard.on('keydown-M', () => !this.dialogOpen && this.world.openMap());
+    this.input.keyboard.on('keydown-C', () => !this.dialogOpen && this.world.openSkills('stats'));
+    // 능력 단추 (지도 옆): 올릴 포인트가 있으면 빨간 숫자
+    const cc = this.add.container(460, 32);
+    const cg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-34, -16, 68, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-34, -16, 68, 32, 8);
+    this.ptsDot = this.add.circle(30, -13, 10, 0xd8443a).setStrokeStyle(2, 0xfff3c4).setVisible(false);
+    this.ptsText = crisp(this.add.text(30, -13, '', textStyle(10, '#ffffff', { strokeThickness: 2 })).setOrigin(0.5));
+    cc.add([cg, crisp(this.add.text(0, 0, this.isTouch ? '능력' : '능력 C', textStyle(13, '#ffe9a8')).setOrigin(0.5)), this.ptsDot, this.ptsText])
+      .setSize(68, 32).setInteractive({ useHandCursor: true });
+    cc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openSkills('stats'); });
+    this.tweens.add({ targets: this.ptsDot, scale: 1.2, duration: 500, yoyo: true, repeat: -1 });
     // 지도 단추 (메뉴 옆)
     const mc = this.add.container(386, 32);
     const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-30, -16, 60, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-30, -16, 60, 32, 8);
@@ -94,6 +104,8 @@ export class HudScene extends Phaser.Scene {
     this.boostText = crisp(this.add.text(W - 18, 200, '', textStyle(13, '#ffe066')).setOrigin(1, 0.5));
     this.tweens.add({ targets: this.boostText, alpha: 0.55, duration: 600, yoyo: true, repeat: -1 });
     this.hurtFlash = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a1a, 0).setDepth(60);
+    // 연타 수 (오른쪽 가운데)
+    this.chainText = crisp(this.add.text(W - 150, 250, '', textStyle(26, '#ffe066', { strokeThickness: 6 })).setOrigin(0.5).setAlpha(0).setDepth(20));
   }
 
   // ── 메뉴 (상태 막대 오른쪽): 저장 코드 보기, 소리 켜기/끄기 ──
@@ -221,6 +233,15 @@ export class HudScene extends Phaser.Scene {
     items.push({ destroy: () => this.game.events.off('party:msg', refresh) });
   }
 
+  // 친구가 있는 곳 이름 (다른 지도에 있을 때)
+  peerPlace(party) {
+    const key = party.peerState?.s || '';
+    const [kind, id] = key.split(':');
+    if (kind === 'Map') return this.world.mapName?.(id) || id;
+    if (kind === 'Dungeon') return '혼돈의 첨탑';
+    return '다른 곳';
+  }
+
   drawBoss() {
     const b = this.world.boss;
     const g = this.bossBar.clear();
@@ -264,6 +285,42 @@ export class HudScene extends Phaser.Scene {
     const [x3, y3] = pt(-2.5, 11);
     g.fillStyle(0x1b1208, 0.8).fillTriangle(x1 + 2, y1 + 2, x2 + 2, y2 + 2, x3 + 2, y3 + 2);
     g.fillStyle(0xffd866, 0.95).fillTriangle(x1, y1, x2, y2, x3, y3);
+  }
+
+  showChain(n) {
+    const t = this.chainText;
+    t.setText(`${n} 연타!`).setColor(n >= 15 ? '#ff7a4a' : n >= 8 ? '#ffb347' : '#ffe066').setAlpha(1).setScale(1.35);
+    this.tweens.killTweensOf(t);
+    this.tweens.add({ targets: t, scale: 1, duration: 140, ease: 'Back.out' });
+    this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 300 });
+  }
+
+  // 협동: 친구가 같은 지도에 있는데 화면 밖이면 가장자리에 파란 화살표와 이름
+  drawFriend(time, together) {
+    const g = (this.friendG ??= this.add.graphics().setDepth(6));
+    this.friendLabel ??= crisp(this.add.text(0, 0, '', textStyle(11, '#9be8ff')).setOrigin(0.5).setDepth(6));
+    g.clear();
+    this.friendLabel.setVisible(false);
+    const r = this.world.combat.remote;
+    if (!together || !r) return;
+    const cam = this.world.cameras.main;
+    const wv = cam.worldView;
+    const sx = (r.x - wv.x) * cam.zoom;
+    const sy = (r.y - 10 - wv.y) * cam.zoom;
+    if (sx > 20 && sx < W - 20 && sy > 20 && sy < H - 20) return;
+    const cx = W / 2;
+    const cy = H / 2;
+    const a = Math.atan2(sy - cy, sx - cx);
+    const ex = Phaser.Math.Clamp(cx + Math.cos(a) * 1000, 40, W - 40);
+    const ey = Phaser.Math.Clamp(cy + Math.sin(a) * 1000, 110, H - 120);
+    const pt = (ang, len) => [ex + Math.cos(a + ang) * len, ey + Math.sin(a + ang) * len];
+    const [x1, y1] = pt(0, 16);
+    const [x2, y2] = pt(2.5, 12);
+    const [x3, y3] = pt(-2.5, 12);
+    const pulse = 0.75 + 0.25 * Math.sin(time / 150);
+    g.fillStyle(0x0b2a3a, 0.8).fillCircle(ex, ey, 14).fillStyle(0x3fb8ff, pulse).fillTriangle(x1, y1, x2, y2, x3, y3);
+    const dist = Math.round(Math.hypot(r.x - this.world.player.x, r.y - this.world.player.y) / 16);
+    this.friendLabel.setText(`${this.game.party.peer?.name || '친구'} ${dist}칸`).setPosition(ex - Math.cos(a) * 30, ey - Math.sin(a) * 26).setVisible(true);
   }
 
   flashHurt() {
@@ -352,6 +409,11 @@ export class HudScene extends Phaser.Scene {
     for (const n of this.world.npcs) g.fillCircle(x0 + n.x * k, y0 + n.y * k, 1.6);
     g.fillStyle(0xff9a3c, 1);
     for (const m of this.world.combat.monsters) if (m.alive) g.fillRect(x0 + m.x * k - 1, y0 + m.y * k - 1, 2, 2);
+    const fr = this.world.combat.remote;
+    if (fr) {
+      g.fillStyle(0x3fb8ff, 1).fillCircle(x0 + fr.x * k, y0 + fr.y * k, 3);
+      g.lineStyle(1, 0xffffff, 1).strokeCircle(x0 + fr.x * k, y0 + fr.y * k, 3);
+    }
     const p = this.world.player;
     const blink = 0.6 + 0.4 * Math.sin(time / 160);
     g.fillStyle(0xff4b3a, blink).fillCircle(x0 + p.x * k, y0 + p.y * k, 3);
@@ -400,19 +462,20 @@ export class HudScene extends Phaser.Scene {
     this.skillBtns = [];
     const keys = SKILL_KEYS;
     const angles = [180, 213, 246, 279];
-    v().combat.skills.forEach((sk, i) => {
+    [0, 1, 2, 3].forEach((i) => {
+      const sk = v().combat.skills[i];
       const a = Phaser.Math.DegToRad(angles[i]);
       const x = ax + Math.cos(a) * 100;
       const y = ay + Math.sin(a) * 100;
-      const b = mk(x, y, 'ui2/action_skill', 54, sk.icon, this.isTouch ? '' : keys[i], () => v().combat.castSkill(i), 1.1);
+      const b = mk(x, y, 'ui2/action_skill', 54, sk?.icon || ['na/sparkc', 0], this.isTouch ? '' : keys[i], () => v().combat.castSkill(i), 1.1);
       b.label.setY(-40).setFontSize(13).setText(this.isTouch ? '' : keys[i]);
       b.dial = this.add.graphics();
       b.lockText = crisp(this.add.text(0, 0, '', textStyle(11, '#ffe9a8')).setOrigin(0.5));
       b.cdText = crisp(this.add.text(0, 0, '', textStyle(13, '#ffffff')).setOrigin(0.5));
       b.add([b.dial, b.lockText, b.cdText]);
-      b.name = sk.name;
       this.skillBtns.push(b);
     });
+    this.refreshSkills();
 
     if (!this.textures.exists('icon_talk')) {
       // 말풍선 아이콘 (점 세 개)
@@ -429,23 +492,32 @@ export class HudScene extends Phaser.Scene {
     this.btnTalk.setVisible(false);
   }
 
-  // 스킬 칸: 잠김(레벨) · 재사용 대기(어두운 부채꼴과 남은 초) · SP 부족(빨간 테두리)
+  // 스킬 칸 그림을 지금 낀 스킬로 바꿔요 (능력 창에서 바꾸면 불러요)
+  refreshSkills() {
+    const skills = this.world.combat.skills;
+    this.skillBtns?.forEach((b, i) => {
+      const sk = skills[i];
+      if (sk) b.icon.setTexture(sk.icon[0], sk.icon[1]).setVisible(true);
+      else b.icon.setVisible(false);
+    });
+  }
+
+  // 스킬 칸: 빈 칸 · 재사용 대기(어두운 부채꼴과 남은 초) · SP 부족(빨간 테두리)
   drawSkills() {
     const c = this.world.combat;
     this.skillBtns.forEach((b, i) => {
       const st = c.skillState(i);
       const g = b.dial.clear();
       const r = 23;
-      b.icon.setAlpha(st.locked ? 0.25 : 1);
-      b.lockText.setText(st.locked ? `Lv${st.sk.lv}` : st.unlearned ? '배우기' : '');
-      if (st.unlearned) b.icon.setAlpha(0.35);
-      if (!st.locked && st.cdRatio > 0) {
+      b.icon.setAlpha(st.empty ? 0 : 1);
+      b.lockText.setText(st.empty ? '빈 칸' : '');
+      if (!st.empty && st.cdRatio > 0) {
         g.fillStyle(0x000000, 0.6).slice(0, -2, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * st.cdRatio, false).fillPath();
         b.cdText.setText(`${Math.ceil(st.cdLeft / 1000)}`);
       } else {
         b.cdText.setText('');
       }
-      if (!st.locked && st.noSp) g.lineStyle(2, 0xff5a4a, 0.9).strokeCircle(0, -2, r);
+      if (!st.empty && st.noSp) g.lineStyle(2, 0xff5a4a, 0.9).strokeCircle(0, -2, r);
     });
     // 구르기 대기 시간
     const d = c.dodgeState();
@@ -747,8 +819,12 @@ export class HudScene extends Phaser.Scene {
     this.greet.setY(tests > 0 ? below + 38 : below);
     if (tests) this.testText.setText(`⭐ 성장 시험 ${tests}${this.isTouch ? '' : ' (T)'}`);
     this.partyText.setText(!party.active ? '' : !peer ? `파티 방 ${party.room} · 친구를 기다리는 중`
-      : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? '' : ' (다른 곳에 있어요)'}`);
+      : `함께: ${peer.name} Lv${party.peerState?.lv || peer.lv}${together ? ' · 지도에 파란 점' : ` · 지금 「${this.peerPlace(party)}」`}`);
     this.greet.setVisible(!!together);
+    const pts = (this.stats.statPts || 0) + (this.stats.skillPts || 0);
+    this.ptsDot.setVisible(pts > 0);
+    this.ptsText.setText(pts > 0 ? String(Math.min(99, pts)) : '');
+    this.drawFriend(time, together);
     const boost = this.world.combat.boost() > 1;
     this.boostText.setText(boost ? '★ 경험치 2배 시간!' : '');
   }

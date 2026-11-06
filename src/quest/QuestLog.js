@@ -8,7 +8,7 @@
 
 import { regionQuests } from '../data/quests.js';
 import { MAP_REGIONS, ALL_MAPS } from '../data/mapRegions.js';
-import { WEAPONS, ARMORS } from '../data/items.js';
+import { itemDef, giveItem } from '../data/items.js';
 import { skillsFor } from '../data/skills.js';
 
 const R1 = 'fractionValley';
@@ -145,13 +145,13 @@ export class QuestLog {
         if (ss?.state === 'active') return { lines: [`${d.desc}`, `지금 ${ss.n}/${d.need}이에요. 힘내요!`] };
       }
     }
-    // 룬 할아버지: 레벨이 되면 스킬의 룬을 내 줘요
+    // 룬 학자: 배울 수 있는 스킬 중에서 골라 배워요 (스킬 포인트 1 + 룬 문제)
     if (npcId === 'runeMaster') {
       const s = this.stats;
-      const sk = skillsFor(s).find((k) => k.lv <= s.lv && !(s.learned || []).includes(k.id));
-      if (sk) return { lines: [`오오, 「${sk.name}」을(를) 배울 때가 되었구나.`, '이 룬을 깨우면 가르쳐 주마. 천천히 생각해 보거라.'], after: () => this.scene?.learnSkill(sk) };
+      const can = skillsFor(s).filter((k) => k.lv <= s.lv && !(s.learned || []).includes(k.id));
+      if (can.length) return { lines: [`오오, 지금 배울 수 있는 기술이 ${can.length}가지 있구나.`, '어떤 기술을 익힐지 골라 보거라. 스킬 포인트 1이 들고, 룬을 깨워야 배울 수 있단다.'], after: () => this.scene?.openSkills?.('learn') };
       const next = skillsFor(s).find((k) => k.lv > s.lv);
-      if (next) return { lines: [`다음 기술 「${next.name}」은(는) 레벨 ${next.lv}이 되면 가르쳐 주마.`] };
+      if (next) return { lines: [`다음 기술 「${next.name}」은(는) 레벨 ${next.lv}이 되면 가르쳐 주마.`, '배운 기술은 능력(C) 창에서 스킬 포인트로 더 강하게 만들 수 있단다.'] };
     }
     // 촌장님은 지금 할 일을 다시 알려 줘요
     if (npcId === 'chief' && st && st.type !== 'talk') return { lines: [`지금 할 일은 「${st.title}」일세.`, st.desc] };
@@ -230,7 +230,14 @@ export class QuestLog {
     const scene = this.scene;
     if (st.done) scene?.hud?.openDialog({ name: st.title, lines: this.fill(st.done) });
     if (!next && this.vid === 'solidPeaks') scene?.time.delayedCall(2500, () => scene.hud?.showBanner('수학 대륙을 구했어요!', '여섯 마을의 봉인을 모두 지켜 냈어요. 정말 멋져요!'));
-    this.reward(st.reward, st.title, next);
+    // 보스를 물리치면 강화석도 받아요 (높은 지역일수록 빛나는 강화석도)
+    const rw = { ...st.reward };
+    if (st.type === 'boss') {
+      const n = Object.keys(MAP_REGIONS).indexOf(this.vid) + 1 || 6;
+      rw.stones = (rw.stones || 0) + 2 + Math.ceil(n / 2);
+      if (n >= 3) rw.stones2 = (rw.stones2 || 0) + Math.floor(n / 3);
+    }
+    this.reward(rw, st.title, next);
     scene?.onQuestAdvance?.(st, next);
     scene?.saveGame({ now: true });
   }
@@ -241,8 +248,9 @@ export class QuestLog {
     s.gold += r.gold || 0;
     s.potions = (s.potions || 0) + (r.potions || 0);
     const got = [r.exp && `경험치 ${r.exp}`, r.gold && `${r.gold} G`, r.potions && `회복약 ${r.potions}개`];
-    if (r.weapon && !s.bag.weapons.includes(r.weapon)) { s.bag.weapons.push(r.weapon); got.push(WEAPONS[r.weapon].name); }
-    if (r.armor && !s.bag.armors.includes(r.armor)) { s.bag.armors.push(r.armor); got.push(ARMORS[r.armor].name); }
+    for (const id of [r.weapon, r.armor, r.item].filter(Boolean)) if (giveItem(s, id)) got.push(itemDef(id).name);
+    if (r.stones) { s.stones = (s.stones || 0) + r.stones; got.push(`강화석 ${r.stones}개`); }
+    if (r.stones2) { s.stones2 = (s.stones2 || 0) + r.stones2; got.push(`빛나는 강화석 ${r.stones2}개`); }
     scene?.sound.play('sfx_quest', { volume: 0.5 });
     const text = got.filter(Boolean).join(' · ');
     scene?.hud?.showBanner(`「${title}」 완료!`, next ? `${text}  ▶ 다음: ${next.title}` : text);

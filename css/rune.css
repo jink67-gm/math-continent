@@ -26,6 +26,11 @@
   box-shadow: 0 0 14px rgba(160, 130, 255, .8);
 }
 .rune-title { font-size: 20px; color: #ffe9a8; line-height: 1.2; }
+.rune-x {
+  margin-left: auto; align-self: flex-start; width: 40px; height: 40px; flex: none; border-radius: 50%;
+  border: 2px solid #e8c36a; background: #2c2216; color: #ffe9a8; font-size: 18px; font-weight: bold; cursor: pointer;
+}
+.rune-x:hover { background: #4a3720; }
 .rune-unit { font-size: 12px; color: #cfe3c8; margin-top: 2px; }
 .rune-npc { margin-top: 10px; padding: 8px 12px; background: #2c2216; border-radius: 8px; font-size: 13px; color: #e6f0dd; line-height: 1.5; }
 
@@ -122,7 +127,46 @@
 }
 .map-svg { width: 100%; height: auto; display: block; margin: 0 auto; font-family: 'NanumSquareRound', sans-serif; }
 .map-svg.r1 { max-height: max(160px, calc(100dvh - 300px)); }
-.map-svg.chain { max-height: 56px; }
+.map-svg.chain { max-height: 64px; }
 .map-title { font-size: 16px; text-align: center; color: #5a3410; margin-bottom: 2px; }
 .map-title.small { font-size: 13px; margin-top: 6px; }
 .map-legend { font-size: 11px; text-align: center; color: #5a3410; margin-top: 4px; }
+
+/* ── 장비·강화·능력 창 ─────────────────────────── */
+.panel-card.wide { width: min(720px, 100%); }
+.panel-head .rune-x { margin-left: 4px; }
+.inline-icon { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; image-rendering: pixelated; }
+.panel-tabs { display: flex; gap: 6px; }
+.panel-tabs button {
+  flex: 1; padding: 9px; border-radius: 8px; border: 2px solid #6b4a22; background: #2c2216; color: #e6d8b8;
+  font: inherit; font-size: 15px; font-weight: bold; cursor: pointer;
+}
+.panel-tabs button.on { border-color: #e8c36a; background: #4a3720; color: #ffe9a8; }
+.panel-tabs b, .pts { color: #fff; background: #d8443a; border-radius: 10px; padding: 0 7px; font-size: 13px; }
+.panel-emoji { width: 36px; height: 36px; flex: none; display: grid; place-items: center; font-size: 22px; background: #1f1810; border-radius: 8px; }
+.slot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.slot-box { background: #1f2a20; border: 2px solid #4f6b3a; border-radius: 8px; padding: 6px; font-size: 12px; color: #e6f0dd; text-align: center; min-height: 34px; }
+.slot-box i { color: #8a9a80; }
+.slot-key { display: block; font-weight: bold; color: #ffe066; font-size: 13px; }
+.slot-btns { display: grid; grid-template-columns: repeat(2, 26px); gap: 3px; flex: none; }
+.slot-btn { width: 26px; height: 22px; border-radius: 5px; border: 1px solid #6b4a22; background: #2c2216; color: #e6d8b8; font: inherit; font-size: 11px; font-weight: bold; cursor: pointer; padding: 0; }
+.slot-btn.on { background: #e8c36a; color: #2b1a0a; border-color: #fff3c4; }
+.panel-note.pick { color: #ffe066; }
+.bad { color: #ff8a7a; }
+.forge-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.forge-item {
+  display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; border: 2px solid #6b4a22;
+  background: #2c2216; color: #e6d8b8; font: inherit; font-size: 13px; cursor: pointer;
+}
+.forge-item img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+.forge-item b { color: #ffe066; margin-left: 4px; }
+.forge-item.on { border-color: #e8c36a; background: #4a3720; }
+.forge-rate { padding: 8px 10px; background: #1f2a20; border-radius: 8px; }
+.forge-bar { height: 14px; background: #0f140f; border-radius: 7px; overflow: hidden; }
+.forge-bar i { display: block; height: 100%; background: linear-gradient(90deg, #6fdc6f, #ffe066); }
+.forge-num { margin-top: 6px; font-size: 14px; color: #e6f0dd; }
+.forge-num b { color: #ffe066; font-size: 18px; }
+.forge-num span { font-size: 12px; color: #9be8ff; }
+.forge-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.forge-btns .rune-btn { flex: 1; min-width: 200px; }
+@media (max-width: 560px) { .slot-btns { grid-template-columns: repeat(4, 22px); } .panel-row { flex-wrap: wrap; } }

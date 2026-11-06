@@ -7,6 +7,7 @@
 //   틀리면 → 「정답이 아니에요」 + 5초 기다린 뒤 다시 도전, 힌트 보여 주기
 //   3번 틀리면 → 같은 단원의 더 쉬운 문제로 바꿔요. 재료·골드는 잃지 않아요.
 //   맞히면 → 풀이를 보여 주고 룬이 빛나요.
+//   오른쪽 위 ✕(또는 Esc)로 언제든 닫을 수 있어요. 창이 열린 동안 세상은 멈추고, 협동 중에도 맞지 않아요.
 // 최근 30문제는 다시 내지 않아요.
 
 import { questions } from './questionBank.js';
@@ -179,6 +180,7 @@ export class Runes {
               <div class="rune-stone">${info.icon || '✨'}</div>
               <div><div class="rune-title" id="rune-title">${escapeHtml(info.title)}</div>
               <div class="rune-unit">${escapeHtml(UNITS[unit] || unit)} · ${LEVEL_NAMES[q.difficulty] || ''}</div></div>
+              <button class="rune-x" type="button" data-x aria-label="닫기">✕</button>
             </div>
             ${info.line ? `<div class="rune-npc">${escapeHtml(info.line)}</div>` : ''}
             <div class="rune-question">${q.image ? `<div class="rune-figure">${q.image}</div>` : ''}${formatMath(q.question)}</div>
@@ -198,10 +200,14 @@ export class Runes {
           });
           setTimeout(() => $('.rune-input')?.focus(), 60);
         }
-        $('[data-later]')?.addEventListener('click', () => {
-          if (tries > 0 && !solved) this.finish(q, false, tries, context);
-          close({ correct: false, deferred: true });
-        });
+        $('[data-later]')?.addEventListener('click', giveUp);
+        $('[data-x]')?.addEventListener('click', () => (solved ? $('[data-continue]')?.click() : giveUp()));
+      };
+
+      // 나중에 하기 · 닫기: 틀린 기록만 남기고 창을 닫아요 (잃는 것은 없어요)
+      const giveUp = () => {
+        if (tries > 0 && !solved) this.finish(q, false, tries, context);
+        close({ correct: false, deferred: true });
       };
 
       const setLocked = (on) => {
@@ -282,6 +288,7 @@ export class Runes {
       // 1~4로 보기 고르기, 정답 화면에서 Enter로 계속 (게임 키로 새지 않게 여기서 멈춰요)
       const onKey = (e) => {
         e.stopPropagation();
+        if (e.key === 'Escape') { e.preventDefault(); if (solved) $('[data-continue]')?.click(); else giveUp(); return; }
         if (solved && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); $('[data-continue]')?.click(); return; }
         if (locked || q.type !== 'choice') return;
         const n = Number(e.key);

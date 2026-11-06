@@ -5,6 +5,7 @@
 import { seeded, T } from '../world/terrain.js';
 import { Npc } from '../world/Npc.js';
 import { Boss } from '../world/Boss.js';
+import { tierOf, REGION_MIN_LV } from '../data/rules.js';
 import { drawRelief } from '../world/MapBuilder.js';
 import { STYLES, paintFloor, placeTorches, addAtmosphere, ensureTextures } from '../world/DungeonStyle.js';
 import { START_MAP } from '../data/r1maps.js';
@@ -84,7 +85,7 @@ export class MapScene extends WorldScene {
     for (const s of d.spawns || []) this.combat.spawnMonster(s.kind, s.x, s.y, d.power || 1);
     if (d.boss && !q.passed(d.boss.step)) {
       this.bossRoomY = d.boss.roomY * T;
-      this.boss = new Boss(this, this.combat, d.boss.x * T, d.boss.y * T, this.rc.boss);
+      this.boss = new Boss(this, this.combat, d.boss.x * T, d.boss.y * T, { ...this.rc.boss, tier: tierOf(d.power || 1) });
       this.combat.monsters.push(this.boss);
     } else if (d.boss) {
       this.glow(d.boss.x * T, d.boss.y * T - 20, 0xffe066);
@@ -110,6 +111,11 @@ export class MapScene extends WorldScene {
   // 들어온 자리: 이름 있는 자리 → 같은 방향 출구 앞 → 마을 광장
   spawnPoint(entry) {
     const d = this.def;
+    // 빠른 이동: 마을 샘 앞
+    if (entry === 'spring') {
+      const sp = (d.spots || []).find((p) => p.kind === 'heal');
+      if (sp) return { x: sp.x * T, y: sp.y * T + (sp.fountain ? 22 : 18) };
+    }
     if (d.entries?.[entry]) { const [x, y] = d.entries[entry]; return { x: x * T, y: y * T }; }
     const e = (d.exits || []).find((x) => x.side === entry);
     if (e) {
@@ -121,6 +127,15 @@ export class MapScene extends WorldScene {
     }
     const p = MAPS[this.rc.town].entries.plaza;
     return { x: p[0] * T, y: p[1] * T };
+  }
+
+  mapName(id) { return MAPS[id]?.name; }
+
+  // 다른 지역으로 나가는 출구면 그 지역에 들어갈 최소 레벨
+  exitMinLv(e) {
+    const dest = e.region || MAPS[e.map]?.region;
+    if (!dest || dest === this.rid) return 0;
+    return REGION_MIN_LV[dest] || 0;
   }
 
   respawnAt() {

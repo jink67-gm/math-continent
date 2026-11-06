@@ -661,7 +661,8 @@ export class HudScene extends Phaser.Scene {
     }
     const cam = this.world.cameras.main;
     const label = target.type === 'npc' ? '대화' : target.spot.label;
-    const text = `${this.isTouch ? '💬' : 'E'} ${label}`;
+    // 키보드: 말풍선에 「E 할 일」만 · 터치: 말풍선은 할 일, 누르는 단추에도 같은 이름
+    const text = this.isTouch ? label : `E  ${label}`;
     if (this.promptText.text !== text) {
       this.promptText.setText(text);
       const w = this.promptText.width + 18;
@@ -672,7 +673,10 @@ export class HudScene extends Phaser.Scene {
     // 마을 카메라는 확대돼 있어서, 세상 좌표를 화면 좌표로 바꿔요
     const wv = cam.worldView;
     this.prompt.setPosition((target.x - wv.x) * cam.zoom, (target.y - wv.y) * cam.zoom - 16).setVisible(true);
-    this.btnTalk.setVisible(true);
+    if (this.isTouch) {
+      this.btnTalk.setVisible(true);
+      if (this.btnTalk.label.text !== label) this.btnTalk.label.setText(label);
+    }
   }
 
   // ── 저장 표시 (상태 막대 아래) ─────────────────

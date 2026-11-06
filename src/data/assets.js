@@ -73,6 +73,7 @@ export const IMAGES = {
   'na/house': 'na/tiles/TilesetHouse.png',
   'na/nature': 'na/tiles/TilesetNature.png',
   'na/element': 'na/tiles/TilesetElement.png',
+  'na/laundry': 'na/tiles/laundry.png', // 기둥 두 개 + 옷 두 벌 (tools/build_laundry.py)
   'na/sword': 'na/fx/sword.png',
   'na/coin': 'na/fx/coin.png',
   'hand/Hwando': 'na/items/Hwando_hand.png',
@@ -137,7 +138,7 @@ export const OBJECTS = {
   cart: ['na/element', 0, 3, 2, 2],
   scarecrow: ['na/element', 6, 3, 1, 2],
   table: ['na/element', 11, 1, 3, 1],
-  laundry: ['na/element', 14, 3, 2, 1],
+  laundry: ['na/laundry', 0, 0, 4, 2],
   fence: ['na/element', 11, 3, 3, 1],
   sign: ['na/element', 0, 2, 1, 1],
   // 바위·수정 (TilesetNature)
@@ -187,13 +188,13 @@ export const OBJECTS = {
   notice: ['na/element', 6, 3, 1, 2],
 };
 
-// 배경음악: Ninja Adventure 음악(ogg) + 기존 mp3(ogg를 못 트는 기기용)
+// 배경음악: 모두 Ninja Adventure 음악(CC0). 소리 크기를 맞춰 ogg와 mp3(ogg를 못 트는 아이패드 사파리용)로 담았어요.
 export const BGM = {
-  bgm_title: ['na/music/title.ogg', 'audio/bgm/title_theme.mp3'],
-  bgm_town: ['na/music/village.ogg', 'audio/bgm/town_theme.mp3'],
-  bgm_field: ['audio/bgm/field_theme.mp3'],
-  bgm_dungeon: ['audio/bgm/dungeon_theme.mp3'],
-  bgm_boss: ['audio/bgm/boss_theme.mp3'],
+  bgm_title: ['na/music/title.ogg', 'na/music/title.mp3'],
+  bgm_town: ['na/music/village.ogg', 'na/music/village.mp3'],
+  bgm_field: ['na/music/field.ogg', 'na/music/field.mp3'],     // Ninja Adventure 「Road」 — 마을 곡과 같은 빠르기·이웃 조성
+  bgm_dungeon: ['na/music/dungeon.ogg', 'na/music/dungeon.mp3'], // 「The Cave」
+  bgm_boss: ['na/music/boss.ogg', 'na/music/boss.mp3'],         // 「Fight」
 };
 
 export const AUDIO = {

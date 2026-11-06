@@ -9,6 +9,7 @@ import { normalizeStats, refreshMax, DIFFICULTY, DIFF_ORDER } from '../data/rule
 import { WEAPONS, ARMORS, weaponOf } from '../data/items.js';
 import { openShop, openForge, openBag, openWorldMap } from '../ui/Panels.js';
 import { textStyle, crisp, ZOOM } from '../ui/style.js';
+import { SKILL_KEYS } from '../data/skills.js';
 
 export { ZOOM };
 
@@ -76,6 +77,17 @@ export class WorldScene extends Phaser.Scene {
     this.quests = this.game.quests;
     this.quests.scene = this;
     this.time.delayedCall(700, () => this.quests.onEnter(this.scene.key, this.region, this.placeKey));
+    // 처음 시작하면 안내 정령 피피가 먼저 다가와 말을 걸어요
+    const guide = this.npcs.find((n) => n.id === this.quests.step?.target && this.quests.step?.id === 'pipi');
+    if (guide) {
+      let tries = 0;
+      const greet = () => {
+        if (this.quests.step?.id !== 'pipi' || this.hud?.dialogOpen) return;
+        if (this.locked && ++tries < 10) { this.time.delayedCall(500, greet); return; }
+        if (!this.locked) this.talkTo(guide);
+      };
+      this.time.delayedCall(1400, greet);
+    }
 
     this.sound.stopAll();
     this.bgm = this.sound.add(this.info.bgm, { loop: true, volume: 0.4 });
@@ -120,7 +132,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   objectSheet(name) {
-    for (const s of ['na/house', 'na/nature', 'na/element', 'na/reliefd', 'zl/props', 'zl/town']) if (this.textures.get(s).has(name)) return s;
+    for (const s of ['na/house', 'na/nature', 'na/element', 'na/reliefd', 'zl/props', 'zl/town', 'na/laundry']) if (this.textures.get(s).has(name)) return s;
     return 'na/nature';
   }
 
@@ -215,23 +227,27 @@ export class WorldScene extends Phaser.Scene {
       this.hud.toast('친구를 일으켰어요!');
       return;
     }
-    if (t.type === 'npc') {
-      const n = t.npc;
-      n.face(this.player.x, this.player.y);
-      n.setTalking(true);
-      const q = this.quests.talk(n.id);
-      this.hud.openDialog({
-        name: n.def.name, portrait: `face/${n.key}`, lines: q ? q.lines : n.nextLines(),
-        onClose: () => {
-          n.setTalking(false);
-          q?.after?.();
-          if (!q && n.def.role === 'shop') openShop(this.game, this);
-          if (!q && n.def.role === 'forge') openForge(this.game, this);
-        },
-      });
-      return;
-    }
-    const s = t.spot;
+    if (t.type === 'npc') { this.talkTo(t.npc); return; }
+    this.useSpot(t.spot);
+  }
+
+  talkTo(n) {
+    n.face(this.player.x, this.player.y);
+    n.setTalking(true);
+    if (this.player.canAct) this.player.faceTo(n.x, n.y);
+    const q = this.quests.talk(n.id);
+    this.hud.openDialog({
+      name: n.def.name, portrait: `face/${n.key}`, lines: q ? q.lines : n.nextLines(),
+      onClose: () => {
+        n.setTalking(false);
+        q?.after?.();
+        if (!q && n.def.role === 'shop') openShop(this.game, this);
+        if (!q && n.def.role === 'forge') openForge(this.game, this);
+      },
+    });
+  }
+
+  useSpot(s) {
     const stats = this.registry.get('player');
     if (s.kind === 'heal') {
       stats.hp = stats.maxHp;
@@ -293,7 +309,8 @@ export class WorldScene extends Phaser.Scene {
     if (!stats.learned.includes(sk.id)) stats.learned.push(sk.id);
     this.sound.play('sfx_unlock', { volume: 0.55 });
     this.fx('fx_ring', 'na/ring', this.player.x, this.player.y - 4, { scale: 2.4, depth: this.player.y + 30, add: true }).setTint(0xb8a0ff);
-    this.hud.showBanner(`새 스킬: ${sk.name}`, `${this.combat.skills.indexOf(sk) + 1}번 칸에서 쓸 수 있어요`);
+    const slot = this.combat.skills.indexOf(sk);
+    this.hud.showBanner(`새 스킬: ${sk.name}`, this.hud.isTouch ? `${slot + 1}번째 스킬 단추로 쓸 수 있어요` : `${SKILL_KEYS[slot]} 키로 쓸 수 있어요`);
     this.saveGame({ now: true });
   }
 

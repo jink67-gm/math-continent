@@ -71,7 +71,7 @@ export const MAPS = {
       b.obj('house_orange', 10.5, 31.6, { solid: 'building', label: '대장간' });
       b.obj('kiln', 7.4, 31.6, { solid: 'building' });
       // 소품
-      b.obj('barrel', 16.4, 22.6, { solid: [12, 8] }).obj('cart', 18.6, 29.6, { solid: [26, 10] }).obj('laundry', 30.4, 16.6, {});
+      b.obj('barrel', 16.4, 22.6, { solid: [12, 8] }).obj('cart', 18.6, 29.6, { solid: [26, 10] }).obj('laundry', 29.4, 17, { solid: [56, 5] });
       // 광장 분수(치유의 분수) · 시장 천막 · 의자 · 화분 (Zelda-like 소품)
       b.obj('zl_stall', 14, 18.2, { solid: [76, 22] });
       [['zl_fruit_y', 12.5], ['zl_fruit_g', 13.5], ['zl_fruit_r', 14.5], ['zl_fruit_o', 15.5]].forEach(([k, x]) => b.obj(k, x, 18.4, {}));
@@ -103,8 +103,8 @@ export const MAPS = {
       { id: 'innkeeper', sprite: 'OldWoman', name: '여관 주인 포근', x: 37.4, y: 17.4, lines: [['먼 길 오느라 고생했지요?', '광장 분수의 물을 마시면 기운이 난답니다.']] },
       { id: 'child', sprite: 'Child', name: '꼬마 콩이', x: 26.5, y: 24.4, wander: 20, lines: [['밭에 심은 칸 수를 세어 봤어?', '8칸 중에 4칸이면 1/2, 2칸이면 1/4이래!']] },
       { id: 'guard', sprite: 'Knight', name: '경비병 단단', x: 17.6, y: 15.4, lines: [['언덕 위에는 촌장님 댁이 있소.', '마을 밖은 위험하니 회복약을 꼭 챙기시오.']] },
-      { id: 'pipi', sprite: 'Spirit', name: '안내 정령 피피', x: 18.4, y: 27.6, float: true,
-        lines: [['모험가님, 프락시아 마을에 온 걸 환영해요!', '머리 위에 「!」가 뜬 사람에게 말을 걸면 부탁(퀘스트)을 받을 수 있어요.'], ['마을 밖은 동쪽·남쪽·서쪽·북쪽으로 이어져 있어요.', '지도 오른쪽 위 작은 지도와 노란 화살표를 따라가 보세요!']] },
+      { id: 'pipi', sprite: 'Spirit', name: '안내 정령 피피', x: 18.6, y: 23, float: true,
+        lines: [['머리 위에 「!」가 뜬 사람에게 말을 걸면 부탁(퀘스트)을 받을 수 있어요.', '「?」는 끝낸 일을 알려 줄 사람이에요.'], ['마을 밖은 동쪽·남쪽·서쪽·북쪽으로 이어져 있어요.', '오른쪽 위 작은 지도와 노란 화살표를 따라가 보세요!'], ['광장 분수 물을 마시면 HP와 SP가 모두 차요.', '힘들 때는 마을로 돌아와 쉬어 가요.']] },
     ],
     spots: [
       { id: 'spring', kind: 'heal', name: '치유의 분수', x: 21, y: 20.4, r: 34, label: '분수 물 마시기', fountain: true, lines: [['맑은 분수 물을 마셨어요.', 'HP와 SP가 모두 회복됐어요!']] },

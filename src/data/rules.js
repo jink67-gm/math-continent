@@ -27,7 +27,8 @@ export function levelStats(lv) {
     maxSp: 40 + n * 5,
     atk: 12 + n * 3,
     def: 2 + n,
-    next: Math.round(25 * 1.22 ** n), // 6개 마을을 돌며 레벨 26~30에 닿도록
+    // 다음 레벨까지 경험치: 1번 지역을 마치면 Lv7쯤, 2번 Lv12, 3번 Lv17, 4번 Lv21, 5번 Lv25, 첨탑까지 마치면 Lv29~30
+    next: Math.round((230 * 1.135 ** n) / 5) * 5,
   };
 }
 

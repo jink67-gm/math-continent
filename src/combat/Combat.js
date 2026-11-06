@@ -7,6 +7,8 @@ import { skillsFor } from '../data/skills.js';
 import { diff, statsOf, refreshMax, rollDamage, MAX_LV } from '../data/rules.js';
 import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
+const DODGE_CD = 1000; // 구르기 다시 쓰기까지(ms)
+
 // 3단 콤보: 공격 시간, 맞는 순간, 범위, 배율, 밀어내는 힘
 const COMBO = [
   null,
@@ -189,10 +191,13 @@ export class Combat {
   // ── 구르기 ─────────────────────────────────
   dodge(vx, vy) {
     if (this.scene.locked) return;
+    const now = this.scene.time.now;
+    if (now < (this.dodgeAt || 0)) return; // 구르기는 잠깐 쉬었다가 다시 쓸 수 있어요
     const p = this.player;
     // 공격 중에도 구르기로 끊을 수 있어요 (제노니아처럼)
     if (p.state === 'atk') p.state = 'move';
     if (!p.dodge(vx, vy)) return;
+    this.dodgeAt = now + DODGE_CD;
     this.queued = false;
     this.scene.sound.play('sfx_dodge', { volume: 0.45 });
     this.scene.fx('fx_smoke', 'na/smoke', p.x, p.y - 4, { scale: 0.6, depth: p.y - 2 });
@@ -212,13 +217,18 @@ export class Combat {
     };
   }
 
+  dodgeState() {
+    const left = Math.max(0, (this.dodgeAt || 0) - this.scene.time.now);
+    return { cdLeft: left, cdRatio: left / DODGE_CD };
+  }
+
   castSkill(i) {
     if (this.scene.locked) return;
     const p = this.player;
     const st = this.skillState(i);
     if (!st.sk) return;
     if (st.locked) { this.hud?.toast(`레벨 ${st.sk.lv}이 되면 배울 수 있어요`); return; }
-    if (st.unlearned) { this.hud?.toast(`마을의 룬 할아버지께 「${st.sk.name}」을(를) 배워요`); return; }
+    if (st.unlearned) { this.hud?.toast(`마을의 룬 학자에게 「${st.sk.name}」을(를) 배워요`); return; }
     if (st.cdLeft > 0) { this.hud?.toast(`${(st.cdLeft / 1000).toFixed(1)}초 뒤에 쓸 수 있어요`); return; }
     if (st.noSp) { this.hud?.toast('SP가 부족해요'); return; }
     if (p.state === 'atk') p.state = 'move';
@@ -494,7 +504,7 @@ export class Combat {
     if (learned) {
       this.scene.time.delayedCall(1600, () => {
         this.scene.sound.play('sfx_unlock', { volume: 0.5 });
-        this.hud?.toast(`룬 할아버지께 새 스킬 「${learned.name}」을(를) 배울 수 있어요!`);
+        this.hud?.toast(`마을의 룬 학자에게 새 스킬 「${learned.name}」을(를) 배울 수 있어요!`);
       });
     }
     this.scene.saveGame();

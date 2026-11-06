@@ -52,7 +52,11 @@ export class QuestLog {
     const rc = MAP_REGIONS[vid];
     if (rc) {
       let st;
-      if (rc.save === 'r1') st = (s.r1 ??= {});
+      if (rc.save === 'r1') {
+        st = (s.r1 ??= {});
+        // 맨 앞에 「피피와 이야기하기」가 생기기 전 기록은 한 칸씩 밀어요
+        if (st.v !== 2) { if (st.main > 0) st.main++; st.v = 2; }
+      }
       else {
         s.rg ??= {};
         if (!s.rg[rc.save]) {
@@ -86,7 +90,13 @@ export class QuestLog {
 
   fill(lines) {
     const name = this.stats?.name || '모험가';
-    return lines.map((l) => l.replaceAll('{name}', name));
+    return lines.map((l) => l.replaceAll('{name}', name).replaceAll('{controls}', this.controlsLine()));
+  }
+
+  // 조작법 안내 (터치 기기와 키보드가 달라요)
+  controlsLine() {
+    if (this.game.device?.input?.touch) return '왼쪽 아래를 누른 채 끌면 걸어요. 오른쪽 큰 단추는 공격, 둘레의 작은 단추는 스킬, 왼쪽 아래 단추는 구르기예요. 사람 곁에서는 말풍선 단추로 대화해요.';
+    return 'WASD(또는 방향키)로 걷고, J로 공격, Space로 구르기, E로 대화해요. 스킬은 U·I·O·L, 회복약은 Q, 지도는 M, 가방은 B예요.';
   }
 
   // ── 곁 퀘스트 (여러 지도 지역) ────────────────────

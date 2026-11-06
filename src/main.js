@@ -28,8 +28,8 @@ const config = {
 
 // 글꼴을 다 받은 뒤에 시작해야 글자가 기본 글꼴로 그려지지 않아요
 Promise.all([
-  document.fonts.load('16px Galmuri11'),
-  document.fonts.load('bold 16px Galmuri11'),
+  document.fonts.load('16px NanumSquareRound'),
+  document.fonts.load('bold 16px NanumSquareRound'),
 ]).catch(() => {}).finally(() => {
   const game = new Phaser.Game(config);
   game.saves = new SaveManager(game.events);

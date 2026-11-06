@@ -4,6 +4,7 @@ import { textStyle, crisp, FONT } from '../ui/style.js';
 import { HEROES } from '../data/assets.js';
 import { DIFFICULTY, formatCode } from '../data/rules.js';
 import { T } from '../world/terrain.js';
+import { SKILL_KEYS } from '../data/skills.js';
 
 const W = 960;
 const H = 540;
@@ -44,10 +45,6 @@ export class HudScene extends Phaser.Scene {
     this.toastText = crisp(this.add.text(W / 2, 92, '', textStyle(16, '#ffffff')).setOrigin(0.5).setAlpha(0).setDepth(50));
     this.showBanner(this.worldInfo.name, this.worldInfo.subtitle);
 
-    if (!this.isTouch) {
-      crisp(this.add.text(W / 2, H - 10, 'WASD 이동 · J 공격 · 1~4 스킬 · Space 구르기 · E 대화 · Q 회복약 · M 지도 · B 가방',
-        textStyle(11, '#d8d0bd')).setOrigin(0.5, 1).setAlpha(0.8));
-    }
     this.input.keyboard.on('keydown-Q', () => this.usePotion());
     this.makeSaveIndicator();
     this.makeMenuButton();
@@ -69,9 +66,9 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-B', () => !this.dialogOpen && this.world.openBag());
     this.input.keyboard.on('keydown-M', () => !this.dialogOpen && this.world.openMap());
     // 지도 단추 (메뉴 옆)
-    const mc = this.add.container(356, 30);
-    const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-26, -16, 52, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-26, -16, 52, 32, 8);
-    mc.add([mg, crisp(this.add.text(0, 0, '지도', textStyle(12, '#ffe9a8')).setOrigin(0.5))]).setSize(52, 32).setInteractive({ useHandCursor: true });
+    const mc = this.add.container(386, 32);
+    const mg = this.add.graphics().fillStyle(0x16110b, 0.85).fillRoundedRect(-30, -16, 60, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-30, -16, 60, 32, 8);
+    mc.add([mg, crisp(this.add.text(0, 0, this.isTouch ? '지도' : '지도 M', textStyle(13, '#ffe9a8')).setOrigin(0.5))]).setSize(60, 32).setInteractive({ useHandCursor: true });
     mc.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.world.openMap(); });
     // 협동 인사말 (정해진 말만 보낼 수 있어요)
     this.greet = this.add.container(16, 252).setVisible(false);
@@ -101,11 +98,11 @@ export class HudScene extends Phaser.Scene {
 
   // ── 메뉴 (상태 막대 오른쪽): 저장 코드 보기, 소리 켜기/끄기 ──
   makeMenuButton() {
-    const c = this.add.container(300, 30);
+    const c = this.add.container(320, 32);
     const g = this.add.graphics();
-    g.fillStyle(0x16110b, 0.85).fillRoundedRect(-26, -16, 52, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-26, -16, 52, 32, 8);
-    const t = crisp(this.add.text(0, 0, '메뉴', textStyle(12, '#ffe9a8')).setOrigin(0.5));
-    c.add([g, t]).setSize(52, 32).setInteractive({ useHandCursor: true });
+    g.fillStyle(0x16110b, 0.85).fillRoundedRect(-30, -16, 60, 32, 8).lineStyle(2, GOLD, 1).strokeRoundedRect(-30, -16, 60, 32, 8);
+    const t = crisp(this.add.text(0, 0, '메뉴', textStyle(13, '#ffe9a8')).setOrigin(0.5));
+    c.add([g, t]).setSize(60, 32).setInteractive({ useHandCursor: true });
     c.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.dialogOpen) this.openMenu(); });
     this.input.keyboard.on('keydown-ESC', () => { if (this.menuItems) this.closeMenu(); else if (!this.dialogOpen) this.openMenu(); });
   }
@@ -278,38 +275,45 @@ export class HudScene extends Phaser.Scene {
   // ── 상태 (왼쪽 위) ─────────────────────────────
   makeStatus() {
     const s = this.stats;
-    panel(this, 10, 10, 262, 78);
-    // 얼굴
-    const face = this.add.circle(48, 49, 29, 0x2c4a3a).setStrokeStyle(3, GOLD);
-    const img = this.add.image(48, 49, `face/${HEROES[s.gender] || HEROES.male}`).setScale(1.3);
-    const maskG = this.make.graphics().fillCircle(48, 49, 27);
+    panel(this, 10, 10, 270, 84);
+    // 얼굴 + 레벨 배지
+    this.add.circle(50, 48, 30, 0x2c4a3a).setStrokeStyle(3, GOLD);
+    const img = this.add.image(50, 48, `face/${HEROES[s.gender] || HEROES.male}`).setScale(1.3);
+    const maskG = this.make.graphics().fillCircle(50, 48, 28);
     img.setMask(maskG.createGeometryMask());
-    face.setDepth(0);
-    this.add.circle(48, 82, 12, INK).setStrokeStyle(2, GOLD);
-    this.lvText = crisp(this.add.text(48, 82, '', textStyle(11, '#ffe9a8')).setOrigin(0.5));
-    this.nameText = crisp(this.add.text(86, 18, s.name, textStyle(13, '#fff3c4')));
+    this.add.graphics().fillStyle(INK, 1).fillRoundedRect(28, 72, 44, 18, 9).lineStyle(2, GOLD, 1).strokeRoundedRect(28, 72, 44, 18, 9);
+    this.lvText = crisp(this.add.text(50, 81, '', textStyle(12, '#ffe9a8')).setOrigin(0.5));
+    this.nameText = crisp(this.add.text(92, 15, s.name, textStyle(14, '#fff3c4')));
 
+    // 막대: 글자(HP·SP)는 막대 왼쪽, 숫자는 막대 안 가운데
     this.bars = this.add.graphics();
-    this.hpText = crisp(this.add.text(262, 40, '', textStyle(10, '#ffffff')).setOrigin(1, 0.5));
-    this.spText = crisp(this.add.text(262, 58, '', textStyle(10, '#ffffff')).setOrigin(1, 0.5));
-    crisp(this.add.text(86, 40, 'HP', textStyle(10, '#ff9b8a')).setOrigin(0, 0.5));
-    crisp(this.add.text(86, 58, 'SP', textStyle(10, '#9cc8ff')).setOrigin(0, 0.5));
+    this.barBox = { x: 118, w: 150 };
+    crisp(this.add.text(92, 45, 'HP', textStyle(11, '#ff9b8a')).setOrigin(0, 0.5));
+    crisp(this.add.text(92, 63, 'SP', textStyle(11, '#9cc8ff')).setOrigin(0, 0.5));
+    crisp(this.add.text(92, 79, 'EXP', textStyle(9, '#f0d68a')).setOrigin(0, 0.5));
+    const mid = this.barBox.x + this.barBox.w / 2;
+    this.hpText = crisp(this.add.text(mid, 45, '', textStyle(10, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
+    this.spText = crisp(this.add.text(mid, 63, '', textStyle(10, '#ffffff', { strokeThickness: 3 })).setOrigin(0.5));
   }
 
   drawBars() {
     const s = this.stats;
     const g = this.bars.clear();
-    const bar = (y, ratio, color, h = 10) => {
-      g.fillStyle(0x000000, 0.6).fillRect(106, y - h / 2, 124, h);
-      g.fillStyle(color, 1).fillRect(107, y - h / 2 + 1, 122 * Phaser.Math.Clamp(ratio, 0, 1), h - 2);
-      g.fillStyle(0xffffff, 0.25).fillRect(107, y - h / 2 + 1, 122 * Phaser.Math.Clamp(ratio, 0, 1), 2);
+    const { x, w } = this.barBox;
+    const bar = (y, ratio, color, h) => {
+      const r = Phaser.Math.Clamp(ratio, 0, 1);
+      g.fillStyle(0x000000, 0.65).fillRoundedRect(x, y - h / 2, w, h, 3);
+      if (r > 0) {
+        g.fillStyle(color, 1).fillRoundedRect(x + 1, y - h / 2 + 1, Math.max(4, (w - 2) * r), h - 2, 2);
+        g.fillStyle(0xffffff, 0.22).fillRect(x + 2, y - h / 2 + 2, Math.max(0, (w - 4) * r), 2);
+      }
     };
-    bar(40, s.hp / s.maxHp, 0xd8443a);
-    bar(58, s.sp / s.maxSp, 0x3d7fe0);
-    bar(74, s.exp / s.next, 0xf0c64a, 5);
-    this.hpText.setText(`${s.hp}/${s.maxHp}`).setPosition(266, 40);
-    this.spText.setText(`${s.sp}/${s.maxSp}`).setPosition(266, 58);
-    this.lvText.setText(`${s.lv}`);
+    bar(45, s.hp / s.maxHp, 0xd8443a, 14);
+    bar(63, s.sp / s.maxSp, 0x3d7fe0, 14);
+    bar(79, s.exp / s.next, 0xf0c64a, 6);
+    this.hpText.setText(`${s.hp} / ${s.maxHp}`);
+    this.spText.setText(`${s.sp} / ${s.maxSp}`);
+    this.lvText.setText(`Lv ${s.lv}`);
   }
 
   // ── 미니맵 (오른쪽 위) ─────────────────────────
@@ -388,18 +392,20 @@ export class HudScene extends Phaser.Scene {
     this.btnAttack.on('pointerout', release);
     this.input.on('pointerup', release);
 
-    this.btnDodge = mk(W - 225, H - 52, 'ui2/action_dodge', 58, ['na/smoke', 1], '구르기', () => v().combat.dodge(...v().moveInput()), 1.2);
+    this.btnDodge = mk(W - 225, H - 52, 'ui2/action_dodge', 58, ['na/smoke', 1], this.isTouch ? '구르기' : '구르기 Space', () => v().combat.dodge(...v().moveInput()), 1.2);
+    this.btnDodge.dial = this.add.graphics();
+    this.btnDodge.add(this.btnDodge.dial);
 
     // 스킬 4칸: 공격 버튼 둘레에 부채꼴로
     this.skillBtns = [];
-    const keys = ['1', '2', '3', '4'];
+    const keys = SKILL_KEYS;
     const angles = [180, 213, 246, 279];
     v().combat.skills.forEach((sk, i) => {
       const a = Phaser.Math.DegToRad(angles[i]);
       const x = ax + Math.cos(a) * 100;
       const y = ay + Math.sin(a) * 100;
       const b = mk(x, y, 'ui2/action_skill', 54, sk.icon, this.isTouch ? '' : keys[i], () => v().combat.castSkill(i), 1.1);
-      b.label.setY(-34).setText(this.isTouch ? '' : keys[i]);
+      b.label.setY(-40).setFontSize(13).setText(this.isTouch ? '' : keys[i]);
       b.dial = this.add.graphics();
       b.lockText = crisp(this.add.text(0, 0, '', textStyle(11, '#ffe9a8')).setOrigin(0.5));
       b.cdText = crisp(this.add.text(0, 0, '', textStyle(13, '#ffffff')).setOrigin(0.5));
@@ -408,7 +414,16 @@ export class HudScene extends Phaser.Scene {
       this.skillBtns.push(b);
     });
 
-    this.btnTalk = mk(W - 230, H - 250, 'ui2/action_interact', 62, ['face/Spirit'], this.isTouch ? '대화' : '대화 E', () => {
+    if (!this.textures.exists('icon_talk')) {
+      // 말풍선 아이콘 (점 세 개)
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(INK, 1).fillRoundedRect(0, 0, 34, 24, 9).fillTriangle(8, 20, 16, 20, 6, 30);
+      g.fillStyle(0xfff8e6, 1).fillRoundedRect(2, 2, 30, 20, 8).fillTriangle(9, 19, 15, 19, 8, 27);
+      g.fillStyle(INK, 1).fillCircle(10, 12, 2.5).fillCircle(17, 12, 2.5).fillCircle(24, 12, 2.5);
+      g.generateTexture('icon_talk', 34, 31);
+      g.destroy();
+    }
+    this.btnTalk = mk(W - 230, H - 250, 'ui2/action_interact', 62, ['icon_talk'], this.isTouch ? '대화' : '대화 E', () => {
       if (this.dialogOpen) this.advanceDialog(); else v().interact();
     }, 1);
     this.btnTalk.setVisible(false);
@@ -432,6 +447,10 @@ export class HudScene extends Phaser.Scene {
       }
       if (!st.locked && st.noSp) g.lineStyle(2, 0xff5a4a, 0.9).strokeCircle(0, -2, r);
     });
+    // 구르기 대기 시간
+    const d = c.dodgeState();
+    const dg = this.btnDodge.dial.clear();
+    if (d.cdRatio > 0) dg.fillStyle(0x000000, 0.55).slice(0, 0, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * d.cdRatio, false).fillPath();
   }
 
   // ── 빠른 칸 (아래 가운데) ──────────────────────
@@ -444,7 +463,7 @@ export class HudScene extends Phaser.Scene {
     const pot = this.add.image(x, H - 46, 'items/consumables/potion_red').setScale(0.22).setInteractive({ useHandCursor: true });
     pot.on('pointerdown', (p, lx, ly, ev) => { ev?.stopPropagation(); this.usePotion(); });
     this.potText = crisp(this.add.text(x + 18, H - 26, '', textStyle(11, '#ffffff')).setOrigin(1, 1));
-    crisp(this.add.text(x - 18, H - 64, 'Q', textStyle(10, '#ffe9a8')));
+    if (!this.isTouch) crisp(this.add.text(x - 19, H - 66, 'Q', textStyle(11, '#ffe9a8')));
   }
 
   usePotion() {

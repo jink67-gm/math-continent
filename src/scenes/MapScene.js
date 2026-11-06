@@ -329,10 +329,13 @@ export class MapScene extends WorldScene {
   springSparkles() {
     const s = this.spots.find((p) => p.kind === 'heal');
     if (s.fountain) {
-      // 광장 분수 (Zelda-like, 물이 퐁퐁 솟아요). 아래쪽 둥근 돌만 막아요.
+      // 광장 분수 (Zelda-like, 물이 퐁퐁 솟아요). 둥근 돌 테두리 전체를 막아서 분수 안으로 걸어 들어가지 않아요.
       const fy = s.y - 12;
       this.add.sprite(s.x, fy, 'zl/fountain', 0).setOrigin(0.5, 1).setDepth(fy).play('fx_fountain');
-      this.addSolid(s.x - 22, fy - 28, 44, 26);
+      // 뒤쪽(위)은 그림 꼭대기까지 막아서, 뒤에 서도 몸이 물줄기에 겹쳐 가려지지 않아요
+      this.addSolid(s.x - 23, fy - 38, 46, 30);
+      this.addSolid(s.x - 16, fy - 46, 32, 44);
+      this.addSolid(s.x - 8, fy - 47, 16, 4);
     }
     for (let i = 0; i < 5; i++) {
       const sp = this.add.sprite(s.x + (Math.random() - 0.5) * 30, s.y - 30 - Math.random() * 10, 'na/spark', 0).setBlendMode('ADD').setAlpha(0.85).setDepth(s.y + 40);

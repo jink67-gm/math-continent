@@ -10,6 +10,18 @@
 
 export const R1_MAIN = [
   {
+    id: 'pipi', title: '안내 정령 피피와 이야기하기', type: 'talk', target: 'pipi',
+    desc: '광장 분수 옆에 떠 있는 안내 정령 피피에게 말을 걸어요.',
+    at: { map: 'village', x: 18.6, y: 22.2 },
+    lines: [
+      '{name}님, 드디어 왔군요! 저는 수학 대륙의 안내 정령 피피예요.',
+      '이 대륙의 여섯 마을은 저마다 「수학의 결정」을 지키며 살아왔어요. 그런데 요즘 심술궂은 몬스터들이 결정을 하나둘 빼앗아 가고 있어요…',
+      '{controls}',
+      '먼저 마을 위쪽 언덕, 큰 집 앞의 풍차 촌장 모모님께 인사드려요. 노란 화살표가 길을 알려 줄 거예요!',
+    ],
+    reward: { exp: 10, potions: 1 },
+  },
+  {
     id: 'meet', title: '풍차 촌장 모모 만나기', type: 'talk', target: 'chief',
     desc: '마을 위쪽 언덕, 큰 집 앞의 촌장님께 인사드려요.',
     at: { map: 'village', x: 17.6, y: 12.8 },
@@ -64,28 +76,28 @@ export const R1_MAIN = [
 
 export const R1_SIDE = {
   slime: {
-    giver: 'pipi', title: '말랑 슬라임 혼내 주기', type: 'kill', kind: 'Slime', map: 'east_field', need: 5, after: 1,
+    giver: 'pipi', title: '말랑 슬라임 혼내 주기', type: 'kill', kind: 'Slime', map: 'east_field', need: 5, after: 2,
     desc: '바람개비 들판의 슬라임 5마리를 물리쳐요.',
     start: ['바람개비 들판의 슬라임들이 심술이 났어요.', '5마리만 혼내 주실래요? 동쪽 길로 나가면 돼요!'],
     ready: ['우와, 들판이 한결 맑아졌어요!', '고마워요! 이건 제 선물이에요.'],
     reward: { exp: 30, potions: 2 },
   },
   spore: {
-    giver: 'smith', title: '반짝이는 버섯 포자', type: 'collect', kind: 'Mushroom', map: 'stream', need: 5, chance: 0.6, item: '버섯 포자', after: 1,
+    giver: 'smith', title: '반짝이는 버섯 포자', type: 'collect', kind: 'Mushroom', map: 'stream', need: 5, chance: 0.6, item: '버섯 포자', after: 2,
     desc: '졸졸 시냇가의 버섯에게서 버섯 포자 5개를 모아요.',
     start: ['쾅! 좋은 검을 만들려면 반짝이는 버섯 포자가 필요하지.', '남쪽 시냇가의 졸린 버섯들이 가지고 있다네. 5개만 부탁하네!'],
     ready: ['오오, 반짝반짝하구먼!', '약속한 대로 튼튼한 대검을 만들어 주지. 가방(B)에서 끼워 보게!'],
     reward: { exp: 45, weapon: 'iron_sword' },
   },
   spirit: {
-    giver: 'innkeeper', title: '길 잃은 정령 달래기', type: 'kill', kind: 'Spirit', map: 'forest', need: 4, after: 1,
+    giver: 'innkeeper', title: '길 잃은 정령 달래기', type: 'kill', kind: 'Spirit', map: 'forest', need: 4, after: 2,
     desc: '나무꾼 숲의 길 잃은 정령 4마리를 물리쳐요.',
     start: ['요즘 서쪽 숲에서 길 잃은 정령들이 구슬을 던진대요.', '4마리만 물리쳐 주면 손님들이 안심하겠어요.'],
     ready: ['숲이 조용해졌다니 다행이에요.', '든든하게 회복약을 챙겨 드릴게요.'],
     reward: { exp: 60, potions: 3 },
   },
   ball: {
-    giver: 'child', title: '잃어버린 공', type: 'find', target: 'ball', map: 'hill', need: 1, item: '빨간 공', after: 1,
+    giver: 'child', title: '잃어버린 공', type: 'find', target: 'ball', map: 'hill', need: 1, item: '빨간 공', after: 2,
     desc: '바람의 언덕 오른쪽 아래 풀숲에서 콩이의 공을 찾아요.',
     start: ['내 빨간 공이 바람에 날아가서 언덕까지 굴러갔어…', '바람의 언덕 오른쪽 아래 풀숲에 있을 거야. 찾아 줄래?'],
     ready: ['내 공이다! 고마워!', '이건 내가 모은 용돈이야. 헤헤.'],

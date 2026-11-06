@@ -1,8 +1,11 @@
 // 필드 몬스터: 돌아다니다 → 주인공을 보면 다가옴 → 빨간 경고 원 → 덮치기 → 잠깐 쉼
-// 맞으면 뒤로 밀리고 잠깐 멈춰요. HP가 0이 되면 연기와 함께 「정화」되어 사라졌다가 다시 나타나요.
+// 지역 단계가 높을수록 단단하고 아프고 빨라져요. 패턴도 늘어요:
+//   두 번 덮치기(2단계~) · 여러 갈래 구슬(3단계~) · 둘레 내려찍기(4단계~)
+// 가끔 금빛 「정예 몬스터」가 나와요: 크고 단단하지만 강화석을 꼭 떨어뜨려요.
+// 맞으면 뒤로 밀리고 잠깐 멈춰요. HP가 0이 되면 연기와 함께 사라졌다가 다시 나타나요.
 
 import { MONSTERS } from '../data/monsters.js';
-import { textStyle, crisp } from '../ui/style.js';
+import { monsterScale, tierOf } from '../data/rules.js';
 
 const LEASH = 190;      // 집에서 이만큼 멀어지면 돌아가요
 const RESPAWN_MS = 16000;
@@ -17,8 +20,12 @@ export class Monster {
     this.combat = combat;
     this.kind = kind;
     const b = MONSTERS[kind];
-    this.def = power === 1 ? b : {
-      ...b, hp: Math.round(b.hp * power ** 1.3), atk: Math.round(b.atk * (1 + (power - 1) * 0.7)), def: Math.round(b.def + (power - 1) * 3),
+    this.tier = tierOf(power);
+    const sc = monsterScale(power, this.tier);
+    this.sc = sc;
+    this.def = {
+      ...b, hp: Math.round(b.hp * sc.hp), atk: Math.round(b.atk * sc.atk), def: Math.round(b.def + sc.def),
+      speed: b.speed * sc.speed, sight: b.sight * sc.sight, lunge: Math.round((b.lunge || 0) * (1 + 0.05 * (this.tier - 1))),
       exp: Math.round(b.exp * power ** 1.5), gold: b.gold.map((g) => Math.round(g * power)),
     };
     this.home = { x, y };
@@ -39,12 +46,16 @@ export class Monster {
   get y() { return this.feet.y; }
   get alive() { return this.state !== 'gone'; }
   get hittable() { return this.alive && this.state !== 'appear'; }
+  get atk() { return Math.round(this.def.atk * (this.elite ? 1.35 : 1)); }
+  get baseScale() { return this.elite ? 1.3 : 1; }
 
   spawn() {
     const d = this.combat.diff;
-    this.maxHp = Math.round(this.def.hp * d.monHp * this.combat.partyHp);
+    this.elite = !this.remote && !this.noElite && Math.random() < this.sc.elite;
+    this.maxHp = Math.round(this.def.hp * d.monHp * this.combat.partyHp * (this.elite ? 2.4 : 1));
     this.hp = this.maxHp;
     this.state = 'appear';
+    this.air = 0;
     this.until = this.scene.time.now + 500;
     this.nextAttack = 0;
     this.slowUntil = 0;
@@ -55,7 +66,7 @@ export class Monster {
     this.feet.body.setVelocity(0, 0);
     this.sprite.setVisible(true).setAlpha(0).setScale(0.4).clearTint().setAngle(0);
     this.shadow.setVisible(true);
-    this.scene.tweens.add({ targets: this.sprite, alpha: 1, scaleX: 1, scaleY: 1, duration: 400, ease: 'Back.out' });
+    this.scene.tweens.add({ targets: this.sprite, alpha: 1, scaleX: this.baseScale, scaleY: this.baseScale, duration: 400, ease: 'Back.out' });
     this.play();
   }
 
@@ -92,6 +103,7 @@ export class Monster {
     if (this.remote) return true; // 친구 기기: HP는 방장이 깎아요
     this.hp -= dmg;
     if (this.hp <= 0) { this.purify(); return true; }
+    if (this.air) return true; // 공중에 떠 있는 동안은 그대로 떠 있어요
     // 뒤로 밀리고 잠깐 멈춤 (공격 준비도 끊겨요)
     const dx = this.x - fromX;
     const dy = this.y - fromY;
@@ -105,11 +117,23 @@ export class Monster {
     return true;
   }
 
+  // 띄워 베기에 맞으면 잠깐 공중에 떠서 아무것도 못 해요
+  launch(ms) {
+    if (this.remote || !this.alive) return;
+    this.state = 'stun';
+    this.until = this.scene.time.now + ms;
+    this.feet.body.setVelocity(0, 0);
+    this.warnG.clear();
+    this.scene.tweens.killTweensOf(this);
+    this.air = 0;
+    this.scene.tweens.add({ targets: this, air: 18, duration: ms * 0.35, ease: 'Quad.out', yoyo: true, hold: ms * 0.3, onComplete: () => { this.air = 0; } });
+  }
+
   slow(ms) {
     this.slowUntil = this.scene.time.now + ms;
   }
 
-  // 쓰러지면 죽는 게 아니라 정화돼요: 하얗게 빛나며 작아지고, 연기와 반짝이
+  // 쓰러지면 하얗게 빛나며 작아지고, 연기와 반짝이
   purify() {
     this.purifyFx();
     this.combat.onPurified(this);
@@ -133,8 +157,6 @@ export class Monster {
       sp.play({ key: 'fx_spark', startFrame: i });
       s.tweens.add({ targets: sp, y: sp.y - 18 - Math.random() * 10, alpha: 0, duration: 700 + i * 120, onComplete: () => sp.destroy() });
     }
-    const t = crisp(s.add.text(x, y - 18, '정화!', textStyle(12, '#bff7ff')).setOrigin(0.5).setScale(1 / 3).setDepth(100001));
-    s.tweens.add({ targets: t, y: t.y - 10, alpha: 0, delay: 300, duration: 600, onComplete: () => t.destroy() });
   }
 
   // ── 매 장면 ─────────────────────────────────
@@ -158,6 +180,7 @@ export class Monster {
         if (time > this.until) this.state = 'idle';
         break;
       case 'stun':
+        if (this.air) { this.feet.body.setVelocity(0, 0); break; }
         this.feet.body.velocity.scale(0.86);
         if (time > this.until) { this.feet.body.setVelocity(0, 0); this.state = playerOk && pd < d.sight * 1.4 ? 'chase' : 'idle'; }
         break;
@@ -199,7 +222,14 @@ export class Monster {
       }
       case 'lunge':
         this.combat.lungeHits(this, 11);
-        if (time > this.until) { this.feet.body.setVelocity(0, 0); this.state = 'rest'; this.until = time + 650; }
+        if (time > this.until) {
+          this.feet.body.setVelocity(0, 0);
+          // 단계가 높으면 곧바로 한 번 더 덮쳐요 (짧은 경고)
+          if (!this.followed && playerOk && Math.random() < this.sc.double * (this.elite ? 1.5 : 1)) { this.followed = true; this.startWarn(player, true); break; }
+          this.followed = false;
+          this.state = 'rest';
+          this.until = time + 650 * this.sc.cool;
+        }
         break;
       case 'rest':
         this.feet.body.velocity.scale(0.8);
@@ -210,14 +240,17 @@ export class Monster {
   }
 
   // 공격 준비: 빨간 원으로 어디를 공격할지 미리 보여 줘요 (구르기로 피할 수 있게)
-  startWarn(player) {
+  startWarn(player, quick = false) {
     this.state = 'warn';
     this.warnP = 0;
-    this.warnMs = this.combat.diff.warnMs;
+    this.attackType = this.def.ranged ? 'shot' : !quick && Math.random() < this.sc.slam ? 'slam' : 'lunge';
+    this.warnMs = this.combat.diff.warnMs * this.sc.warn * (quick ? 0.6 : 1) * (this.attackType === 'slam' ? 1.25 : 1);
     this.until = this.scene.time.now + this.warnMs;
     this.faceTo(player.x, player.y);
     if (this.def.ranged) {
       this.target = { x: player.x, y: player.y };
+    } else if (this.attackType === 'slam') {
+      this.target = { x: this.x, y: this.y };
     } else {
       const dx = player.x - this.x;
       const dy = player.y - this.y;
@@ -230,24 +263,40 @@ export class Monster {
 
   drawWarn(p) {
     const g = this.warnG.clear().setDepth(-500);
-    const r = this.def.ranged ? 10 : 12;
+    const r = this.attackType === 'slam' ? 26 : this.def.ranged ? 10 : 12;
     const { x, y } = this.target;
     g.fillStyle(0xff3b30, 0.12 + 0.18 * p).fillEllipse(x, y, r * 2, r * 1.3);
     g.fillStyle(0xff3b30, 0.45).fillEllipse(x, y, r * 2 * p, r * 1.3 * p);
     g.lineStyle(1, 0xff6b5e, 0.9).strokeEllipse(x, y, r * 2, r * 1.3);
-    if (!this.def.ranged) g.lineStyle(2, 0xff3b30, 0.35).lineBetween(this.x, this.y, x, y);
+    if (this.attackType === 'lunge') g.lineStyle(2, 0xff3b30, 0.35).lineBetween(this.x, this.y, x, y);
     // 몬스터도 몸을 움츠려요
-    this.sprite.setScale(1 + 0.12 * p, 1 - 0.12 * p);
+    const b = this.baseScale;
+    this.sprite.setScale(b * (1 + 0.12 * p), b * (1 - 0.12 * p));
   }
 
   release(player) {
     this.warnG.clear();
-    this.sprite.setScale(1);
-    this.nextAttack = this.scene.time.now + 1300 + Math.random() * 600;
+    this.sprite.setScale(this.baseScale);
+    this.nextAttack = this.scene.time.now + (1300 + Math.random() * 600) * this.sc.cool * (this.elite ? 0.85 : 1);
     if (this.def.ranged) {
-      this.combat.shootOrb(this, this.target);
+      this.combat.shootOrb(this, this.target, this.sc.spread);
       this.state = 'rest';
       this.until = this.scene.time.now + 500;
+      return;
+    }
+    if (this.attackType === 'slam') {
+      // 둘레 내려찍기: 몸을 날려 쿵! 경고 원 안이 모두 아파요
+      const s = this.scene;
+      s.tweens.add({ targets: this.sprite, y: this.sprite.y - 10, duration: 120, yoyo: true, ease: 'Quad.out' });
+      s.time.delayedCall(200, () => {
+        if (!this.alive) return;
+        s.fx('fx_ring', 'na/ring', this.x, this.y - 2, { scale: 1.8, depth: this.y - 3, add: true }).setTint(0xff9a6a);
+        s.cameras.main.shake(80, 0.003);
+        s.sound.play('sfx_impact', { volume: 0.3 });
+        this.combat.areaHits(this, this.x, this.y, 26, 1.2);
+      });
+      this.state = 'rest';
+      this.until = s.time.now + 750;
       return;
     }
     // 경고 원 끝까지 덮쳐요
@@ -274,7 +323,7 @@ export class Monster {
     this.net = null;
     if (this.state !== 'gone') this.feet.body.enable = !on;
     this.feet.body.setVelocity(0, 0);
-    if (on) { this.respawnTimer?.remove(); this.warnG.clear(); this.sprite.setScale(1); }
+    if (on) { this.respawnTimer?.remove(); this.warnG.clear(); this.sprite.setScale(this.baseScale); }
     else if (this.state === 'gone') this.respawnTimer = this.scene.time.delayedCall(RESPAWN_MS / 2, () => this.spawn());
     else if (!['idle', 'chase', 'home'].includes(this.state)) this.state = 'idle';
   }
@@ -289,7 +338,7 @@ export class Monster {
     this.dir = DIRS[a[5]] || 'down';
     if (st === 'gone' && this.state !== 'gone') {
       this.purifyFx();
-      if (!first) this.combat.onPurified(this); // 함께 있을 때 정화한 것만 보상
+      if (!first) this.combat.onPurified(this); // 함께 있을 때 물리친 것만 보상
     }
     else if (st !== 'gone' && this.state === 'gone') { this.spawn(); this.feet.setPosition(a[0], a[1]); }
     this.state = st;
@@ -302,7 +351,7 @@ export class Monster {
     const far = Math.hypot(nx - this.x, ny - this.y) > 60;
     this.feet.setPosition(far ? nx : this.x + (nx - this.x) * 0.35, far ? ny : this.y + (ny - this.y) * 0.35);
     if (this.state === 'warn') this.drawWarn(this.net[8] / 100);
-    else { this.warnG.clear(); this.sprite.setScale(1); }
+    else { this.warnG.clear(); this.sprite.setScale(this.baseScale); }
     this.sync(time);
   }
 
@@ -311,13 +360,15 @@ export class Monster {
     const hop = this.def.move === 'hop' && this.state === 'chase' ? -Math.abs(Math.sin(time / 130 + this.phase)) * 3 : 0;
     const sx = Math.round(this.feet.x);
     const sy = Math.round(this.feet.y + 3);
-    this.sprite.setPosition(sx, sy + fly + hop).setDepth(sy);
-    this.shadow.setPosition(sx, sy - 1).setDepth(sy - 1).setScale(this.def.fly ? 0.75 : 1);
+    const air = this.air || 0;
+    this.sprite.setPosition(sx, sy + fly + hop - air).setDepth(sy);
+    this.shadow.setPosition(sx, sy - 1).setDepth(sy - 1).setScale((this.def.fly ? 0.75 : 1) * (1 - air / 40));
     if (time < this.slowUntil) this.sprite.setTint(0x9fd8ff);
+    else if (this.elite && this.state !== 'stun') this.sprite.setTint(0xffd06a);
     else if (this.state !== 'stun') this.sprite.clearTint();
     if (this.state !== 'warn') this.play();
     // HP 막대 (맞은 뒤 3초 동안)
-    const show = time < (this.hpShownUntil || 0);
+    const show = time < (this.hpShownUntil || 0) || (this.elite && this.state !== 'appear');
     this.hpBar.setVisible(show);
     if (show) {
       const w = 14;
@@ -325,7 +376,7 @@ export class Monster {
       const by = sy - 20 + fly;
       this.hpBar.clear().setDepth(100000)
         .fillStyle(0x000000, 0.7).fillRect(bx - 0.5, by - 0.5, w + 1, 3)
-        .fillStyle(0xff6a4a, 1).fillRect(bx, by, w * Math.max(0, this.hp / this.maxHp), 2);
+        .fillStyle(this.elite ? 0xffc23a : 0xff6a4a, 1).fillRect(bx, by, w * Math.max(0, this.hp / this.maxHp), 2);
     }
   }
 }

@@ -123,9 +123,9 @@ function render() {
     cell(tr, `${Math.round((s.playTime || 0) / 60)}분`, 'num');
     cell(tr, s.updatedAt?.toDate ? ago(s.updatedAt.toDate()) : '-');
     const code = cell(tr, '');
-    const c = document.createElement('code');
-    c.textContent = showCodes ? `${s.id.slice(0, 4)}-${s.id.slice(4)}` : `${s.id.slice(0, 2)}··-····`;
-    code.appendChild(c);
+    const codeEl = document.createElement('code');
+    codeEl.textContent = showCodes ? `${s.id.slice(0, 4)}-${s.id.slice(4)}` : `${s.id.slice(0, 2)}··-····`;
+    code.appendChild(codeEl);
     body.appendChild(tr);
   }
   $('count').textContent = `${students.length}명`;

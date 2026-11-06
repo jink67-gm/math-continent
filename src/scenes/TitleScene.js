@@ -47,6 +47,7 @@ export class TitleScene extends Phaser.Scene {
     if (!save) cont.setAlpha(0.5);
     this.button(W / 2, 420, '저장 코드로 불러오기', 'ui2/button_brown', () => this.openCodeLoad(), this.menu, 260, 40, 15);
 
+    this.button(W / 2, 474, '처음 이야기 보기', 'ui2/button_brown', () => this.scene.start('Intro', { next: { scene: 'Title' }, stats: save }), this.menu, 200, 34, 13);
     crisp(this.add.text(W / 2, H - 14, '6학년 2학기 수학 RPG · 화면을 누르면 소리가 나요', textStyle(11, '#c9d6c2')).setOrigin(0.5, 1));
 
     this.sound.stopAll();
@@ -193,6 +194,15 @@ export class TitleScene extends Phaser.Scene {
     this.game.saves.save(stats, { now: true });
     this.sound.play('sfx_confirm', { volume: 0.5 });
     this.cameras.main.fadeOut(400, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(['Field', 'RockForest', 'Cave', 'Town', 'Wild', 'Dungeon'].includes(stats.scene) ? stats.scene : 'Village', { region: stats.region }));
+    // 예전 1번 마을 장면(Village·Field·RockForest·Cave)으로 저장된 기록은 새 프락시아 마을에서 시작해요
+    let scene = ['Town', 'Wild', 'Dungeon', 'Map'].includes(stats.scene) ? stats.scene : 'Map';
+    let map = stats.scene === 'Map' ? stats.map : 'village';
+    // 큐베른·데시마르는 여러 지도 구조로 바뀌었어요: 예전 마을·들판·던전에 있었다면 그 지역 마을 지도로
+    const moved = { cubeCity: 'cb_town', decimalHarbor: 'dh_town', ratioKingdom: 'rk_town', circleForest: 'ck_town', solidPeaks: 'sp_town' }[stats.region];
+    if (scene !== 'Map' && moved) { scene = 'Map'; map = moved; }
+    // 새 모험가는 이야기 인트로를 먼저 봐요
+    const next = { scene, data: { region: stats.region, map } };
+    const fresh = !stats.introSeen && !stats.playTime && !(stats.r1?.main > 0) && stats.lv === 1;
+    this.cameras.main.once('camerafadeoutcomplete', () => (fresh ? this.scene.start('Intro', { next, stats }) : this.scene.start(next.scene, next.data)));
   }
 }

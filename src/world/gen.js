@@ -51,7 +51,8 @@ export function makeTown(id) {
       sleepLines: ['길이 보라색 봉인으로 막혀 있어요.', '대장님께 먼저 이야기를 들어 봐요.'], litLines: ['룬이 환하게 빛나요. 길이 열려 있어요.'] },
   ];
   const i = REGION_ORDER.indexOf(id);
-  const prev = i === 0 ? { scene: 'Village', entry: 'east', to: '나눔의 계곡 프락시아' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
+  // 2~5번은 여러 지도 구조(data/r2maps.js ~ r5maps.js)라서, 볼테라의 서쪽 길은 키르쿠스 보름달 호수로 이어져요
+  const prev = i <= 4 ? { scene: 'Map', map: 'ck_lake', entry: 'east', to: '보름달 호수' } : { scene: 'Town', region: REGION_ORDER[i - 1], entry: 'east', to: REGIONS[REGION_ORDER[i - 1]].name };
   const next = i < REGION_ORDER.length - 1
     ? { scene: 'Town', region: REGION_ORDER[i + 1], entry: 'west', to: REGIONS[REGION_ORDER[i + 1]].name }
     : { scene: 'Dungeon', region: 'chaosSpire', entry: 'south', to: SPIRE.name };
@@ -209,8 +210,9 @@ export function makeDungeon(id) {
     { id: `${r.id || id}_d1`, x: C(fx(36)), y: C(45.5), gold: Math.round(70 * r.power), potions: 2 },
     { id: `${r.id || id}_d2`, x: C(fx(3.5)), y: C(34), gold: Math.round(90 * r.power), potions: 2 },
   ];
+  // 첨탑에서 나가면 볼테라 산골 마을 동쪽 길로 (볼테라는 여러 지도 구조, data/r6maps.js)
   const back = id === 'chaosSpire'
-    ? { scene: 'Town', region: 'solidPeaks', entry: 'east', to: REGIONS.solidPeaks.name }
+    ? { scene: 'Map', map: 'sp_town', entry: 'east', to: '산골 마을 볼테라' }
     : { scene: 'Wild', region: id, entry: 'north', to: r.wildName };
   return {
     grid: g, walls, spawns, spots, chests, power: p,

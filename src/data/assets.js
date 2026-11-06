@@ -1,5 +1,6 @@
 // 게임에서 쓰는 그림·소리 목록
 // 그림: Ninja Adventure (pixel-boy & AAA, CC0) — assets/na
+//       흙절벽: Zelda-like tilesets and sprites (ArMM1998, CC0) — assets/zl (tools/build_zl_cliffs.py로 색을 맞춤)
 // 효과음: 기존 게임 자료 — assets/audio/sfx
 
 export const ASSET_ROOT = 'assets/';
@@ -9,7 +10,23 @@ export const SHEETS = {
   'na/floor': 'na/tiles/TilesetFloor.png',
   'na/water': 'na/tiles/TilesetWater.png',
   'na/field': 'na/tiles/TilesetField.png',
+  'na/relief': 'na/tiles/TilesetRelief.png',        // 절벽 면 (20칸 너비)
+  'na/reliefd': 'na/tiles/TilesetReliefDetail.png', // 계단·판자·동굴 입구 (12칸 너비)
+  'na/ifloor': 'na/tiles/TilesetInteriorFloor.png',   // 던전 바닥 무늬 (대리석·돌·벽돌, 가로 22칸)
+  'na/iwall': 'na/tiles/TilesetWallSimple.png',       // 던전 벽 틀 (가로 10칸)
+  'na/lava': 'na/tiles/TilesetLava.png',              // 용암 (물 그림 색을 바꿈, tools/build_lava.py)
+  'zl/cliff_meadow': 'zl/cliff_meadow.png',          // 흙절벽 (가로 4칸) — 들판 풀색
+  'zl/cliff_forest': 'zl/cliff_forest.png',          // 흙절벽 — 숲 풀색
+  'zl/cliff_pink': 'zl/cliff_pink.png',              // 흙절벽 — 분홍 꽃잎 땅
+  'zl/cliff_sand': 'zl/cliff_sand.png',              // 흙절벽 — 모래
+  'zl/cliff_snow': 'zl/cliff_snow.png',              // 흙절벽 — 눈
+  'zl/props': 'zl/props.png',                        // 바위·자갈·큰 바위·나무 계단 (가로 4칸)
+  'zl/town': 'zl/town.png',                          // 시장 천막·의자·상자·화분 (가로 8칸)
+  'zl/fountain': ['zl/fountain.png', 48],            // 광장 분수 3장면
   'na/slash': ['na/fx/slash.png', 32],
+  'na/slashc': ['na/fx/slash_curved.png', 32],          // 초승달 베기 (1·2타)
+  'na/slashdc': ['na/fx/slash_double_curved.png', 32],  // 겹 초승달 베기 (3타)
+  'na/slashcirc': ['na/fx/slash_circular.png', 32],     // 둥근 베기 (회전 베기)
   'na/smoke': ['na/fx/smoke.png', 32],
   'na/sparkc': ['na/fx/spark_circle.png', 32],
   'na/spark': ['na/fx/particle_spark.png', 10, 8],
@@ -32,18 +49,47 @@ export const BOSS_SHEETS = {
   'boss/spirit_hit': ['na/boss/spirit/hit.png', 50],
 };
 
+// 큰 보스 그림 (Ninja Adventure Actor/Boss, CC0): 움직임마다 [그림, 칸 가로, 칸 세로]
+// 움직임: idle(서 있기) · attack(할퀴기) · charge(돌진) · jump(뛰어 찍기) · hit(맞음). 없는 건 idle로 대신해요.
+// 지역이 뒤로 갈수록 더 크고 강해 보이는 보스를 써요 (data/regions.js 의 boss.art).
+export const GIANTS = {
+  frog: { idle: ['na/boss/frog/idle.png', 40], attack: ['na/boss/frog/attack.png', 40], charge: ['na/boss/frog/charge.png', 40], jump: ['na/boss/frog/jump.png', 40], hit: ['na/boss/frog/hit.png', 40] },
+  frog2: { idle: ['na/boss/frog2/idle.png', 40], attack: ['na/boss/frog2/attack.png', 40], charge: ['na/boss/frog2/charge.png', 40], jump: ['na/boss/frog2/jump.png', 40], hit: ['na/boss/frog2/hit.png', 40] },
+  samuraiBlue: { idle: ['na/boss/samurai_blue/idle.png', 96, 48], attack: ['na/boss/samurai_blue/attack.png', 96], charge: ['na/boss/samurai_blue/charge.png', 96], jump: ['na/boss/samurai_blue/walk.png', 96, 48], hit: ['na/boss/samurai_blue/hit.png', 96, 48] },
+  samuraiRed: { idle: ['na/boss/samurai_red/idle.png', 96, 48], attack: ['na/boss/samurai_red/attack.png', 96], charge: ['na/boss/samurai_red/charge.png', 96], jump: ['na/boss/samurai_red/walk.png', 96, 48], hit: ['na/boss/samurai_red/hit.png', 96, 48] },
+  tenguBlue: { idle: ['na/boss/tengu_blue/idle.png', 68], attack: ['na/boss/tengu_blue/attack.png', 82], charge: ['na/boss/tengu_blue/walk.png', 82], jump: ['na/boss/tengu_blue/trans.png', 68], hit: ['na/boss/tengu_blue/hit.png', 68] },
+  tenguRed: { idle: ['na/boss/tengu_red/idle.png', 82], attack: ['na/boss/tengu_red/attack.png', 82], charge: ['na/boss/tengu_red/walk.png', 82], jump: ['na/boss/tengu_red/trans.png', 82], hit: ['na/boss/tengu_red/hit.png', 82] },
+};
+const GIANT_RATE = { idle: 7, attack: 16, charge: 12, jump: 12, hit: 12 };
+export const GIANT_LOOP = { idle: true, charge: true };
+export { GIANT_RATE };
+
 export { MONSTER_KEYS as MONSTER_SHEETS } from './monsters.js';
 
 // 통째로 쓰는 그림 (아래 OBJECTS에서 부분을 잘라 써요)
 export const IMAGES = {
+  'fx/raylight': 'na/fx/raylight.png',
+  'fx/fog': 'na/fx/fog.png',
   'na/house': 'na/tiles/TilesetHouse.png',
   'na/nature': 'na/tiles/TilesetNature.png',
   'na/element': 'na/tiles/TilesetElement.png',
+  'na/laundry': 'na/tiles/laundry.png', // 기둥 두 개 + 옷 두 벌 (tools/build_laundry.py)
   'na/sword': 'na/fx/sword.png',
   'na/coin': 'na/fx/coin.png',
+  'hand/Hwando': 'na/items/Hwando_hand.png',
   'hand/BigSword': 'na/items/BigSword_hand.png',
   'hand/Katana': 'na/items/Katana_hand.png',
   'hand/MagicWand': 'na/items/MagicWand_hand.png',
+  'hand/Club': 'na/items/Club_hand.png',
+  'hand/Book': 'na/items/Book_hand.png',
+  'hand/Rapier': 'na/items/Rapier_hand.png',
+  'hand/Sai': 'na/items/Sai_hand.png',
+  'hand/Lance': 'na/items/Lance_hand.png',
+  'hand/Lance2': 'na/items/Lance2_hand.png',
+  'hand/Ninjaku': 'na/items/Ninjaku_hand.png',
+  'hand/Hammer': 'na/items/Hammer_hand.png',
+  'hand/Axe': 'na/items/Axe_hand.png',
+  'hand/Sword': 'na/items/Sword_hand.png',
   'na/facebox': 'na/ui/FacesetBox.png',
   'ui2/action_attack': 'ui2/action_attack.webp',
   'ui2/action_dodge': 'ui2/action_dodge.webp',
@@ -55,15 +101,25 @@ export const IMAGES = {
   'ui2/button_green': 'ui2/button_green.webp',
   'items/consumables/potion_red': 'items/consumables/potion_red.webp',
   'items/consumables/scroll': 'items/consumables/scroll.webp',
+  'items/materials/ore_stone': 'items/materials/ore_stone.webp',     // 강화석
+  'items/materials/crystal_blue': 'items/materials/crystal_blue.webp', // 빛나는 강화석
 };
 
 // 캐릭터: SpriteSheet.png (16px, 가로 4칸 = 아래·위·왼·오, 세로 0~3줄 걷기, 4줄 공격) + Faceset.png
 export const CHARACTERS = [
-  'KnightGold', 'SorcererBlack', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
+  'HanbokBoy', 'HanbokGirl', 'KnightGold', 'OldMan', 'OldMan3', 'Villager4', 'Shaman', 'Knight',
   'OldWoman', 'Child', 'Spirit', 'Woman', 'Villager2', 'Monk',
+  // 마을마다 다른 사람들 (Ninja Adventure, CC0)
+  'GoldKnight', 'SorcererOrange', 'Villager3', 'Caveman', 'GladiatorBlue', 'EggBoy', 'Master',
+  'OldMan2', 'Inspector', 'Villager', 'Caveman2', 'Cavegirl2', 'Hunter', 'EggGirl', 'Samurai',
+  'Noble', 'Princess', 'Monk2', 'BlueSamurai', 'Boy',
+  'FighterWhite', 'Lion', 'Cavegirl', 'MaskFrog', 'LionBoy',
+  'SorcererBlack', 'Eskimo', 'FighterRed', 'LionOrange', 'EskimoNinja', 'NinjaYellow',
 ];
 
-export const HEROES = { male: 'KnightGold', female: 'SorcererBlack' };
+// 주인공: 한복 (Ninja Adventure의 Boy·Princess 옷 색을 바꿈 — tools/build_hanbok.py). KnightGold는 프로포르 재상이 써요.
+//   남: 검은 도포 · 흰 깃 · 금빛 띠 · 검은 바지 · 검은 머리   여: 흰 저고리 · 분홍 치마 · 분홍 고름 (둘 다 밝은 피부)
+export const HEROES = { male: 'HanbokBoy', female: 'HanbokGirl' };
 
 // 그림 일부를 잘라 쓰는 물건: [그림, 칸x, 칸y, 가로칸, 세로칸]
 export const OBJECTS = {
@@ -100,7 +156,7 @@ export const OBJECTS = {
   cart: ['na/element', 0, 3, 2, 2],
   scarecrow: ['na/element', 6, 3, 1, 2],
   table: ['na/element', 11, 1, 3, 1],
-  laundry: ['na/element', 14, 3, 2, 1],
+  laundry: ['na/laundry', 0, 0, 4, 2],
   fence: ['na/element', 11, 3, 3, 1],
   sign: ['na/element', 0, 2, 1, 1],
   // 바위·수정 (TilesetNature)
@@ -120,6 +176,25 @@ export const OBJECTS = {
   ore_a: ['na/nature', 4, 15, 1, 1],
   ore_b: ['na/nature', 5, 15, 1, 1],
   stump: ['na/nature', 0, 8, 2, 2],
+  cave_mouth: ['na/reliefd', 3, 7, 3, 3],
+  // Zelda-like (ArMM1998, CC0) 바위
+  zl_rock: ['zl/props', 0, 0, 1, 1],
+  zl_rock_flat: ['zl/props', 1, 0, 1, 1],
+  zl_pebbles: ['zl/props', 2, 0, 1, 1],
+  zl_boulder: ['zl/props', 0, 1, 2, 2],
+  // Zelda-like 마을 소품
+  zl_stall: ['zl/town', 0, 0, 5, 4],
+  zl_bench: ['zl/town', 5, 0, 3, 2],
+  zl_crates: ['zl/town', 5, 2, 2, 2],
+  zl_fruit_y: ['zl/town', 0, 4, 1, 2],
+  zl_fruit_g: ['zl/town', 1, 4, 1, 2],
+  zl_fruit_r: ['zl/town', 2, 4, 1, 2],
+  zl_fruit_o: ['zl/town', 3, 4, 1, 2],
+  zl_plant_big: ['zl/town', 4, 4, 1, 2],
+  zl_pot_blue: ['zl/town', 5, 4, 1, 1],
+  zl_pot_white: ['zl/town', 6, 4, 1, 1],
+  zl_pot_bush: ['zl/town', 7, 4, 1, 1],
+  zl_stump: ['zl/town', 0, 6, 2, 2],
   tree_snowpine: ['na/nature', 8, 0, 2, 2],
   tree_whitepine: ['na/nature', 10, 0, 2, 2],
   tree_white: ['na/nature', 12, 0, 2, 2],
@@ -131,13 +206,13 @@ export const OBJECTS = {
   notice: ['na/element', 6, 3, 1, 2],
 };
 
-// 배경음악: Ninja Adventure 음악(ogg) + 기존 mp3(ogg를 못 트는 기기용)
+// 배경음악: 모두 Ninja Adventure 음악(CC0). 소리 크기를 맞춰 ogg와 mp3(ogg를 못 트는 아이패드 사파리용)로 담았어요.
 export const BGM = {
-  bgm_title: ['na/music/title.ogg', 'audio/bgm/title_theme.mp3'],
-  bgm_town: ['na/music/village.ogg', 'audio/bgm/town_theme.mp3'],
-  bgm_field: ['audio/bgm/field_theme.mp3'],
-  bgm_dungeon: ['audio/bgm/dungeon_theme.mp3'],
-  bgm_boss: ['audio/bgm/boss_theme.mp3'],
+  bgm_title: ['na/music/title.ogg', 'na/music/title.mp3'],
+  bgm_town: ['na/music/village.ogg', 'na/music/village.mp3'],
+  bgm_field: ['na/music/field.ogg', 'na/music/field.mp3'],     // Ninja Adventure 「Road」 — 마을 곡과 같은 빠르기·이웃 조성
+  bgm_dungeon: ['na/music/dungeon.ogg', 'na/music/dungeon.mp3'], // 「The Cave」
+  bgm_boss: ['na/music/boss.ogg', 'na/music/boss.mp3'],         // 「Fight」
 };
 
 export const AUDIO = {

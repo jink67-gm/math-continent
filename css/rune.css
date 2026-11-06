@@ -3,7 +3,7 @@
   position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 12px;
   background: radial-gradient(circle at 50% 40%, rgba(60, 40, 120, .55), rgba(8, 6, 20, .8));
   animation: rune-fade .18s ease-out;
-  font-family: 'Galmuri11', sans-serif;
+  font-family: 'NanumSquareRound', sans-serif;
 }
 .rune-backdrop.closing { animation: rune-fade .16s reverse forwards; }
 @keyframes rune-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -25,13 +25,18 @@
   background: radial-gradient(circle, #8b6cff 0%, #3b2a7a 70%); border: 2px solid #e8c36a; border-radius: 50%;
   box-shadow: 0 0 14px rgba(160, 130, 255, .8);
 }
-.rune-title { font-size: 20px; color: #ffe9a8; line-height: 1.2; }
-.rune-unit { font-size: 12px; color: #cfe3c8; margin-top: 2px; }
-.rune-npc { margin-top: 10px; padding: 8px 12px; background: #2c2216; border-radius: 8px; font-size: 13px; color: #e6f0dd; line-height: 1.5; }
+.rune-title { font-size: 22px; font-weight: bold; color: #ffe9a8; line-height: 1.2; }
+.rune-x {
+  margin-left: auto; align-self: flex-start; width: 40px; height: 40px; flex: none; border-radius: 50%;
+  border: 2px solid #e8c36a; background: #2c2216; color: #ffe9a8; font-size: 18px; font-weight: bold; cursor: pointer;
+}
+.rune-x:hover { background: #4a3720; }
+.rune-unit { font-size: 14px; color: #cfe3c8; margin-top: 2px; }
+.rune-npc { margin-top: 10px; padding: 9px 13px; background: #2c2216; border-radius: 8px; font-size: 15px; color: #e6f0dd; line-height: 1.5; }
 
 .rune-question {
   margin: 14px 0; padding: 16px; background: #fff8e6; color: #2b2014; border-radius: 10px;
-  font-family: system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-family: 'NanumSquareRound', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   font-size: 22px; line-height: 1.7; text-align: center; font-weight: 600;
 }
 .rune-figure { display: flex; justify-content: center; margin-bottom: 10px; }
@@ -46,10 +51,11 @@
 .rune-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .rune-choice {
   display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 8px 12px; cursor: pointer;
-  font: 600 20px system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #2b2014;
+  font: bold 20px 'NanumSquareRound', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #2b2014;
   background: #fff3cf; border: 2px solid #1b1208; border-radius: 10px; box-shadow: 0 4px 0 #1b1208;
-  touch-action: manipulation;
+  touch-action: manipulation; transition: transform .06s, box-shadow .06s;
 }
+.rune-choice:not(:disabled):active { transform: translateY(4px); box-shadow: 0 0 0 #1b1208; }
 .rune-choice:hover:not(:disabled) { background: #fffbe6; }
 .rune-choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #1b1208; }
 .rune-choice:disabled { cursor: not-allowed; }
@@ -57,7 +63,7 @@
 .rune-choice.right { background: #c9f5d6; }
 .rune-choice .no {
   flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
-  background: #3b2a7a; color: #fff; font: 13px 'Galmuri11', sans-serif;
+  background: #3b2a7a; color: #fff; font: bold 14px 'NanumSquareRound', sans-serif;
 }
 .rune-choice .txt { flex: 1; text-align: center; }
 .img-choices .rune-choice { min-height: 96px; }
@@ -73,12 +79,15 @@
 .rune-input:disabled { background: #d9d0bd; }
 .rune-suffix { font-size: 20px; }
 .rune-btn {
-  font: 16px 'Galmuri11', sans-serif; color: #fff; padding: 12px 20px; cursor: pointer;
+  font: bold 17px 'NanumSquareRound', sans-serif; color: #fff; padding: 12px 20px; cursor: pointer;
   background: #2f6a3a; border: 2px solid #ffd866; border-radius: 10px; box-shadow: 0 4px 0 #1b1208;
-  touch-action: manipulation;
+  touch-action: manipulation; transition: transform .06s, box-shadow .06s, filter .1s;
 }
+/* 누르면 쏙 들어가는 느낌 */
+.rune-btn:not(:disabled):hover { filter: brightness(1.12); }
+.rune-btn:not(:disabled):active { transform: translateY(4px); box-shadow: 0 0 0 #1b1208; filter: brightness(.92); }
 .rune-btn:disabled { opacity: .5; cursor: default; }
-.rune-btn.ghost { background: #3a2c1c; border-color: #6b4a22; font-size: 13px; padding: 8px 14px; }
+.rune-btn.ghost { background: #3a2c1c; border-color: #6b4a22; font-size: 15px; padding: 9px 14px; }
 
 .rune-feedback { text-align: center; margin-top: 12px; }
 .rune-feedback:empty { display: none; }
@@ -102,14 +111,108 @@
 /* 상점 · 가방 · 대장간 */
 .panel-card { width: min(600px, 100%); }
 .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.panel-gold { color: #ffd866; font-size: 15px; }
-.panel-body { margin-top: 12px; display: grid; gap: 8px; }
-.panel-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: #2c2216; border-radius: 10px; }
-.panel-icon { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.panel-gold { color: #ffd866; font-size: 16px; margin-left: auto; white-space: nowrap; }
+.panel-body { margin-top: 12px; display: grid; gap: 9px; }
+.panel-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #2c2216; border-radius: 10px; }
+.panel-icon { width: 42px; height: 42px; object-fit: contain; image-rendering: pixelated; flex: none; }
 .panel-text { flex: 1; min-width: 0; }
-.panel-name { font-size: 15px; color: #fff3c4; }
-.panel-info { font-size: 12px; color: #cfe3c8; margin-top: 2px; }
-.panel-row .rune-btn { padding: 8px 12px; font-size: 13px; flex: none; }
-.panel-sub { font-size: 13px; color: #ffe9a8; margin-top: 6px; }
-.panel-stats { font-size: 13px; color: #e6f0dd; padding: 8px 10px; background: #1f2a20; border-radius: 8px; }
-.panel-note { font-size: 12px; color: #cfe3c8; margin: 4px 0 0; }
+.panel-name { font-size: 17px; font-weight: bold; color: #fff3c4; }
+.panel-info { font-size: 14px; color: #cfe3c8; margin-top: 3px; line-height: 1.45; }
+.panel-row .rune-btn { padding: 9px 14px; font-size: 15px; flex: none; min-width: 64px; }
+.panel-sub { font-size: 16px; font-weight: bold; color: #ffe9a8; margin-top: 8px; }
+.panel-stats { font-size: 14px; color: #e6f0dd; padding: 10px 12px; background: #1f2a20; border-radius: 8px; line-height: 1.6; }
+.panel-note { font-size: 14px; color: #cfe3c8; margin: 4px 0 0; line-height: 1.5; }
+/* 누른 줄이 통통 튀어요 */
+.panel-row.bump { animation: row-bump .32s ease-out; }
+@keyframes row-bump { 0% { transform: scale(1); background: #2c2216; } 35% { transform: scale(1.03); background: #4a3a1c; box-shadow: 0 0 0 2px #ffd866; } 100% { transform: scale(1); } }
+.plus-pop { position: absolute; pointer-events: none; color: #ffe066; font-weight: bold; font-size: 20px; text-shadow: 0 2px 0 #1b1208; animation: plus-pop .7s ease-out forwards; }
+@keyframes plus-pop { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-28px); } }
+
+/* 지도 (양피지) */
+.map-parchment {
+  background: radial-gradient(ellipse at 50% 40%, #f3dc9c 0%, #e2bf72 60%, #c99a4e 100%);
+  border: 3px solid #6b4a22; border-radius: 6px; padding: 10px 12px 12px; color: #2b1a0a;
+  box-shadow: inset 0 0 30px rgba(90, 50, 10, .45);
+}
+.map-svg { width: 100%; height: auto; display: block; margin: 0 auto; font-family: 'NanumSquareRound', sans-serif; }
+.map-svg.r1 { max-height: max(160px, calc(100dvh - 300px)); }
+.map-svg.chain { max-height: 64px; }
+.map-title { font-size: 16px; text-align: center; color: #5a3410; margin-bottom: 2px; }
+.map-title.small { font-size: 13px; margin-top: 6px; }
+.map-legend { font-size: 13px; text-align: center; color: #5a3410; margin-top: 4px; }
+
+/* ── 장비·강화·능력 창 ─────────────────────────── */
+.panel-card.wide { width: min(720px, 100%); }
+.panel-head .rune-x { margin-left: 4px; }
+.inline-icon { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; image-rendering: pixelated; }
+.panel-tabs { display: flex; gap: 6px; }
+.panel-tabs button {
+  flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #6b4a22; background: #2c2216; color: #e6d8b8;
+  font: inherit; font-size: 17px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #1b1208; transition: transform .06s, box-shadow .06s;
+}
+.panel-tabs button:active, .slot-btn:active, .forge-item:active { transform: translateY(3px); box-shadow: 0 0 0 #1b1208; }
+.panel-tabs button.on { border-color: #e8c36a; background: #4a3720; color: #ffe9a8; }
+.panel-tabs b, .pts { color: #fff; background: #d8443a; border-radius: 10px; padding: 1px 8px; font-size: 14px; }
+.panel-emoji { width: 42px; height: 42px; flex: none; display: grid; place-items: center; font-size: 24px; background: #1f1810; border-radius: 8px; }
+.slot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.slot-box { background: #1f2a20; border: 2px solid #4f6b3a; border-radius: 8px; padding: 7px; font-size: 14px; color: #e6f0dd; text-align: center; min-height: 40px; }
+.slot-box i { color: #8a9a80; }
+.slot-key { display: block; font-weight: bold; color: #ffe066; font-size: 15px; }
+.slot-btns { display: grid; grid-template-columns: repeat(2, 32px); gap: 4px; flex: none; }
+.slot-btn { width: 32px; height: 28px; border-radius: 6px; border: 1px solid #6b4a22; background: #2c2216; color: #e6d8b8; font: inherit; font-size: 14px; font-weight: bold; cursor: pointer; padding: 0; box-shadow: 0 2px 0 #1b1208; transition: transform .06s; }
+.slot-btn.on { background: #e8c36a; color: #2b1a0a; border-color: #fff3c4; }
+.panel-note.pick { color: #ffe066; }
+.bad { color: #ff8a7a; }
+.forge-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.forge-item {
+  display: flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 8px; border: 2px solid #6b4a22;
+  background: #2c2216; color: #e6d8b8; font: inherit; font-size: 15px; cursor: pointer; box-shadow: 0 3px 0 #1b1208; transition: transform .06s;
+}
+.forge-item img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+.forge-item b { color: #ffe066; margin-left: 4px; }
+.forge-item.on { border-color: #e8c36a; background: #4a3720; }
+.forge-rate { padding: 8px 10px; background: #1f2a20; border-radius: 8px; }
+.forge-bar { height: 14px; background: #0f140f; border-radius: 7px; overflow: hidden; }
+.forge-bar i { display: block; height: 100%; background: linear-gradient(90deg, #6fdc6f, #ffe066); }
+.forge-num { margin-top: 6px; font-size: 16px; color: #e6f0dd; }
+.forge-num b { color: #ffe066; font-size: 21px; }
+.forge-num span { font-size: 14px; color: #9be8ff; }
+.forge-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.forge-btns .rune-btn { flex: 1; min-width: 200px; }
+@media (max-width: 560px) { .slot-btns { grid-template-columns: repeat(4, 22px); } .panel-row { flex-wrap: wrap; } }
+
+/* ── 장비 창 ─────────────────────────────────── */
+.eq-wrap { display: grid; grid-template-columns: 220px 1fr 200px; gap: 12px; align-items: start; }
+.eq-doll { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.eq-hero { grid-column: span 2; display: flex; align-items: center; gap: 10px; padding: 8px; background: #1f2a20; border-radius: 10px; font-size: 16px; font-weight: bold; color: #fff3c4; }
+.eq-hero img { width: 56px; height: 56px; image-rendering: pixelated; border: 2px solid #e8c36a; border-radius: 50%; background: #2c4a3a; }
+.eq-hero small { color: #cfe3c8; font-size: 13px; }
+.eq-slot {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; min-height: 76px; cursor: pointer;
+  background: #2c2216; border: 2px solid #6b4a22; border-radius: 10px; color: #e6d8b8; font: inherit; box-shadow: 0 3px 0 #1b1208; transition: transform .06s;
+}
+.eq-slot:active { transform: translateY(3px); box-shadow: 0 0 0 #1b1208; }
+.eq-slot.on { background: #4a3720; outline: 2px solid #ffe066; }
+.eq-slot img { width: 38px; height: 38px; object-fit: contain; image-rendering: pixelated; }
+.eq-empty { font-size: 26px; color: #6b5a40; line-height: 38px; }
+.eq-label { font-size: 13px; font-weight: bold; }
+.eq-mid { display: grid; gap: 8px; max-height: min(420px, calc(100dvh - 220px)); overflow: auto; padding-right: 4px; }
+.eq-item { cursor: pointer; border: 2px solid transparent; }
+.eq-item.picked { border-color: #ffe066; background: #3a2c1c; }
+.eq-item.worn { background: #24321f; }
+.eq-worn { font-size: 13px; color: #9be38a; font-weight: bold; flex: none; padding: 0 6px; }
+.eq-right { background: #1f2a20; border-radius: 10px; padding: 10px; }
+.cmp-row { display: grid; grid-template-columns: 70px 1fr; gap: 2px 6px; align-items: baseline; font-size: 15px; padding: 3px 0; border-bottom: 1px dashed #3a4a30; }
+.cmp-row span { color: #cfe3c8; }
+.cmp-row i { font-style: normal; color: #fff3c4; font-weight: bold; }
+.cmp-row em { grid-column: 2; font-style: normal; color: #fff; }
+.cmp-row b, b.up, b.down { font-size: 14px; }
+.up { color: #7ee07e; }
+.down { color: #ff8a7a; }
+.rar { font-size: 11px; border: 1px solid; border-radius: 6px; padding: 0 5px; vertical-align: 2px; font-weight: bold; }
+.q-steps { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: 2px; }
+.q-steps i { width: 10px; height: 10px; border-radius: 50%; background: #4a3a28; border: 1px solid #8a6a40; }
+.q-steps i.ok { background: #7ee07e; border-color: #7ee07e; }
+.q-steps i.now { background: #ffe066; border-color: #fff3c4; }
+.panel-row.done { opacity: .6; }
+@media (max-width: 820px) { .eq-wrap { grid-template-columns: 1fr; } .eq-doll { grid-template-columns: repeat(5, 1fr); } .eq-hero { display: none; } }

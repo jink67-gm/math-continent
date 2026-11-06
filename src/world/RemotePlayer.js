@@ -1,7 +1,7 @@
 // 협동 친구의 모습: 받은 위치로 부드럽게 따라가고, 걷기·공격 모습과 이름·HP를 보여 줘요.
 
 import { HEROES } from '../data/assets.js';
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 export class RemotePlayer {
   constructor(scene, info) {
@@ -12,7 +12,7 @@ export class RemotePlayer {
     this.state = 'move';
     this.shadow = scene.add.ellipse(this.x, this.y, 12, 4, 0x000000, 0.3);
     this.sprite = scene.add.sprite(this.x, this.y, `ch/${this.key}`, 0).setOrigin(0.5, 1);
-    this.tag = crisp(scene.add.text(this.x, this.y, info.name, textStyle(12, '#9be8ff'))).setOrigin(0.5, 1).setScale(1 / 3);
+    this.tag = crisp(scene.add.text(this.x, this.y, info.name, textStyle(12, '#9be8ff'))).setOrigin(0.5, 1).setScale(1 / ZOOM);
     this.bar = scene.add.graphics();
     this.lastAtk = 0;
   }

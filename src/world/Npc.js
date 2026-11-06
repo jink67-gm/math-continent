@@ -1,6 +1,6 @@
 // 마을 사람: 숨쉬듯 들썩이기, 말할 때 통통 튀기, 머리 위 이름표, 가끔 산책
 
-import { textStyle, crisp } from '../ui/style.js';
+import { textStyle, crisp, ZOOM } from '../ui/style.js';
 
 export class Npc {
   constructor(scene, def) {
@@ -16,7 +16,7 @@ export class Npc {
     this.sprite = scene.add.sprite(def.x, def.y, `ch/${def.sprite}`, 0).setOrigin(0.5, 1);
     this.sprite.play(`${this.key}_idle_down`);
     // 이름표는 작은 글씨를 또렷하게 보이려고 1/3 크기로 그려요 (화면 3배 확대)
-    this.tag = crisp(scene.add.text(def.x, def.y, def.name, textStyle(12, '#fff3c4')).setOrigin(0.5, 1).setScale(1 / 3));
+    this.tag = crisp(scene.add.text(def.x, def.y, def.name, textStyle(14, '#fff3c4')).setOrigin(0.5, 1).setScale(1 / ZOOM));
 
     this.feet = scene.add.zone(def.x, def.y, 10, 6);
     scene.physics.add.existing(this.feet, !def.wander);
@@ -27,6 +27,18 @@ export class Npc {
     this.headY = -19;
     this.phase = Math.random() * Math.PI * 2;
     this.sync(0);
+  }
+
+  // 머리 위 퀘스트 표시 ('!' 새 부탁 · '?' 보고할 것)
+  setMark(mark) {
+    if (mark === this.markNow) return;
+    this.markNow = mark;
+    this.markText?.destroy();
+    this.markText = null;
+    if (!mark) return;
+    this.markText = crisp(this.scene.add.text(this.x, this.y, mark, textStyle(20, mark === '?' ? '#7fe3ff' : '#ffd23f', { strokeThickness: 5 })))
+      .setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(100001);
+    this.scene.tweens.add({ targets: this.markText, scaleY: 0.4, duration: 400, yoyo: true, repeat: -1 });
   }
 
   get x() { return this.feet.x; }
@@ -83,5 +95,6 @@ export class Npc {
     this.sprite.setDepth(sy);
     this.shadow.setDepth(sy - 1);
     this.tag.setDepth(100000);
+    this.markText?.setPosition(sx, sy + this.headY + float - 5);
   }
 }
